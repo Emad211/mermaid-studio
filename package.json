@@ -1,7 +1,7 @@
 {
   "name": "mermaid-studio",
   "version": "1.0.0",
-  "description": "A fully-local Mermaid diagram renderer with a friendly CLI and a polished web GUI. Convert Mermaid code to SVG / PNG / PDF offline.",
+  "description": "A Persian-first, privacy-friendly Mermaid diagram studio with a polished web GUI, CLI and rendering API.",
   "type": "module",
   "bin": {
     "mermaid-studio": "bin/cli.js",
@@ -13,8 +13,14 @@
     "render": "node bin/cli.js render",
     "build": "node scripts/build-vendor.mjs",
     "test": "node tests/run.mjs",
+    "test:product": "node tests/product.mjs",
     "postinstall": "node scripts/build-vendor.mjs"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Emad211/mermaid-studio.git"
+  },
+  "homepage": "https://github.com/Emad211/mermaid-studio",
   "keywords": [
     "mermaid",
     "diagram",
@@ -26,9 +32,11 @@
     "flowchart",
     "renderer",
     "offline",
-    "local"
+    "local",
+    "persian",
+    "rtl"
   ],
-  "author": "",
+  "author": "Emad211",
   "license": "MIT",
   "engines": {
     "node": ">=18"
