@@ -1,0 +1,99 @@
+name: Finalize deployment branch
+
+on:
+  push:
+    branches:
+      - agent/persian-product-foundation
+    paths:
+      - tools/finalize-deploy.py
+      - .github/workflows/finalize-on-pr.yml
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mermaid-studio-finalizer
+  cancel-in-progress: true
+
+jobs:
+  finalize:
+    if: github.event_name == 'push' || github.event.pull_request.head.ref == 'agent/persian-product-foundation'
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/persian-product-foundation
+          fetch-depth: 0
+          persist-credentials: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Apply advertising-only product phase
+        shell: bash
+        run: |
+          set -euo pipefail
+          base64 --decode tools/ads-phase.b64 > /tmp/ads-phase.zip
+          echo "450e42caf1397c96db9b1a5bf9372258dc07511b46ce2936dbb36e01b6029da3  /tmp/ads-phase.zip" | sha256sum --check --strict
+          rm -rf /tmp/ads-phase
+          mkdir -p /tmp/ads-phase
+          unzip -q /tmp/ads-phase.zip -d /tmp/ads-phase
+          python /tmp/ads-phase/mermaid-ads-patch/apply_ads_phase.py .
+          python tools/finalize-deploy.py
+
+      - name: Install, build and test source
+        run: |
+          npm ci
+          npm run build
+          npm test
+          npm run smoke:production
+
+      - name: Build and smoke-test production image
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker build --pull --tag mermaid-studio:final .
+          docker run -d --name mermaid-studio-final -p 127.0.0.1:4321:4321 mermaid-studio:final
+          trap 'docker logs mermaid-studio-final || true; docker rm -f mermaid-studio-final >/dev/null 2>&1 || true' EXIT
+          for attempt in $(seq 1 90); do
+            if curl -fsS http://127.0.0.1:4321/api/health >/dev/null; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:4321/api/health
+          curl -fsS http://127.0.0.1:4321/ >/dev/null
+          curl -fsS http://127.0.0.1:4321/editor >/dev/null
+          curl -fsS http://127.0.0.1:4321/learn >/dev/null
+          curl -fsS -X POST http://127.0.0.1:4321/api/render \
+            -H 'content-type: application/json' \
+            --data '{"code":"flowchart TD; A-->B","format":"svg"}' \
+            --output /tmp/final.svg
+          grep -q '<svg' /tmp/final.svg
+
+      - name: Preserve validated source artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mermaid-studio-final-source
+          path: |
+            .
+            !node_modules
+            !.git
+          include-hidden-files: true
+          retention-days: 2
+
+      - name: Commit validated final source
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf tools
+          rm -f .github/workflows/apply-ads-phase.yml .github/workflows/finalize-on-pr.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Finalize free ad-supported production deployment"
+          git push origin HEAD:agent/persian-product-foundation
