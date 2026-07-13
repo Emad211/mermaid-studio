@@ -14,6 +14,9 @@ on:
 permissions:
   contents: write
 
+env:
+  PUPPETEER_NO_SANDBOX: true
+
 concurrency:
   group: finalize-analytics-seo
   cancel-in-progress: false
