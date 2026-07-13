@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="fa" dir="rtl" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0d1020" />
+    <meta name="description" content="آموزش فارسی نمودار توالی Mermaid؛ participant، پیام هم‌زمان و غیرهم‌زمان، activation، loop، alt و مثال API." />
+    <meta name="robots" content="index,follow" />
+    <title>آموزش نمودار توالی Mermaid با مثال API | Mermaid Studio</title>
+    <link rel="icon" href="/logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/css/landing.css?v=%V%" />
+    <link rel="stylesheet" href="/css/docs.css?v=%V%" />
+    <script type="application/ld+json">
+      {"@context":"https://schema.org","@type":"TechArticle","headline":"آموزش نمودار توالی Mermaid","inLanguage":"fa","proficiencyLevel":"Beginner"}
+    </script>
+  </head>
+  <body class="docs-body">
+    <header class="docs-header">
+      <a class="brand" href="/"><img src="/logo.svg" alt="" width="36" height="36" /><span class="brand-copy"><strong>Mermaid Studio</strong><small>مرجع فارسی نمودار با کد</small></span></a>
+      <nav><a href="/editor">ادیتور</a><a href="/learn">آموزش‌ها</a><a href="/privacy.html">حریم خصوصی</a></nav>
+      <button id="theme-toggle" class="icon-button" type="button">☾</button>
+    </header>
+
+    <main class="docs-shell">
+      <div class="docs-main">
+        <div class="breadcrumbs"><a href="/">خانه</a><span>/</span><a href="/learn">آموزش</a><span>/</span><span>نمودار توالی</span></div>
+        <section class="doc-hero">
+          <div class="eyebrow"><span></span> تعامل سرویس‌ها در طول زمان</div>
+          <h1>نمودار توالی در Mermaid</h1>
+          <p>Sequence Diagram ترتیب پیام‌ها میان بازیگران و سرویس‌ها را نشان می‌دهد. برای مستندسازی API، فرایند ورود، پرداخت و ارتباط میکروسرویس‌ها بسیار کاربردی است.</p>
+          <div class="doc-meta"><span>زمان مطالعه: ۹ دقیقه</span><span>سطح: مقدماتی</span><span>مناسب مستندات API</span></div>
+        </section>
+
+        <article class="doc-article">
+          <h2 id="first">ساخت اولین نمودار توالی</h2>
+          <p>نمودار با <code>sequenceDiagram</code> شروع می‌شود. شرکت‌کنندگان را با <code>participant</code> معرفی کن و سپس پیام‌ها را به ترتیب بنویس.</p>
+          <div class="code-example"><div class="code-example-head"><span>ورود کاربر</span><button data-copy-target="seq-basic" type="button">کپی کد</button><a data-open-target="seq-basic" href="/editor">ویرایش در ادیتور</a></div><pre><code id="seq-basic">sequenceDiagram
+    participant U as کاربر
+    participant W as وب‌اپ
+    participant A as API
+    U->>W: ارسال فرم ورود
+    W->>A: POST /login
+    A-->>W: access token
+    W-->>U: نمایش داشبورد</code></pre></div>
+
+          <h2 id="arrows">انواع پیکان</h2>
+          <ul><li><code>-&gt;&gt;</code>: پیام با پیکان پر</li><li><code>--&gt;&gt;</code>: پاسخ خط‌چین</li><li><code>-)</code>: پیام غیرهم‌زمان</li><li><code>-x</code>: پیام خاتمه‌یافته یا ناموفق</li></ul>
+          <p>برای خوانایی، معمولاً درخواست را با خط کامل و پاسخ را با خط‌چین نمایش می‌دهند.</p>
+
+          <h2 id="activate">نمایش زمان پردازش</h2>
+          <p>با علامت‌های <code>+</code> و <code>-</code> می‌توان فعال‌شدن و پایان پردازش یک سرویس را نمایش داد.</p>
+          <div class="code-example"><div class="code-example-head"><span>فعال‌سازی سرویس</span><button data-copy-target="seq-active" type="button">کپی کد</button><a data-open-target="seq-active" href="/editor">ویرایش در ادیتور</a></div><pre><code id="seq-active">sequenceDiagram
+    participant A as API
+    participant D as Database
+    A->>+D: SELECT user
+    D-->>-A: user row</code></pre></div>
+
+          <h2 id="conditions">شرط و مسیر جایگزین</h2>
+          <p>بلوک <code>alt</code> برای شرط، <code>else</code> برای مسیر جایگزین و <code>end</code> برای پایان بلوک استفاده می‌شود.</p>
+          <div class="code-example"><div class="code-example-head"><span>پرداخت موفق یا ناموفق</span><button data-copy-target="seq-alt" type="button">کپی کد</button><a data-open-target="seq-alt" href="/editor">ویرایش در ادیتور</a></div><pre><code id="seq-alt">sequenceDiagram
+    participant U as کاربر
+    participant P as درگاه پرداخت
+    U->>P: پرداخت سفارش
+    alt پرداخت موفق
+      P-->>U: کد رهگیری
+    else پرداخت ناموفق
+      P-->>U: پیام خطا
+    end</code></pre></div>
+
+          <h2 id="loops">تکرار و اجرای موازی</h2>
+          <p>از <code>loop</code> برای تکرار و از <code>par</code> برای کارهای موازی استفاده کن.</p>
+          <div class="code-example"><div class="code-example-head"><span>تلاش دوباره</span><button data-copy-target="seq-loop" type="button">کپی کد</button><a data-open-target="seq-loop" href="/editor">ویرایش در ادیتور</a></div><pre><code id="seq-loop">sequenceDiagram
+    participant C as Client
+    participant A as API
+    loop حداکثر سه بار
+      C->>A: دریافت وضعیت
+      A-->>C: پاسخ
+    end</code></pre></div>
+
+          <h2 id="tips">نکات خوانایی</h2>
+          <ol><li>نام فنی شرکت‌کننده را کوتاه و عنوان نمایشی را فارسی انتخاب کن.</li><li>درخواست و پاسخ را با دو نوع خط متفاوت نشان بده.</li><li>برای نمودارهای بلند از <code>autonumber</code> استفاده کن.</li><li>جزئیات کم‌اهمیت را در Note بنویس تا مسیر اصلی شلوغ نشود.</li></ol>
+          <div class="note"><strong>مثال:</strong> با نوشتن <code>Note over A,D: تراکنش دیتابیس</code> یک توضیح روی چند شرکت‌کننده قرار می‌گیرد.</div>
+
+          <div class="doc-next"><a href="/learn/flowchart"><small>آموزش قبلی</small>→ فلوچارت</a><a href="/editor"><small>مرحله بعد</small>تمرین در ادیتور ←</a></div>
+        </article>
+        <div id="docs-sponsor" class="docs-sponsor"><span>با حمایت</span><a href="#" target="_blank" rel="sponsored noreferrer"></a></div>
+      </div>
+
+      <aside class="docs-sidebar">
+        <h2>در این صفحه</h2>
+        <nav><a href="#first">شروع سریع</a><a href="#arrows">انواع پیکان</a><a href="#activate">زمان پردازش</a><a href="#conditions">شرط‌ها</a><a href="#loops">تکرار</a><a href="#tips">نکات خوانایی</a></nav>
+        <a class="sidebar-cta" href="/editor">تمرین در ادیتور</a>
+      </aside>
+    </main>
+    <script type="module" src="/js/docs.js?v=%V%"></script>
+  </body>
+</html>
