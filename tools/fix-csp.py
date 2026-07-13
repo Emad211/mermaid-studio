@@ -62,4 +62,15 @@ if "inlineHashes.join(' ')" not in source:
     raise SystemExit('inline CSP hashes were not added')
 
 path.write_text(source, encoding='utf-8')
-print('Exact inline-script CSP hashes enabled.')
+
+ci_path = Path('.github/workflows/ci.yml')
+ci = ci_path.read_text(encoding='utf-8')
+if 'PUPPETEER_NO_SANDBOX: true' not in ci:
+    marker = "permissions:\n  contents: read\n\njobs:\n"
+    replacement = "permissions:\n  contents: read\n\nenv:\n  PUPPETEER_NO_SANDBOX: true\n\njobs:\n"
+    if marker not in ci:
+        raise SystemExit('CI permissions block did not match')
+    ci = ci.replace(marker, replacement, 1)
+ci_path.write_text(ci, encoding='utf-8')
+
+print('Exact inline-script CSP hashes and CI Chromium compatibility enabled.')
