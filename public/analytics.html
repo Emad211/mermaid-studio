@@ -4,154 +4,173 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex,nofollow,noarchive" />
-    <meta name="theme-color" content="#0b0d15" />
-    <title>داشبورد آنالیز | Mermaid Studio</title>
+    <meta name="theme-color" content="#080b13" />
+    <title>مرکز کنترل رشد | Mermaid Studio</title>
     <link rel="icon" href="/logo.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/css/analytics.css?v=%V%" />
   </head>
   <body>
-    <main class="analytics-shell">
-      <header class="analytics-header">
-        <a class="analytics-brand" href="/" aria-label="صفحه اصلی Mermaid Studio">
-          <img src="/logo.svg" width="40" height="40" alt="" />
-          <span><strong>Mermaid Studio</strong><small>آنالیز بازدید، درآمد و SEO</small></span>
+    <div class="admin-layout">
+      <aside class="admin-sidebar">
+        <a class="admin-brand" href="/" aria-label="صفحه اصلی Mermaid Studio">
+          <img src="/logo.svg" width="44" height="44" alt="" />
+          <span><strong>Mermaid Studio</strong><small>مرکز کنترل رشد</small></span>
         </a>
-        <div class="analytics-controls">
-          <label>بازه آماده
-            <select id="range-preset">
-              <option value="7">۷ روز اخیر</option>
-              <option value="30" selected>۳۰ روز اخیر</option>
-              <option value="90">۹۰ روز اخیر</option>
-              <option value="365">یک سال اخیر</option>
-              <option value="custom">سفارشی</option>
-            </select>
-          </label>
-          <label>از تاریخ<input id="range-from" type="date" /></label>
-          <label>تا تاریخ<input id="range-to" type="date" /></label>
+
+        <nav class="admin-nav" aria-label="بخش‌های پنل مدیریت">
+          <button class="admin-nav-item is-active" type="button" data-admin-view="overview"><span>⌁</span><b>نمای کلی</b><small>تصمیم‌های امروز</small></button>
+          <button class="admin-nav-item" type="button" data-admin-view="revenue"><span>﷼</span><b>درآمد و تبلیغات</b><small>RPM، eCPM و جایگاه‌ها</small></button>
+          <button class="admin-nav-item" type="button" data-admin-view="seo"><span>⌕</span><b>رشد ارگانیک</b><small>Search Console و محتوا</small></button>
+          <button class="admin-nav-item" type="button" data-admin-view="audit"><span>✓</span><b>ممیزی فنی SEO</b><small>خزش زنده و خطاها</small></button>
+          <button class="admin-nav-item" type="button" data-admin-view="performance"><span>ϟ</span><b>تجربه و محصول</b><small>Web Vitals و قیف</small></button>
+          <button class="admin-nav-item" type="button" data-admin-view="settings"><span>⚙</span><b>اهداف و داده</b><small>تنظیمات و رویدادها</small></button>
+        </nav>
+
+        <div class="sidebar-health">
+          <span class="health-dot" id="sidebar-health-dot"></span>
+          <div><strong id="sidebar-health-title">در حال بررسی…</strong><small id="sidebar-health-note">وضعیت سرویس و داده</small></div>
+        </div>
+        <div class="sidebar-links"><a href="/" target="_blank" rel="noopener">مشاهده سایت</a><a href="/editor" target="_blank" rel="noopener">بازکردن ادیتور</a></div>
+      </aside>
+
+      <main class="admin-main">
+        <header class="admin-topbar">
+          <button class="sidebar-toggle" id="sidebar-toggle" type="button" aria-label="نمایش منو">☰</button>
+          <div class="range-controls">
+            <label>بازه<select id="range-preset"><option value="7">۷ روز</option><option value="30" selected>۳۰ روز</option><option value="90">۹۰ روز</option><option value="365">یک سال</option><option value="custom">سفارشی</option></select></label>
+            <label>از<input id="range-from" type="date" /></label>
+            <label>تا<input id="range-to" type="date" /></label>
+          </div>
           <button id="refresh-dashboard" class="a-button" type="button">به‌روزرسانی</button>
-          <a id="export-dashboard" class="a-button secondary" href="/api/admin/analytics/export.csv">خروجی CSV</a>
-        </div>
-      </header>
+          <a id="export-dashboard" class="a-button secondary" href="/api/admin/analytics/export.csv">CSV</a>
+        </header>
 
-      <section class="analytics-intro">
-        <div>
-          <h1>تصویر واقعی رشد و درآمد</h1>
-          <p>بازدید، کاربران یکتا، تعامل با ادیتور، خروجی‌ها، کیفیت تجربهٔ کاربر، جایگاه‌های تبلیغاتی، درآمد واقعی پنل ناشر و داده‌های Search Console در یک صفحه جمع می‌شوند.</p>
-        </div>
-        <div id="dashboard-status" class="analytics-status">در حال دریافت داده…</div>
-      </section>
+        <section class="admin-hero">
+          <div><span class="hero-kicker">Growth Intelligence</span><h1>مرکز کنترل درآمد، محصول و SEO</h1><p>یک نمای عملیاتی برای دیدن اتفاق‌ها، یافتن علت‌ها و تبدیل داده به اقدام مشخص؛ بدون ارسال کد Mermaid یا IP خام به سرویس شخص ثالث.</p></div>
+          <div id="dashboard-status" class="analytics-status">در حال دریافت داده…</div>
+        </section>
 
-      <section class="kpi-grid" aria-label="شاخص‌های اصلی">
-        <article class="kpi-card" data-tone="blue"><span>بازدید صفحه</span><strong id="kpi-pageviews">—</strong><small id="kpi-pageviews-note">در بازه انتخاب‌شده</small></article>
-        <article class="kpi-card" data-tone="green"><span>جلسه‌های یکتا</span><strong id="kpi-sessions">—</strong><small id="kpi-bounce">نرخ پرش —</small></article>
-        <article class="kpi-card" data-tone="pink"><span>درآمد واقعی</span><strong id="kpi-revenue">—</strong><small id="kpi-rpm">RPM صفحه —</small></article>
-        <article class="kpi-card" data-tone="yellow"><span>خروجی نمودار</span><strong id="kpi-exports">—</strong><small id="kpi-exports-rate">به‌ازای هر جلسه —</small></article>
-        <article class="kpi-card"><span>کلیک ارگانیک</span><strong id="kpi-search-clicks">—</strong><small id="kpi-search-ctr">CTR جست‌وجو —</small></article>
-        <article class="kpi-card" data-tone="green"><span>پیش‌بینی ۳۰ روز</span><strong id="kpi-forecast">—</strong><small>براساس داده واقعی یا RPM برآوردی</small></article>
-      </section>
+        <section class="view-panel is-active" data-view-panel="overview">
+          <div class="section-heading"><div><span>Executive overview</span><h2>آنچه همین حالا باید بدانید</h2></div><div class="section-actions"><button class="a-button secondary" type="button" data-jump-view="audit">اجرای ممیزی SEO</button></div></div>
+          <section class="kpi-grid kpi-grid--8" aria-label="شاخص‌های اصلی">
+            <article class="kpi-card" data-tone="blue"><span>بازدید صفحه</span><strong id="kpi-pageviews">—</strong><small id="delta-pageviews">بازهٔ قبل —</small></article>
+            <article class="kpi-card" data-tone="violet"><span>جلسه‌ها</span><strong id="kpi-sessions">—</strong><small id="delta-sessions">بازهٔ قبل —</small></article>
+            <article class="kpi-card" data-tone="pink"><span>درآمد واقعی</span><strong id="kpi-revenue">—</strong><small id="delta-revenue">بازهٔ قبل —</small></article>
+            <article class="kpi-card" data-tone="green"><span>RPM صفحه</span><strong id="kpi-rpm">—</strong><small id="delta-rpm">بازهٔ قبل —</small></article>
+            <article class="kpi-card" data-tone="cyan"><span>کلیک ارگانیک</span><strong id="kpi-search-clicks">—</strong><small id="delta-search">بازهٔ قبل —</small></article>
+            <article class="kpi-card" data-tone="yellow"><span>خروجی نمودار</span><strong id="kpi-exports">—</strong><small id="delta-exports">بازهٔ قبل —</small></article>
+            <article class="kpi-card" data-tone="green"><span>امتیاز فنی SEO</span><strong id="kpi-seo-score">—</strong><small id="kpi-seo-grade">آخرین ممیزی</small></article>
+            <article class="kpi-card" data-tone="pink"><span>پیش‌بینی ۳۰ روز</span><strong id="kpi-forecast">—</strong><small>بر اساس درآمد واقعی یا RPM هدف</small></article>
+          </section>
 
-      <section class="dashboard-grid">
-        <article class="panel span-8">
-          <div class="panel-head"><div><h2>روند ترافیک</h2><p>بازدید صفحه، جلسه و کاربر یکتا به تفکیک روز</p></div><span class="panel-tag">First-party</span></div>
-          <div class="chart-wrap"><canvas id="traffic-chart" aria-label="نمودار روند ترافیک"></canvas></div>
-          <div class="chart-legend"><span style="color:#63b3ff"><i></i>بازدید</span><span style="color:#9b6df3"><i></i>جلسه</span><span style="color:#38d39f"><i></i>کاربر یکتا</span></div>
-        </article>
+          <section class="dashboard-grid">
+            <article class="panel span-8">
+              <div class="panel-head"><div><h3>روند ترافیک و تغییرات مهم</h3><p>بازدید، جلسه و کاربران یکتای روزانه؛ Annotationها روی نمودار مشخص می‌شوند.</p></div><span class="panel-tag">مقایسه با بازهٔ قبل</span></div>
+              <div class="chart-wrap"><canvas id="traffic-chart" aria-label="نمودار روند ترافیک"></canvas></div>
+              <div class="chart-legend"><span style="color:#62b4ff"><i></i>بازدید</span><span style="color:#9c78ff"><i></i>جلسه</span><span style="color:#43d8a4"><i></i>کاربر یکتا</span><span style="color:#f5c451"><i></i>رویداد مهم</span></div>
+            </article>
+            <article class="panel span-4 panel--attention">
+              <div class="panel-head"><div><h3>هشدارها و اقدام‌های پیشنهادی</h3><p>اولویت‌بندی خودکار افت‌ها، خطاها و فرصت‌ها</p></div><span id="alert-count" class="panel-tag">۰ مورد</span></div>
+              <div id="alerts-list" class="alert-list"></div>
+            </article>
 
-        <article class="panel span-4">
-          <div class="panel-head"><div><h2>کیفیت تعامل</h2><p>شاخص‌های رفتاری محصول</p></div></div>
-          <div class="metric-row">
-            <div class="metric-box"><span>میانگین تعامل</span><strong id="metric-engagement">—</strong></div>
-            <div class="metric-box"><span>ورود به ادیتور</span><strong id="metric-editor-rate">—</strong></div>
-            <div class="metric-box"><span>موفقیت رندر</span><strong id="metric-render-rate">—</strong></div>
-          </div>
-          <div class="panel-head" style="margin-top:24px"><div><h2>فرمت‌های خروجی</h2></div></div>
-          <div id="exports-bars" class="bar-list"></div>
-        </article>
+            <article class="panel span-6">
+              <div class="panel-head"><div><h3>قیف ارزش محصول</h3><p>از بازدید تا ورود به ادیتور، رندر، خروجی و اشتراک‌گذاری</p></div></div>
+              <div id="funnel-list" class="funnel-list"></div>
+            </article>
+            <article class="panel span-6">
+              <div class="panel-head"><div><h3>پیشرفت اهداف</h3><p>هدف‌های رشد و درآمد که در بخش تنظیمات تعریف می‌کنید</p></div><button class="text-button" type="button" data-jump-view="settings">ویرایش اهداف</button></div>
+              <div id="goals-progress" class="goal-list"></div>
+            </article>
 
-        <article class="panel span-7">
-          <div class="panel-head"><div><h2>درآمد و عملکرد تبلیغات</h2><p>درآمد ثبت‌شده از پنل ناشر، نمایش، کلیک، RPM و eCPM</p></div><span class="panel-tag">مبالغ به ریال</span></div>
-          <div class="chart-wrap compact"><canvas id="revenue-chart" aria-label="نمودار درآمد روزانه"></canvas></div>
-          <div class="metric-row" style="margin-top:16px">
-            <div class="metric-box"><span>eCPM</span><strong id="metric-ecpm">—</strong></div>
-            <div class="metric-box"><span>CPC</span><strong id="metric-cpc">—</strong></div>
-            <div class="metric-box"><span>CTR تبلیغ</span><strong id="metric-ad-ctr">—</strong></div>
-          </div>
-        </article>
+            <article class="panel span-8">
+              <div class="panel-head"><div><h3>درآمد روزانه</h3><p>درآمد واقعی واردشده از پنل ناشر در کنار روند ترافیک</p></div><span class="panel-tag">ریال</span></div>
+              <div class="chart-wrap compact"><canvas id="revenue-chart" aria-label="نمودار درآمد روزانه"></canvas></div>
+            </article>
+            <article class="panel span-4">
+              <div class="panel-head"><div><h3>خلاصه فرصت‌ها</h3><p>پتانسیل قابل اقدام از دادهٔ جست‌وجو</p></div></div>
+              <div class="opportunity-summary"><div><span>کلیک بالقوه با بهبود CTR</span><strong id="opportunity-clicks">—</strong></div><div><span>عبارت در فاصلهٔ رتبه‌گیری</span><strong id="opportunity-striking">—</strong></div><div><span>شکاف محتوایی</span><strong id="opportunity-gaps">—</strong></div></div>
+            </article>
 
-        <article class="panel span-5">
-          <div class="panel-head"><div><h2>ثبت درآمد واقعی</h2><p>اعداد گزارش یکتانت یا تپسل را روزانه یا هفتگی وارد کنید.</p></div></div>
-          <form id="revenue-form">
-            <div class="form-grid">
-              <label>تاریخ<input id="revenue-date" name="date" type="date" required /></label>
-              <label>شبکه<select id="revenue-provider" name="provider"><option value="yektanet">یکتانت</option><option value="tapsell">تپسل</option><option value="other">سایر</option></select></label>
-              <label>جایگاه<input id="revenue-slot" name="slot" value="all" maxlength="100" /></label>
-              <label>نمایش<input id="revenue-impressions" name="impressions" type="number" min="0" step="1" value="0" /></label>
-              <label>کلیک<input id="revenue-clicks" name="clicks" type="number" min="0" step="1" value="0" /></label>
-              <label>درآمد (ریال)<input id="revenue-rial" name="revenueRial" type="number" min="0" step="1" required /></label>
-              <label class="wide">یادداشت<input id="revenue-note" name="note" maxlength="240" placeholder="مثلاً گزارش هفتگی جایگاه آموزش" /></label>
-            </div>
-            <div class="form-actions"><button class="a-button" type="submit">ثبت درآمد</button><span id="revenue-message" class="form-message"></span></div>
-          </form>
-        </article>
+            <article class="panel span-12">
+              <div class="panel-head"><div><h3>رویدادها و تغییرات ثبت‌شده</h3><p>انتشار نسخه، کمپین، تغییر محتوا و جابه‌جایی جایگاه تبلیغ</p></div></div>
+              <div id="annotation-timeline" class="annotation-timeline"></div>
+            </article>
+          </section>
+        </section>
 
-        <article class="panel span-12">
-          <div class="panel-head"><div><h2>Core Web Vitals واقعی کاربران</h2><p>صدک ۷۵ دادهٔ میدانی؛ هدف خوب: LCP ≤ ۲.۵s، INP ≤ ۲۰۰ms و CLS ≤ ۰.۱</p></div><span class="panel-tag">RUM</span></div>
-          <div id="vitals-grid" class="vitals-grid"></div>
-        </article>
+        <section class="view-panel" data-view-panel="revenue">
+          <div class="section-heading"><div><span>Revenue intelligence</span><h2>درآمد و کارایی تبلیغات</h2></div></div>
+          <section class="kpi-grid kpi-grid--6">
+            <article class="kpi-card" data-tone="pink"><span>درآمد</span><strong id="revenue-total">—</strong><small id="revenue-period-note">بازه انتخاب‌شده</small></article>
+            <article class="kpi-card"><span>eCPM</span><strong id="metric-ecpm">—</strong><small>به‌ازای هزار Impression</small></article>
+            <article class="kpi-card"><span>CPC</span><strong id="metric-cpc">—</strong><small>درآمد به‌ازای کلیک</small></article>
+            <article class="kpi-card"><span>CTR تبلیغ</span><strong id="metric-ad-ctr">—</strong><small>کلیک تقسیم بر نمایش</small></article>
+            <article class="kpi-card"><span>Fill rate تقریبی</span><strong id="metric-fill-rate">—</strong><small>Impression نسبت به جایگاه دیده‌شده</small></article>
+            <article class="kpi-card"><span>Session RPM</span><strong id="metric-session-rpm">—</strong><small>درآمد به‌ازای هزار جلسه</small></article>
+          </section>
+          <section class="dashboard-grid">
+            <article class="panel span-7"><div class="panel-head"><div><h3>روند درآمد، نمایش و کلیک</h3><p>برای تشخیص افت موجودی، کاهش نرخ کلیک یا تغییر کیفیت ترافیک</p></div></div><div class="chart-wrap"><canvas id="ad-chart"></canvas></div><div class="chart-legend"><span style="color:#f067a0"><i></i>درآمد</span><span style="color:#62b4ff"><i></i>Impression</span><span style="color:#f5c451"><i></i>Click</span></div></article>
+            <article class="panel span-5"><div class="panel-head"><div><h3>ثبت درآمد واقعی</h3><p>هر گزارش پنل را به تاریخ، شبکه و جایگاه متصل کنید.</p></div></div><form id="revenue-form"><div class="form-grid"><label>تاریخ<input id="revenue-date" name="date" type="date" required /></label><label>شبکه<select id="revenue-provider" name="provider"><option value="yektanet">یکتانت</option><option value="tapsell">تپسل</option><option value="other">سایر</option></select></label><label>جایگاه<input id="revenue-slot" name="slot" value="all" maxlength="100" /></label><label>نمایش<input id="revenue-impressions" name="impressions" type="number" min="0" step="1" value="0" /></label><label>کلیک<input id="revenue-clicks" name="clicks" type="number" min="0" step="1" value="0" /></label><label>درآمد (ریال)<input id="revenue-rial" name="revenueRial" type="number" min="0" step="1" required /></label><label class="wide">یادداشت<input id="revenue-note" name="note" maxlength="240" placeholder="گزارش روزانه یا هفتگی" /></label></div><div class="form-actions"><button class="a-button" type="submit">ثبت درآمد</button><span id="revenue-message" class="form-message"></span></div></form></article>
+            <article class="panel span-6"><div class="panel-head"><div><h3>درآمد به تفکیک شبکه</h3><p>مقایسه درآمد، Impression، Click و eCPM</p></div></div><div class="table-wrap"><table><thead><tr><th>شبکه</th><th>درآمد</th><th>نمایش</th><th>کلیک</th><th>eCPM</th></tr></thead><tbody id="provider-table"></tbody></table></div></article>
+            <article class="panel span-6"><div class="panel-head"><div><h3>درآمد به تفکیک جایگاه</h3><p>پیداکردن جایگاه‌های پربازده و کم‌بازده</p></div></div><div class="table-wrap"><table><thead><tr><th>جایگاه</th><th>درآمد</th><th>نمایش</th><th>CTR</th><th>eCPM</th></tr></thead><tbody id="slot-revenue-table"></tbody></table></div></article>
+            <article class="panel span-6"><div class="panel-head"><div><h3>سلامت جایگاه‌های تبلیغاتی</h3><p>دیدن جایگاه، لود اسکریپت، خطا و ad blocker</p></div></div><div class="table-wrap"><table><thead><tr><th>جایگاه</th><th>دیده‌شدن</th><th>لود</th><th>خطا</th><th>مسدود</th></tr></thead><tbody id="ad-slots-table"></tbody></table></div></article>
+            <article class="panel span-6"><div class="panel-head"><div><h3>سوابق درآمد</h3><p>اعداد گزارش ناشر؛ قابل حذف و جایگزینی</p></div></div><div class="table-wrap"><table><thead><tr><th>تاریخ</th><th>شبکه</th><th>جایگاه</th><th>نمایش</th><th>کلیک</th><th>درآمد</th><th></th></tr></thead><tbody id="revenue-table"></tbody></table></div></article>
+          </section>
+        </section>
 
-        <article class="panel span-6">
-          <div class="panel-head"><div><h2>صفحات پربازدید</h2><p>برای اولویت‌بندی محتوا و جایگاه تبلیغ</p></div></div>
-          <div class="table-wrap"><table><thead><tr><th>صفحه</th><th>بازدید</th><th>جلسه</th><th>تعامل</th></tr></thead><tbody id="pages-table"></tbody></table></div>
-        </article>
+        <section class="view-panel" data-view-panel="seo">
+          <div class="section-heading"><div><span>Organic growth</span><h2>Search Console، فرصت کلمات و عملکرد محتوا</h2></div><div class="section-actions"><button id="gsc-sync" class="a-button" type="button">همگام‌سازی Search Console</button></div></div>
+          <section class="kpi-grid kpi-grid--6"><article class="kpi-card" data-tone="cyan"><span>کلیک ارگانیک</span><strong id="seo-clicks">—</strong><small id="seo-click-delta">بازه قبل —</small></article><article class="kpi-card"><span>Impression</span><strong id="seo-impressions">—</strong><small>نمایش در نتایج</small></article><article class="kpi-card"><span>CTR جست‌وجو</span><strong id="seo-ctr">—</strong><small>کلیک تقسیم بر Impression</small></article><article class="kpi-card"><span>جایگاه متوسط</span><strong id="seo-position">—</strong><small>میانگین وزنی</small></article><article class="kpi-card" data-tone="yellow"><span>فرصت CTR</span><strong id="seo-ctr-opportunities">—</strong><small>Query با Impression بالا</small></article><article class="kpi-card" data-tone="green"><span>صفحه‌های محتوایی</span><strong id="seo-content-pages">—</strong><small>دارای دادهٔ رفتاری</small></article></section>
+          <section class="dashboard-grid">
+            <article class="panel span-8"><div class="panel-head"><div><h3>روند کلیک و Impression ارگانیک</h3><p>مقایسهٔ دیده‌شدن و جذب واقعی کاربر از جست‌وجو</p></div></div><div class="chart-wrap"><canvas id="search-chart"></canvas></div><div class="chart-legend"><span style="color:#43d8a4"><i></i>Click</span><span style="color:#62b4ff"><i></i>Impression</span></div></article>
+            <article class="panel span-4"><div class="panel-head"><div><h3>وضعیت اتصال‌ها</h3><p>همگام‌سازی مستقیم یا ورود دستی داده</p></div></div><div id="integration-cards" class="integration-cards"></div></article>
+            <article class="panel span-4"><div class="panel-head"><div><h3>بهبود CTR</h3><p>رتبه مناسب اما عنوان یا snippet کم‌کلیک</p></div></div><div id="ctr-opportunities" class="opportunity-list"></div></article>
+            <article class="panel span-4"><div class="panel-head"><div><h3>فاصله تا صفحه اول</h3><p>عبارت‌های رتبهٔ ۴ تا ۲۰ با Impression قابل توجه</p></div></div><div id="striking-opportunities" class="opportunity-list"></div></article>
+            <article class="panel span-4"><div class="panel-head"><div><h3>شکاف محتوایی</h3><p>تقاضا وجود دارد، اما رتبه هنوز پایین است</p></div></div><div id="gap-opportunities" class="opportunity-list"></div></article>
+            <article class="panel span-12"><div class="panel-head"><div><h3>ماتریس عملکرد محتوا</h3><p>ترافیک، تعامل، ورود به ادیتور و عملکرد ارگانیک هر صفحه کنار هم</p></div></div><div class="table-wrap table-wrap--large"><table><thead><tr><th>صفحه</th><th>بازدید</th><th>تعامل</th><th>ورود به ادیتور</th><th>کلیک گوگل</th><th>Impression</th><th>CTR</th><th>جایگاه</th><th>پیشنهاد</th></tr></thead><tbody id="content-matrix-table"></tbody></table></div></article>
+            <article class="panel span-7"><div class="panel-head"><div><h3>عبارت‌های جست‌وجو</h3><p>برترین Queryها بر اساس کلیک و Impression</p></div></div><div class="table-wrap"><table><thead><tr><th>عبارت</th><th>کلیک</th><th>نمایش</th><th>CTR</th><th>جایگاه</th></tr></thead><tbody id="queries-table"></tbody></table></div></article>
+            <article class="panel span-5"><div class="panel-head"><div><h3>ورود CSV سرچ کنسول</h3><p>روش جایگزین یا تکمیلی برای اتصال مستقیم API</p></div></div><form id="search-import-form"><div class="form-grid"><label>تاریخ پیش‌فرض<input id="search-default-date" type="date" /></label><label class="wide">CSV<textarea id="search-csv" placeholder="date,query,page,clicks,impressions,position"></textarea></label></div><div class="form-actions"><button class="a-button" type="submit">ورود داده SEO</button><span id="search-message" class="form-message"></span></div></form></article>
+          </section>
+        </section>
 
-        <article class="panel span-6">
-          <div class="panel-head"><div><h2>منابع ورودی</h2><p>مستقیم، جست‌وجوی ارگانیک، شبکه اجتماعی و کمپین</p></div></div>
-          <div id="channels-bars" class="bar-list"></div>
-          <div class="panel-head" style="margin-top:24px"><div><h2>دامنه‌های ارجاع‌دهنده</h2></div></div>
-          <div id="referrer-bars" class="bar-list"></div>
-        </article>
+        <section class="view-panel" data-view-panel="audit">
+          <div class="section-heading"><div><span>Technical SEO audit</span><h2>ممیزی زندهٔ صفحات واقعی سایت</h2></div><div class="section-actions"><button id="run-seo-audit" class="a-button" type="button">اجرای ممیزی کامل</button></div></div>
+          <section class="dashboard-grid">
+            <article class="panel span-4 audit-score-panel"><div class="score-ring" id="audit-score-ring"><strong id="audit-score">—</strong><span id="audit-grade">بدون ممیزی</span></div><div class="audit-summary"><div><span>خطای بحرانی</span><strong id="audit-critical">—</strong></div><div><span>هشدار</span><strong id="audit-warning">—</strong></div><div><span>صفحهٔ عالی</span><strong id="audit-passed">—</strong></div><p id="audit-last-run">آخرین اجرا: —</p></div></article>
+            <article class="panel span-8"><div class="panel-head"><div><h3>مسائل اولویت‌دار</h3><p>Canonical، indexability، عنوان، محتوا، structured data، sitemap و عملکرد</p></div><span class="panel-tag">Critical → Warning</span></div><div id="audit-issues" class="audit-issues"></div></article>
+            <article class="panel span-12"><div class="panel-head"><div><h3>وضعیت تمام صفحات</h3><p>امتیاز، وضعیت HTTP، زمان پاسخ، حجم HTML، H1، واژه و schema</p></div></div><div class="table-wrap table-wrap--large"><table><thead><tr><th>مسیر</th><th>امتیاز</th><th>HTTP</th><th>زمان پاسخ</th><th>حجم</th><th>واژه</th><th>H1</th><th>Schema</th><th>Canonical</th></tr></thead><tbody id="audit-pages-table"></tbody></table></div></article>
+            <article class="panel span-7"><div class="panel-head"><div><h3>چک‌های سراسری</h3><p>Sitemap، robots، Redirectها، noindex و آمادگی Search</p></div></div><div id="global-checks" class="check-list"></div></article>
+            <article class="panel span-5"><div class="panel-head"><div><h3>IndexNow</h3><p>اطلاع‌رسانی تغییر URLها به موتورهای جست‌وجوی پشتیبان پروتکل</p></div></div><div class="integration-action"><strong id="indexnow-status">در حال بررسی تنظیمات…</strong><p>این قابلیت جایگزین crawl یا تضمین ایندکس نیست؛ فقط URLهای canonical sitemap ارسال می‌شوند.</p><button id="submit-indexnow" class="a-button secondary" type="button">ارسال URLهای Sitemap</button><span id="indexnow-message" class="form-message"></span></div></article>
+            <article class="panel span-12"><div class="panel-head"><div><h3>تاریخچه امتیاز SEO</h3><p>برای تشخیص regression پس از انتشار و تغییر قالب</p></div></div><div class="chart-wrap compact"><canvas id="audit-history-chart"></canvas></div></article>
+          </section>
+        </section>
 
-        <article class="panel span-7">
-          <div class="panel-head"><div><h2>عملکرد جست‌وجوی گوگل</h2><p>کلیک، نمایش، CTR، جایگاه متوسط و عبارت‌های پربازده از فایل Search Console</p></div><span class="panel-tag">CSV import</span></div>
-          <div class="metric-row">
-            <div class="metric-box"><span>نمایش در نتایج</span><strong id="metric-search-impressions">—</strong></div>
-            <div class="metric-box"><span>CTR</span><strong id="metric-search-ctr">—</strong></div>
-            <div class="metric-box"><span>جایگاه متوسط</span><strong id="metric-search-position">—</strong></div>
-          </div>
-          <div class="table-wrap" style="margin-top:16px"><table><thead><tr><th>عبارت جست‌وجو</th><th>کلیک</th><th>نمایش</th><th>CTR</th><th>جایگاه</th></tr></thead><tbody id="queries-table"></tbody></table></div>
-        </article>
+        <section class="view-panel" data-view-panel="performance">
+          <div class="section-heading"><div><span>Product & performance</span><h2>کیفیت تجربه، دستگاه‌ها و رفتار محصول</h2></div></div>
+          <section class="dashboard-grid">
+            <article class="panel span-12"><div class="panel-head"><div><h3>Core Web Vitals واقعی کاربران</h3><p>صدک ۷۵؛ LCP، INP و CLS معیارهای اصلی و TTFB/FCP شاخص‌های تشخیصی‌اند.</p></div><span class="panel-tag">RUM</span></div><div id="vitals-grid" class="vitals-grid"></div></article>
+            <article class="panel span-6"><div class="panel-head"><div><h3>کیفیت تعامل</h3><p>نرخ پرش، زمان تعامل، ورود به ادیتور و موفقیت رندر</p></div></div><div class="metric-row metric-row--4"><div class="metric-box"><span>نرخ پرش</span><strong id="metric-bounce">—</strong></div><div class="metric-box"><span>تعامل متوسط</span><strong id="metric-engagement">—</strong></div><div class="metric-box"><span>ورود به ادیتور</span><strong id="metric-editor-rate">—</strong></div><div class="metric-box"><span>موفقیت رندر</span><strong id="metric-render-rate">—</strong></div></div><div class="panel-head panel-head--sub"><div><h3>فرمت‌های خروجی</h3></div></div><div id="exports-bars" class="bar-list"></div></article>
+            <article class="panel span-6"><div class="panel-head"><div><h3>کانال‌های جذب</h3><p>Direct، Organic Search، Referral، Social و UTM</p></div></div><div id="channels-bars" class="bar-list"></div><div class="panel-head panel-head--sub"><div><h3>Referrerها</h3></div></div><div id="referrer-bars" class="bar-list"></div></article>
+            <article class="panel span-4"><div class="panel-head"><div><h3>دستگاه</h3></div></div><div id="devices-bars" class="bar-list"></div></article>
+            <article class="panel span-4"><div class="panel-head"><div><h3>مرورگر</h3></div></div><div id="browsers-bars" class="bar-list"></div></article>
+            <article class="panel span-4"><div class="panel-head"><div><h3>سیستم‌عامل</h3></div></div><div id="os-bars" class="bar-list"></div></article>
+          </section>
+        </section>
 
-        <article class="panel span-5">
-          <div class="panel-head"><div><h2>ورود CSV سرچ کنسول</h2><p>فایل Performance را باز و محتوای CSV را اینجا Paste کنید.</p></div></div>
-          <form id="search-import-form">
-            <div class="form-grid">
-              <label>تاریخ پیش‌فرض<input id="search-default-date" type="date" /></label>
-              <label class="wide">CSV<textarea id="search-csv" placeholder="date,query,page,clicks,impressions,position"></textarea></label>
-            </div>
-            <div class="form-actions"><button class="a-button" type="submit">ورود داده SEO</button><span id="search-message" class="form-message"></span></div>
-          </form>
-        </article>
+        <section class="view-panel" data-view-panel="settings">
+          <div class="section-heading"><div><span>Control & governance</span><h2>اهداف، Annotationها و نگهداری داده</h2></div></div>
+          <section class="dashboard-grid">
+            <article class="panel span-6"><div class="panel-head"><div><h3>هدف‌های رشد</h3><p>هدف‌های دوره‌ای برای مقایسه با عملکرد واقعی پنل</p></div></div><form id="goals-form"><div class="form-grid"><label>درآمد ماهانه (ریال)<input name="monthlyRevenueRial" type="number" min="0" /></label><label>بازدید ماهانه<input name="monthlyPageviews" type="number" min="0" /></label><label>کلیک ارگانیک ماهانه<input name="monthlyOrganicClicks" type="number" min="0" /></label><label>نرخ ورود به ادیتور (%)<input name="editorOpenRate" type="number" min="0" max="100" step="0.1" /></label><label>RPM صفحه هدف<input name="pageRpmRial" type="number" min="0" /></label><label>LCP هدف (ms)<input name="lcpMs" type="number" min="250" /></label><label>INP هدف (ms)<input name="inpMs" type="number" min="20" /></label><label>CLS هدف<input name="cls" type="number" min="0" max="5" step="0.01" /></label></div><div class="form-actions"><button class="a-button" type="submit">ذخیره اهداف</button><span id="goals-message" class="form-message"></span></div></form></article>
+            <article class="panel span-6"><div class="panel-head"><div><h3>ثبت رویداد مهم</h3><p>برای تفسیر نمودارها، انتشار نسخه و تغییرات بازاریابی را ثبت کنید.</p></div></div><form id="annotation-form"><div class="form-grid"><label>تاریخ<input name="date" id="annotation-date" type="date" required /></label><label>نوع<select name="type"><option value="release">انتشار نسخه</option><option value="campaign">کمپین</option><option value="content">تغییر محتوا</option><option value="technical">تغییر فنی</option><option value="advertising">تغییر تبلیغ</option><option value="other">سایر</option></select></label><label class="wide">عنوان<input name="title" maxlength="120" required /></label><label class="wide">توضیح<textarea name="note" maxlength="500"></textarea></label></div><div class="form-actions"><button class="a-button" type="submit">ثبت رویداد</button><span id="annotation-message" class="form-message"></span></div></form></article>
+            <article class="panel span-7"><div class="panel-head"><div><h3>فهرست رویدادها</h3><p>رویدادهای این بازه روی نمودار ترافیک نیز دیده می‌شوند.</p></div></div><div class="table-wrap"><table><thead><tr><th>تاریخ</th><th>نوع</th><th>عنوان</th><th>توضیح</th><th></th></tr></thead><tbody id="annotations-table"></tbody></table></div></article>
+            <article class="panel span-5"><div class="panel-head"><div><h3>وضعیت داده و امنیت</h3><p>کنترل پایداری و تنظیمات محرمانهٔ پنل</p></div></div><div id="data-health-list" class="check-list"></div><div class="data-actions"><a class="a-button secondary" id="export-dashboard-secondary" href="/api/admin/analytics/export.csv">دانلود CSV تحلیلی</a><button class="a-button secondary" id="copy-backup-command" type="button">کپی فرمان Backup</button></div></article>
+          </section>
+        </section>
 
-        <article class="panel span-6">
-          <div class="panel-head"><div><h2>جایگاه‌های تبلیغاتی</h2><p>نمایان‌شدن جایگاه در سایت با نمایش ثبت‌شده در پنل ناشر متفاوت است.</p></div></div>
-          <div class="table-wrap"><table><thead><tr><th>جایگاه</th><th>نمایان‌شدن</th><th>لود اسکریپت</th><th>خطا</th><th>مسدود</th></tr></thead><tbody id="ad-slots-table"></tbody></table></div>
-        </article>
-
-        <article class="panel span-6">
-          <div class="panel-head"><div><h2>دستگاه و مرورگر</h2><p>ترکیب مخاطبان برای تصمیم‌های طراحی و عملکرد</p></div></div>
-          <div id="devices-bars" class="bar-list"></div>
-          <div class="panel-head" style="margin-top:24px"><div><h2>مرورگرها</h2></div></div>
-          <div id="browsers-bars" class="bar-list"></div>
-        </article>
-
-        <article class="panel span-12">
-          <div class="panel-head"><div><h2>سوابق درآمد</h2><p>هر رکورد قابل حذف و جایگزینی است؛ منبع اصلی عدد باید گزارش پنل ناشر باشد.</p></div></div>
-          <div class="table-wrap"><table><thead><tr><th>تاریخ</th><th>شبکه</th><th>جایگاه</th><th>نمایش</th><th>کلیک</th><th>درآمد</th><th>عملیات</th></tr></thead><tbody id="revenue-table"></tbody></table></div>
-        </article>
-      </section>
-
-      <footer class="dashboard-footer"><span>کد نمودار، متن گره‌ها و IP خام ذخیره نمی‌شوند.</span><span>مسیر مدیریتی با HTTP Basic Auth و هدر <code>noindex</code> محافظت شده است.</span></footer>
-    </main>
+        <footer class="dashboard-footer"><span>کد نمودار، متن گره‌ها و IP خام در آنالیتیکس ذخیره نمی‌شوند.</span><span>پنل با Basic Auth، rate limit و <code>noindex</code> محافظت شده است.</span></footer>
+      </main>
+    </div>
     <script type="module" src="/js/analytics-dashboard.js?v=%V%"></script>
   </body>
 </html>
