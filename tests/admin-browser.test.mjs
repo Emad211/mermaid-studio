@@ -58,7 +58,7 @@ test('admin growth control center works in desktop and mobile browsers', { timeo
   await page.waitForFunction(() => document.querySelector('[data-view-panel="audit"]')?.classList.contains('is-active'));
   await page.click('#run-seo-audit');
   await page.waitForFunction(() => document.querySelector('#audit-score')?.textContent !== '—' && !document.querySelector('#run-seo-audit')?.disabled, { timeout: 45_000 });
-  const score = Number((await page.$eval('#audit-score', (node) => node.textContent)).replace(/[^0-9.]/g, ''));
+  const score = await page.$eval('#audit-score-ring', (node) => Number(node.style.getPropertyValue('--score')));
   assert.ok(score >= 70, `unexpected browser SEO score: ${score}`);
 
   await page.click('[data-admin-view="settings"]');
