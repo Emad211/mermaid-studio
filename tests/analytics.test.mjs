@@ -61,9 +61,11 @@ test('analytics aggregates product, revenue, SEO and Web Vitals without raw pers
     id: 'revenue-test', date: today, provider: 'yektanet', slot: 'homeInline',
     impressions: 1000, clicks: 20, revenueRial: 500000, note: 'test',
   });
-  await service.importSearch([
+  const searchRows = [
     { date: today, query: 'آموزش mermaid', page: 'https://diagram.example.com/learn', clicks: 8, impressions: 100, position: 3.5 },
-  ]);
+  ];
+  await service.importSearch(searchRows);
+  await service.importSearch(searchRows);
 
   const summary = await service.summary({ from: today, to: today });
   assert.equal(summary.totals.pageviews, 2);
