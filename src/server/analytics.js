@@ -202,9 +202,21 @@ function emptyDay(day) {
       visitors: 0,
       engagedSessions: 0,
       engagementSeconds: 0,
+      editorSessions: 0,
+      renderSessions: 0,
+      exportSessions: 0,
+      shareSessions: 0,
       bots: 0,
     },
-    unique: { sessions: [], visitors: [], engagedSessions: [] },
+    unique: {
+      sessions: [],
+      visitors: [],
+      engagedSessions: [],
+      editorSessions: [],
+      renderSessions: [],
+      exportSessions: [],
+      shareSessions: [],
+    },
     events: {},
     exports: {},
     pages: {},
@@ -234,8 +246,34 @@ function hydrateDay(value, day) {
     _sessionSet: { value: new Set(merged.unique.sessions || []), enumerable: false },
     _visitorSet: { value: new Set(merged.unique.visitors || []), enumerable: false },
     _engagedSet: { value: new Set(merged.unique.engagedSessions || []), enumerable: false },
+    _editorSet: { value: new Set(merged.unique.editorSessions || []), enumerable: false },
+    _renderSet: { value: new Set(merged.unique.renderSessions || []), enumerable: false },
+    _exportSet: { value: new Set(merged.unique.exportSessions || []), enumerable: false },
+    _shareSet: { value: new Set(merged.unique.shareSessions || []), enumerable: false },
   });
   return merged;
+}
+
+function ensurePage(pages, pathname) {
+  pages[pathname] ||= {
+    pageviews: 0,
+    sessions: 0,
+    engagementSeconds: 0,
+    editorOpens: 0,
+    adSlotViews: 0,
+  };
+  return pages[pathname];
+}
+
+function markUnique(data, setName, arrayName, totalName, hash) {
+  const set = data[setName];
+  if (set.has(hash)) return false;
+  if (set.size < MAX_UNIQUE_PER_DAY) {
+    set.add(hash);
+    data.unique[arrayName].push(hash);
+  }
+  data.totals[totalName] += 1;
+  return true;
 }
 
 function hashIdentifier(secret, day, value) {
@@ -538,10 +576,21 @@ class AnalyticsService {
 
       increment(data.events, payload.event);
 
+      if (payload.event === 'editor_open') {
+        ensurePage(data.pages, payload.path).editorOpens += 1;
+        markUnique(data, '_editorSet', 'editorSessions', 'editorSessions', sessionHash);
+      }
+      if (payload.event === 'render_success') {
+        markUnique(data, '_renderSet', 'renderSessions', 'renderSessions', sessionHash);
+      }
+      if (payload.event === 'share') {
+        markUnique(data, '_shareSet', 'shareSessions', 'shareSessions', sessionHash);
+      }
+
       if (payload.event === 'page_view') {
         data.totals.pageviews += 1;
-        data.pages[payload.path] ||= { pageviews: 0, sessions: 0, engagementSeconds: 0 };
-        data.pages[payload.path].pageviews += 1;
+        const page = ensurePage(data.pages, payload.path);
+        page.pageviews += 1;
 
         if (isNewSession) {
           if (data._sessionSet.size < MAX_UNIQUE_PER_DAY) {
@@ -549,7 +598,7 @@ class AnalyticsService {
             data.unique.sessions.push(sessionHash);
           }
           data.totals.sessions += 1;
-          data.pages[payload.path].sessions += 1;
+          page.sessions += 1;
           increment(data.referrers, payload.referrer);
           increment(data.channels, acquisitionChannel(payload.referrer, payload.utmSource, payload.utmMedium));
           if (payload.utmSource || payload.utmCampaign) {
@@ -572,8 +621,7 @@ class AnalyticsService {
 
       if (payload.event === 'engagement' && payload.seconds > 0) {
         data.totals.engagementSeconds += payload.seconds;
-        data.pages[payload.path] ||= { pageviews: 0, sessions: 0, engagementSeconds: 0 };
-        data.pages[payload.path].engagementSeconds += payload.seconds;
+        ensurePage(data.pages, payload.path).engagementSeconds += payload.seconds;
         if (payload.seconds >= 10 && !data._engagedSet.has(sessionHash)) {
           if (data._engagedSet.size < MAX_UNIQUE_PER_DAY) {
             data._engagedSet.add(sessionHash);
@@ -585,11 +633,15 @@ class AnalyticsService {
 
       if (payload.event === 'export' && EXPORT_FORMATS.has(payload.format)) {
         increment(data.exports, payload.format === 'jpeg' ? 'jpg' : payload.format);
+        markUnique(data, '_exportSet', 'exportSessions', 'exportSessions', sessionHash);
       }
 
       if (payload.event.startsWith('ad_') && payload.slot) {
         data.adSlots[payload.slot] ||= { views: 0, loaded: 0, errors: 0, blocked: 0 };
-        if (payload.event === 'ad_slot_view') data.adSlots[payload.slot].views += 1;
+        if (payload.event === 'ad_slot_view') {
+          data.adSlots[payload.slot].views += 1;
+          ensurePage(data.pages, payload.path).adSlotViews += 1;
+        }
         if (payload.event === 'ad_script_loaded') data.adSlots[payload.slot].loaded += 1;
         if (payload.event === 'ad_script_error') data.adSlots[payload.slot].errors += 1;
         if (payload.event === 'ad_blocked') data.adSlots[payload.slot].blocked += 1;
@@ -706,7 +758,18 @@ class AnalyticsService {
       throw new AnalyticsError(400, 'INVALID_ANALYTICS_RANGE', 'Analytics range is invalid or exceeds 400 days.');
     }
 
-    const totals = { pageviews: 0, sessions: 0, visitors: 0, engagedSessions: 0, engagementSeconds: 0, bots: 0 };
+    const totals = {
+      pageviews: 0,
+      sessions: 0,
+      visitors: 0,
+      engagedSessions: 0,
+      engagementSeconds: 0,
+      editorSessions: 0,
+      renderSessions: 0,
+      exportSessions: 0,
+      shareSessions: 0,
+      bots: 0,
+    };
     const events = {};
     const exportsByFormat = {};
     const pages = {};
@@ -730,6 +793,10 @@ class AnalyticsService {
         visitors: 0,
         engagedSessions: 0,
         engagementSeconds: 0,
+        editorSessions: 0,
+        renderSessions: 0,
+        exportSessions: 0,
+        shareSessions: 0,
         exports: 0,
         adSlotViews: 0,
         revenueRial: 0,
@@ -750,10 +817,12 @@ class AnalyticsService {
         mergeCounters(operatingSystems, value.operatingSystems);
         mergeCounters(countries, value.countries);
         for (const [page, stats] of Object.entries(value.pages || {})) {
-          pages[page] ||= { pageviews: 0, sessions: 0, engagementSeconds: 0 };
+          pages[page] ||= { pageviews: 0, sessions: 0, engagementSeconds: 0, editorOpens: 0, adSlotViews: 0 };
           pages[page].pageviews += finite(stats.pageviews);
           pages[page].sessions += finite(stats.sessions);
           pages[page].engagementSeconds += finite(stats.engagementSeconds);
+          pages[page].editorOpens += finite(stats.editorOpens);
+          pages[page].adSlotViews += finite(stats.adSlotViews);
         }
         for (const [slot, stats] of Object.entries(value.adSlots || {})) {
           adSlots[slot] ||= { views: 0, loaded: 0, errors: 0, blocked: 0 };
@@ -766,6 +835,10 @@ class AnalyticsService {
           visitors: finite(value.totals.visitors),
           engagedSessions: finite(value.totals.engagedSessions),
           engagementSeconds: finite(value.totals.engagementSeconds),
+          editorSessions: finite(value.totals.editorSessions),
+          renderSessions: finite(value.totals.renderSessions),
+          exportSessions: finite(value.totals.exportSessions),
+          shareSessions: finite(value.totals.shareSessions),
           exports: Object.values(value.exports || {}).reduce((sum, number) => sum + finite(number), 0),
           adSlotViews: Object.values(value.adSlots || {}).reduce((sum, stats) => sum + finite(stats.views), 0),
         });
@@ -877,7 +950,7 @@ class AnalyticsService {
       rates: {
         bounceRate: totals.sessions ? Math.max(0, (1 - totals.engagedSessions / totals.sessions) * 100) : 0,
         avgEngagementSeconds: totals.sessions ? totals.engagementSeconds / totals.sessions : 0,
-        editorOpenRate: totals.sessions ? (finite(events.editor_open) / totals.sessions) * 100 : 0,
+        editorOpenRate: totals.sessions ? (finite(totals.editorSessions) / totals.sessions) * 100 : 0,
         renderSuccessRate: totalRenders ? (finite(events.render_success) / totalRenders) * 100 : 0,
         exportsPerSession: totals.sessions ? totalExports / totals.sessions : 0,
         pageRpmRial: totals.pageviews ? (actualRevenueRial / totals.pageviews) * 1_000 : 0,

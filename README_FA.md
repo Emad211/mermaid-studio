@@ -14,7 +14,7 @@ npm run serve
 - صفحه معرفی محصول: `http://127.0.0.1:4321/`
 - ادیتور: `http://127.0.0.1:4321/editor`
 - سلامت سرویس: `http://127.0.0.1:4321/api/health`
-- داشبورد مدیریتی: `http://127.0.0.1:4321/admin/analytics`
+- مرکز کنترل رشد: `http://127.0.0.1:4321/admin/analytics`
 
 ## امکانات نسخه فارسی
 
@@ -28,22 +28,23 @@ npm run serve
 - لینک اشتراک‌گذاری بدون حساب کاربری
 - PWA manifest و لوگوی مستقل
 - زیرساخت اختیاری یکتانت یا تپسل فقط در صفحات محتوایی
-- داشبورد first-party برای بازدید، تعامل، درآمد، Web Vitals و دادهٔ Search Console
+- مرکز کنترل first-party برای بازدید، قیف محصول، درآمد، Web Vitals و Search Console
+- ممیزی زندهٔ Technical SEO، اهداف رشد، Annotation و هشدارهای عملیاتی
 
-## داشبورد بازدید و درآمد
+## مرکز کنترل رشد، درآمد و SEO
 
-داشبورد `/admin/analytics` با HTTP Basic Auth محافظت می‌شود و این شاخص‌ها را نشان می‌دهد:
+مسیر `/admin/analytics` با HTTP Basic Auth محافظت می‌شود و شش بخش مدیریتی دارد:
 
-- pageview، جلسه، کاربر یکتای روزانه و زمان تعامل
-- منبع ورود، کانال، UTM، دستگاه، مرورگر و سیستم‌عامل
-- ورود به ادیتور، رندر موفق/ناموفق و خروجی‌های هر فرمت
-- وضعیت جایگاه‌های تبلیغاتی و خطاهای بارگذاری
-- LCP، INP، CLS، TTFB و FCP در صدک ۷۵
-- درآمد واقعی یکتانت/تپسل، Page RPM، Session RPM، eCPM، CTR، CPC و پیش‌بینی
-- import دادهٔ Performance سرچ کنسول و تحلیل query/page
-- خروجی CSV
+1. **نمای کلی:** KPI، مقایسه با بازهٔ قبلی، هشدار، قیف و هدف‌ها
+2. **درآمد و تبلیغات:** Page RPM، Session RPM، eCPM، CTR، CPC، Fill Rate و عملکرد جایگاه
+3. **رشد ارگانیک:** Query/Page سرچ کنسول، فرصت CTR، فاصله تا صفحه اول و ماتریس محتوا
+4. **ممیزی فنی SEO:** Canonical، indexability، sitemap، robots، structured data، Title/H1، لینک داخلی و عملکرد
+5. **تجربه و محصول:** Core Web Vitals، رندر، خروجی، کانال و دستگاه
+6. **اهداف و داده:** هدف‌های رشد، Annotation، سلامت ذخیره‌سازی و Backup
 
-داده‌ها روی volume مستقل ذخیره می‌شوند؛ IP خام، کد Mermaid و متن نمودار ثبت نمی‌شود. راهنمای کامل در [`docs/ANALYTICS_FA.md`](docs/ANALYTICS_FA.md) قرار دارد.
+داشبورد می‌تواند دادهٔ Search Console را از CSV وارد کند یا به‌صورت اختیاری با Service Account و API رسمی همگام شود. اتصال IndexNow نیز اختیاری است. هیچ‌کدام از این اتصال‌ها برای اجرای پایهٔ محصول اجباری نیستند.
+
+داده‌ها روی volume مستقل ذخیره می‌شوند؛ IP خام، کد Mermaid و متن نمودار ثبت نمی‌شود. راهنمای کامل در [`docs/ADMIN_GROWTH_FA.md`](docs/ADMIN_GROWTH_FA.md) و [`docs/ANALYTICS_FA.md`](docs/ANALYTICS_FA.md) قرار دارد.
 
 ## معماری SEO
 
@@ -54,6 +55,7 @@ npm run serve
 - مقاله‌های مستقل و سروررندرشده برای Flowchart، Sequence، ERD، Gantt، Class، Mindmap، Architecture و خطاهای Mermaid
 - noindex برای ادیتور، API، headless، admin و 404
 - اندازه‌گیری Core Web Vitals واقعی
+- ممیزی داخلی برای جلوگیری از regression فنی پس از هر انتشار
 
 راهنمای تنظیم دامنه، Search Console، structured data و استراتژی محتوا در [`docs/SEO_FA.md`](docs/SEO_FA.md) است.
 
@@ -93,6 +95,22 @@ ADS_ENABLED=false
 
 راهنمای کامل در [`docs/DEPLOYMENT_FA.md`](docs/DEPLOYMENT_FA.md) قرار دارد.
 
+## اتصال‌های اختیاری رشد
+
+```dotenv
+# Google Search Console API
+GSC_ENABLED=false
+GSC_SITE_URL=sc-domain:example.com
+GSC_SERVICE_ACCOUNT_FILE=
+GSC_SERVICE_ACCOUNT_B64=
+
+# IndexNow
+INDEXNOW_ENABLED=false
+INDEXNOW_KEY=
+```
+
+برای Search Console، ایمیل Service Account باید به همان property اضافه شود. کلیدها و JSON حساب سرویس را هرگز در Git commit نکنید.
+
 ## حریم خصوصی و امنیت
 
 - پیش‌نمایش و بیشتر خروجی‌های تصویری در مرورگر تولید می‌شوند.
@@ -102,6 +120,7 @@ ADS_ENABLED=false
 - Mermaid در نسخهٔ عمومی با `securityLevel: strict` اجرا می‌شود.
 - API رندر دارای محدودیت حجم، نرخ درخواست، صف و هم‌زمانی است.
 - آنالیتیکس first-party از HMAC روزانه استفاده و DNT/GPC را رعایت می‌کند.
+- مسیرهای مدیریتی Basic Auth، rate limit، Same-Origin و `noindex` دارند.
 - اسکریپت‌های تبلیغاتی فقط در صفحهٔ اصلی، قالب‌ها و آموزش بارگذاری می‌شوند؛ نه در `/editor` یا `/headless`.
 
 ## تست
@@ -110,6 +129,7 @@ ADS_ENABLED=false
 npm ci
 npm run build
 npm test
+npm run test:admin
 npm run smoke:production
 ```
 

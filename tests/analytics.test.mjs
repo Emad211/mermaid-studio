@@ -144,7 +144,7 @@ test('analytics HTTP routes are protected and respect DNT', async (t) => {
   const authorization = basic(env.ANALYTICS_ADMIN_USER, env.ANALYTICS_ADMIN_PASSWORD);
   const dashboard = await fetch(`${server.url}/admin/analytics`, { headers: { authorization } });
   assert.equal(dashboard.status, 200);
-  assert.match(await dashboard.text(), /تصویر واقعی رشد و درآمد/);
+  assert.match(await dashboard.text(), /مرکز کنترل درآمد، محصول و SEO/);
   assert.match(dashboard.headers.get('x-robots-tag') || '', /noindex/);
 
   const summaryResponse = await fetch(`${server.url}/api/admin/analytics/summary`, { headers: { authorization } });

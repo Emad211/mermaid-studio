@@ -1,7 +1,7 @@
 {
   "name": "mermaid-studio",
-  "version": "1.4.0",
-  "description": "A free Persian-first Mermaid studio with first-party analytics, revenue reporting, deep SEO content and privacy-conscious publisher advertising.",
+  "version": "1.5.0",
+  "description": "A free Persian-first Mermaid studio with an advanced first-party growth, revenue and technical SEO control center.",
   "type": "module",
   "bin": {
     "mermaid-studio": "bin/cli.js",
@@ -13,14 +13,15 @@
     "serve:public": "node bin/cli.js serve --host 0.0.0.0 --no-open",
     "render": "node bin/cli.js render",
     "build": "node scripts/build-vendor.mjs",
-    "check": "node --check public/js/app.js && node --check public/js/exporter.js && node --check public/js/editor.js && node --check public/js/templates.js && node --check public/js/ads.js && node --check public/js/analytics.js && node --check public/js/analytics-dashboard.js && node --check public/js/svg-safety.js && node --check public/js/share.js && node --check public/js/mermaid-runtime.js && node --check public/js/headless.js && node --check src/server/app.js && node --check src/server/ads.js && node --check src/server/analytics.js && node --check src/server/seo.js && node --check src/server/learn-content.js && node --check src/server/guards.js && node --check src/core/renderer.js",
+    "check": "node --check public/js/app.js && node --check public/js/exporter.js && node --check public/js/editor.js && node --check public/js/templates.js && node --check public/js/ads.js && node --check public/js/analytics.js && node --check public/js/analytics-dashboard.js && node --check public/js/svg-safety.js && node --check public/js/share.js && node --check public/js/mermaid-runtime.js && node --check public/js/headless.js && node --check src/server/app.js && node --check src/server/ads.js && node --check src/server/analytics.js && node --check src/server/seo.js && node --check src/server/learn-content.js && node --check src/server/guards.js && node --check src/core/renderer.js && node --check src/server/admin-store.js && node --check src/server/growth-insights.js && node --check src/server/seo-audit.js && node --check src/server/search-console.js && node --check src/server/indexnow.js",
     "test:security": "node --test tests/security.test.mjs",
-    "test:product": "node --test tests/browser.test.mjs tests/localization.test.mjs tests/ads.test.mjs tests/analytics.test.mjs tests/seo.test.mjs && node tests/product.mjs",
+    "test:product": "node --test tests/browser.test.mjs tests/admin-browser.test.mjs tests/localization.test.mjs tests/ads.test.mjs tests/analytics.test.mjs tests/seo.test.mjs tests/admin-control-center.test.mjs && node tests/product.mjs",
     "test:analytics": "node --test tests/analytics.test.mjs tests/seo.test.mjs",
     "test": "npm run check && npm run test:product && node tests/run.mjs",
     "postinstall": "node scripts/build-vendor.mjs",
     "test:ads": "node --test tests/ads.test.mjs",
-    "smoke:production": "node scripts/smoke-production.mjs"
+    "smoke:production": "node scripts/smoke-production.mjs",
+    "test:admin": "node --test tests/admin-control-center.test.mjs tests/admin-browser.test.mjs"
   },
   "keywords": [
     "mermaid",
@@ -40,7 +41,12 @@
     "local-first",
     "privacy",
     "analytics",
-    "seo"
+    "seo",
+    "admin-dashboard",
+    "search-console",
+    "indexnow",
+    "technical-seo",
+    "revenue-analytics"
   ],
   "author": "Emad211",
   "license": "MIT",

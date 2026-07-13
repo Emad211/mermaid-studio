@@ -24,6 +24,11 @@ import {
 } from './guards.js';
 import { advertisingConfig, advertisingCspSources } from './ads.js';
 import { AnalyticsError, createAnalyticsService } from './analytics.js';
+import { createAdminStore } from './admin-store.js';
+import { buildGrowthReport, previousRange } from './growth-insights.js';
+import { runSeoAudit } from './seo-audit.js';
+import { searchConsoleConfig, syncSearchConsole } from './search-console.js';
+import { indexNowConfig, submitIndexNow } from './indexnow.js';
 import { getLearnArticle, renderLearnArticle } from './learn-content.js';
 import {
   canonicalRedirect,
@@ -219,6 +224,9 @@ function decodeQueryCode(query) {
 
 function publicError(error) {
   if (error instanceof HttpError || error instanceof AnalyticsError) return error;
+  if (Number.isInteger(error?.status) && error?.code) {
+    return new HttpError(error.status, error.code, error.message || 'The request could not be completed.');
+  }
   if (error?.type === 'entity.too.large') return new HttpError(413, 'REQUEST_TOO_LARGE', 'The request body is too large.');
   if (error instanceof SyntaxError && Object.prototype.hasOwnProperty.call(error, 'body')) {
     return new HttpError(400, 'INVALID_JSON', 'The request body must be valid JSON.');
@@ -228,6 +236,20 @@ function publicError(error) {
   if (error?.name === 'RenderTimeoutError') return new HttpError(504, 'RENDER_TIMEOUT', 'The render operation exceeded its time limit.');
   if (error?.name === 'RenderSizeError') return new HttpError(413, 'OUTPUT_TOO_LARGE', error.message || 'The rendered diagram is too large.');
   return new HttpError(500, 'INTERNAL_ERROR', 'The request could not be completed.');
+}
+
+function requireSameOrigin(req, _res, next) {
+  const fetchSite = String(req.get('Sec-Fetch-Site') || '').toLowerCase();
+  if (fetchSite === 'cross-site') {
+    return next(new HttpError(403, 'CROSS_SITE_ADMIN_REQUEST', 'Cross-site admin mutations are not allowed.'));
+  }
+  const origin = req.get('Origin');
+  if (!origin) return next();
+  const expected = `${req.protocol}://${req.get('host')}`;
+  if (origin !== expected) {
+    return next(new HttpError(403, 'ORIGIN_MISMATCH', 'The request origin does not match this site.'));
+  }
+  return next();
 }
 
 function noTrackRequest(req, analytics) {
@@ -244,13 +266,16 @@ export function createApp({ environment = process.env, logger = console } = {}) 
   const app = express();
   app.disable('x-powered-by');
 
+  const analytics = createAnalyticsService({ env: environment, logger });
   const state = {
     environment,
     seo: seoConfig(environment),
-    analytics: createAnalyticsService({ env: environment, logger }),
+    analytics,
+    adminStore: createAdminStore({ dataDir: analytics.config.dataDir, logger }),
   };
   app.locals.analytics = state.analytics;
   app.locals.seo = state.seo;
+  app.locals.adminStore = state.adminStore;
 
   if (envBoolean(environment, 'TRUST_PROXY')) app.set('trust proxy', 1);
   app.use(securityHeaders(environment));
@@ -284,6 +309,7 @@ export function createApp({ environment = process.env, logger = console } = {}) 
     }
   });
 
+  app.get('/admin', (_req, res) => res.redirect(302, '/admin/analytics'));
   app.get('/admin/analytics', adminAuth, (req, res) => sendHtml(req, res, ANALYTICS_HTML, { pathname: '/admin/analytics', seo: false, track: false }, state));
   app.get('/analytics.html', (_req, res) => res.redirect(302, '/admin/analytics'));
   app.get('/api/admin/analytics/summary', adminLimit, adminAuth, async (req, res, next) => {
@@ -327,6 +353,145 @@ export function createApp({ environment = process.env, logger = console } = {}) 
       next(error);
     }
   });
+
+  app.get('/api/admin/growth/overview', adminLimit, adminAuth, async (req, res, next) => {
+    try {
+      const current = await state.analytics.summary(req.query);
+      if (!current.enabled) throw new HttpError(503, 'ANALYTICS_DISABLED', 'Analytics is disabled.');
+      const previousQuery = previousRange(current);
+      const [previous, auditHistory, goals, annotations] = await Promise.all([
+        state.analytics.summary(previousQuery),
+        state.adminStore.auditHistory(1),
+        state.adminStore.getGoals(),
+        state.adminStore.listAnnotations({ from: current.from, to: current.to }),
+      ]);
+      res.json(buildGrowthReport({
+        current,
+        previous,
+        audit: auditHistory[0] || null,
+        goals,
+        annotations,
+        configuration: {
+          siteUrl: state.seo.siteUrl,
+          googleVerification: state.seo.googleVerification,
+          bingVerification: state.seo.bingVerification,
+        },
+      }));
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.get('/api/admin/goals', adminLimit, adminAuth, async (_req, res, next) => {
+    try {
+      res.json(await state.adminStore.getGoals());
+    } catch (error) {
+      next(error);
+    }
+  });
+  app.put('/api/admin/goals', adminLimit, adminAuth, requireSameOrigin, express.json({ limit: '32kb', strict: true }), async (req, res, next) => {
+    try {
+      res.json(await state.adminStore.saveGoals(req.body));
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.get('/api/admin/annotations', adminLimit, adminAuth, async (req, res, next) => {
+    try {
+      res.json({ entries: await state.adminStore.listAnnotations(req.query) });
+    } catch (error) {
+      next(error);
+    }
+  });
+  app.post('/api/admin/annotations', adminLimit, adminAuth, requireSameOrigin, express.json({ limit: '32kb', strict: true }), async (req, res, next) => {
+    try {
+      res.status(201).json(await state.adminStore.addAnnotation(req.body));
+    } catch (error) {
+      next(error);
+    }
+  });
+  app.delete('/api/admin/annotations/:id', adminLimit, adminAuth, requireSameOrigin, async (req, res, next) => {
+    try {
+      await state.adminStore.deleteAnnotation(req.params.id);
+      res.status(204).end();
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.get('/api/admin/seo/audits', adminLimit, adminAuth, async (req, res, next) => {
+    try {
+      res.json({ entries: await state.adminStore.auditHistory(req.query.limit) });
+    } catch (error) {
+      next(error);
+    }
+  });
+  app.post('/api/admin/seo/audit/run', adminLimit, adminAuth, requireSameOrigin, express.json({ limit: '8kb', strict: true }), async (req, res, next) => {
+    try {
+      const report = await runSeoAudit({
+        origin: internalServerUrl(req),
+        siteUrl: state.seo.siteUrl,
+        timeoutMs: positiveInteger(environment.SEO_AUDIT_TIMEOUT_MS, 8_000, 1_000, 30_000),
+      });
+      await state.adminStore.saveAudit(report);
+      res.status(201).json(report);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.get('/api/admin/integrations/status', adminLimit, adminAuth, async (_req, res, next) => {
+    try {
+      const persisted = await state.adminStore.integrationStatus();
+      const gsc = searchConsoleConfig(environment);
+      const indexNow = indexNowConfig(environment);
+      res.json({
+        searchConsole: { configured: gsc.enabled, siteUrl: gsc.siteUrl, last: persisted.services?.searchConsole || null },
+        indexNow: { configured: indexNow.enabled, endpoint: indexNow.endpoint, last: persisted.services?.indexNow || null },
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post('/api/admin/seo/search-console/sync', adminLimit, adminAuth, requireSameOrigin, express.json({ limit: '16kb', strict: true }), async (req, res, next) => {
+    try {
+      const result = await syncSearchConsole({
+        environment,
+        from: req.body?.from,
+        to: req.body?.to,
+        importRows: state.analytics.importSearch.bind(state.analytics),
+      });
+      const { rows: _rows, ...publicResult } = result;
+      await state.adminStore.saveIntegrationStatus('searchConsole', { ok: true, ...publicResult });
+      res.status(201).json(publicResult);
+    } catch (error) {
+      await state.adminStore.saveIntegrationStatus('searchConsole', { ok: false, error: error.message }).catch(() => {});
+      next(error);
+    }
+  });
+
+  app.post('/api/admin/seo/indexnow', adminLimit, adminAuth, requireSameOrigin, express.json({ limit: '8kb', strict: true }), async (_req, res, next) => {
+    try {
+      const sitemap = sitemapXml(state.seo);
+      const urls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
+      const result = await submitIndexNow({ environment, urls });
+      await state.adminStore.saveIntegrationStatus('indexNow', { ok: true, ...result });
+      res.status(201).json(result);
+    } catch (error) {
+      await state.adminStore.saveIntegrationStatus('indexNow', { ok: false, error: error.message }).catch(() => {});
+      next(error);
+    }
+  });
+
+  const indexNowPublic = indexNowConfig(environment);
+  if (indexNowPublic.enabled) {
+    app.get(`/${indexNowPublic.key}.txt`, (_req, res) => {
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      res.type('text/plain').send(indexNowPublic.key);
+    });
+  }
 
   app.use(express.json({ limit: environment.JSON_BODY_LIMIT || '256kb', strict: true }));
 
