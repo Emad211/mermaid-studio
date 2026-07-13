@@ -29,7 +29,8 @@ RUN npm ci --include=dev --ignore-scripts
 COPY . .
 RUN npm run build \
     && npm prune --omit=dev \
-    && chown -R node:node /app
+    && mkdir -p /data/analytics \
+    && chown -R node:node /app /data
 
 USER node
 EXPOSE 4321
