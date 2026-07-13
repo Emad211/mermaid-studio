@@ -15,6 +15,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
+import crypto from 'node:crypto';
 import { EXAMPLES } from '../shared/examples.js';
 import {
   THEMES,
@@ -33,6 +34,7 @@ import {
   normalizeRenderRequest,
   positiveInteger,
 } from './guards.js';
+import { advertisingConfig, advertisingCspSources } from './ads.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..', '..');
@@ -45,6 +47,7 @@ const BUILD = `${pkg.version}.${Date.now().toString(36)}`;
 const LANDING_HTML = path.join(PUBLIC_DIR, 'landing.html');
 const EDITOR_HTML = path.join(PUBLIC_DIR, 'index.html');
 const TEMPLATES_HTML = path.join(PUBLIC_DIR, 'templates.html');
+const LEARN_HTML = path.join(PUBLIC_DIR, 'learn.html');
 const HEADLESS_HTML = path.join(PUBLIC_DIR, 'headless.html');
 const PRIVACY_HTML = path.join(PUBLIC_DIR, 'privacy.html');
 const TERMS_HTML = path.join(PUBLIC_DIR, 'terms.html');
@@ -105,25 +108,59 @@ function appAssetHeaders(res, filePath) {
   res.setHeader('X-Content-Type-Options', 'nosniff');
 }
 
+function inlineScriptHashes(html) {
+  const hashes = [];
+  const pattern = /<script\b(?![^>]*\bsrc\s*=)[^>]*>([\s\S]*?)<\/script>/gi;
+  let match;
+  while ((match = pattern.exec(html))) {
+    const body = match[1];
+    if (!body.trim()) continue;
+    hashes.push(`'sha256-${crypto.createHash('sha256').update(body).digest('base64')}'`);
+  }
+  return hashes;
+}
+
 function sendHtml(res, filePath) {
   const html = fs.readFileSync(filePath, 'utf8').split('%V%').join(BUILD);
+  const hashes = inlineScriptHashes(html);
+  if (hashes.length) {
+    res.setHeader('Content-Security-Policy', contentSecurityPolicy(res.req, hashes));
+  }
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.setHeader('Cache-Control', 'no-store');
   res.send(html);
 }
 
-function contentSecurityPolicy() {
+const ADVERTISING_PATHS = new Set([
+  '/',
+  '/fa',
+  '/fa/',
+  '/templates',
+  '/templates/',
+  '/examples',
+  '/examples/',
+  '/learn',
+  '/learn/',
+]);
+
+function contentSecurityPolicy(req, inlineHashes = []) {
+  // Publisher scripts are admitted only on content pages. The editor and
+  // headless renderer retain a first-party-only policy, so ad code cannot read
+  // Mermaid source, localStorage state or rendered diagrams.
+  const adSources = ADVERTISING_PATHS.has(req.path) ? advertisingCspSources() : [];
+  const external = adSources.length ? ` ${adSources.join(' ')}` : '';
   return [
     "default-src 'self'",
     "base-uri 'none'",
     "object-src 'none'",
     "frame-ancestors 'none'",
     "form-action 'self'",
-    "script-src 'self'",
-    "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob:",
-    "font-src 'self' data:",
-    "connect-src 'self'",
+    `script-src 'self'${external}${inlineHashes.length ? ` ${inlineHashes.join(' ')}` : ''}`,
+    `style-src 'self' 'unsafe-inline'${external}`,
+    `img-src 'self' data: blob:${external}`,
+    `font-src 'self' data:${external}`,
+    `connect-src 'self'${external}`,
+    `frame-src 'self'${external}`,
     "media-src 'none'",
     "worker-src 'self' blob:",
     "manifest-src 'self'",
@@ -131,8 +168,8 @@ function contentSecurityPolicy() {
 }
 
 function securityHeaders(req, res, next) {
-  res.setHeader('Content-Security-Policy', contentSecurityPolicy());
-  res.setHeader('Referrer-Policy', 'no-referrer');
+  res.setHeader('Content-Security-Policy', contentSecurityPolicy(req));
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
@@ -144,28 +181,6 @@ function securityHeaders(req, res, next) {
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
   }
   next();
-}
-
-function sponsorFromEnvironment() {
-  const name = String(process.env.SPONSOR_NAME || '').trim().slice(0, 80);
-  if (!name) return null;
-
-  const rawUrl = String(process.env.SPONSOR_URL || '').trim();
-  let url = '';
-  if (rawUrl) {
-    try {
-      const parsed = new URL(rawUrl);
-      if (parsed.protocol === 'https:') url = parsed.href;
-    } catch {
-      // Invalid sponsor links are omitted instead of breaking metadata.
-    }
-  }
-
-  return {
-    name,
-    url,
-    label: String(process.env.SPONSOR_LABEL || '').trim().slice(0, 50) || undefined,
-  };
 }
 
 function internalServerUrl(req) {
@@ -251,6 +266,7 @@ export function createApp() {
   app.get(['/', '/fa', '/fa/'], (_req, res) => sendHtml(res, LANDING_HTML));
   app.get(['/editor', '/editor/', '/index.html'], (_req, res) => sendHtml(res, EDITOR_HTML));
   app.get(['/templates', '/templates/', '/examples', '/examples/'], (_req, res) => sendHtml(res, TEMPLATES_HTML));
+  app.get(['/learn', '/learn/'], (_req, res) => sendHtml(res, LEARN_HTML));
   app.get('/headless', (_req, res) => sendHtml(res, HEADLESS_HTML));
   app.get(['/privacy', '/privacy/'], (_req, res) => sendHtml(res, PRIVACY_HTML));
   app.get(['/terms', '/terms/'], (_req, res) => sendHtml(res, TERMS_HTML));
@@ -259,6 +275,7 @@ export function createApp() {
 
   const metadata = () => ({
     version: pkg.version,
+    businessModel: 'advertising',
     product: {
       defaultLanguage: 'fa',
       languages: ['fa', 'en'],
@@ -274,7 +291,6 @@ export function createApp() {
     iconPacks: ICON_PACKS,
     diagramTypes: DIAGRAM_TYPES,
     defaults: DEFAULTS,
-    sponsor: sponsorFromEnvironment(),
   });
 
   app.get('/api/health', (_req, res) => {
@@ -284,6 +300,10 @@ export function createApp() {
   app.get('/api/version', (_req, res) => res.json({ name: pkg.name, version: pkg.version }));
   app.get('/api/meta', (_req, res) => res.json(metadata()));
   app.get('/api/examples', (_req, res) => res.json(metadata()));
+  app.get('/api/ads', (_req, res) => {
+    res.setHeader('Cache-Control', 'no-store');
+    res.json(advertisingConfig());
+  });
 
   const normalize = (source) =>
     normalizeRenderRequest(source, {

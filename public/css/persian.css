@@ -116,45 +116,6 @@ kbd,
   margin-right: 0;
 }
 
-.sponsor-slot {
-  min-height: 38px;
-  max-width: 170px;
-  padding: 5px 10px;
-  display: inline-flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 1px;
-  overflow: hidden;
-  border: 1px dashed rgba(177, 108, 234, 0.38);
-  border-radius: var(--radius-sm);
-  color: var(--text);
-  background: rgba(177, 108, 234, 0.07);
-  text-decoration: none;
-  line-height: 1.15;
-  transition: border-color 0.15s, background 0.15s;
-}
-
-.sponsor-slot:hover {
-  border-color: var(--accent);
-  background: rgba(177, 108, 234, 0.13);
-}
-
-.sponsor-slot[hidden] {
-  display: none;
-}
-
-.sponsor-slot small {
-  color: var(--muted);
-  font-size: 9px;
-}
-
-.sponsor-slot strong {
-  overflow: hidden;
-  font-size: 11px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .input-error {
   direction: ltr;
   text-align: left;

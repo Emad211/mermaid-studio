@@ -4,12 +4,14 @@ import { readFile } from 'node:fs/promises';
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('editor shell is Persian and keeps source code left-to-right', async () => {
-  const html = await read('public/editor.html');
+test('editor shell is Persian, keeps source code left-to-right and has no ad loader', async () => {
+  const html = await read('public/index.html');
   assert.match(html, /<html[^>]+lang="fa"[^>]+dir="rtl"/);
   assert.match(html, /کد Mermaid/);
   assert.match(html, /id="config-input"[^>]+dir="ltr"/);
   assert.match(html, /id="css-input"[^>]+dir="ltr"/);
+  assert.doesNotMatch(html, /data-ad-slot=/);
+  assert.doesNotMatch(html, /\/js\/ads\.js/);
 });
 
 test('editor controller uses a Persian starter diagram and Persian feedback', async () => {
@@ -30,9 +32,14 @@ test('ordinary raster exports are attempted locally before the server fallback',
   assert.match(source, /MAX_RASTER_PIXELS/);
 });
 
-test('landing page exposes Persian product entry points', async () => {
-  const html = await read('public/index.html');
-  assert.match(html, /شروع ساخت نمودار/);
-  assert.match(html, /href="\/editor"/);
-  assert.match(html, /href="\/learn"/);
+test('landing, templates and learning pages expose free Persian entry points and ad slots', async () => {
+  const landing = await read('public/landing.html');
+  const templates = await read('public/templates.html');
+  const learn = await read('public/learn.html');
+  assert.match(landing, /شروع ساخت نمودار/);
+  assert.match(landing, /href="\/editor"/);
+  assert.match(landing, /href="\/learn"/);
+  assert.match(landing, /data-ad-slot="homeInline"/);
+  assert.match(templates, /data-ad-slot="templatesInline"/);
+  assert.match(learn, /data-ad-slot="learnInline"/);
 });

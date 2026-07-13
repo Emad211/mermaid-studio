@@ -28,17 +28,24 @@ MSTUDIO_ALLOW_UNSAFE_MERMAID=0
 حالت ناامن Mermaid را روی اینترنت فعال نکنید. این حالت فقط برای محیط محلی مورد
 اعتماد و سازگاری با نمودارهایی است که عمداً از HTML یا callback استفاده می‌کنند.
 
-## جایگاه اسپانسر مستقیم
+## تبلیغات یکتانت یا تپسل
 
-بدون دست‌کاری کد می‌توان یک حامی را در صفحهٔ اصلی و نوار ادیتور نمایش داد:
+محصول کاملاً رایگان است و درآمد نسخهٔ آنلاین فقط از تبلیغات صفحات محتوایی تأمین می‌شود. اسکریپت شبکهٔ تبلیغاتی داخل ادیتور بارگذاری نمی‌شود.
+
+پس از تأیید سایت در پنل ناشر، URL اسکریپت سراسری و شناسهٔ هر جایگاه را در `.env` قرار دهید:
 
 ```dotenv
-SPONSOR_NAME=نام حامی
-SPONSOR_URL=https://example.com
-SPONSOR_NOTE=حامی توسعه ابزارهای رایگان فارسی
+ADS_ENABLED=true
+ADS_PROVIDER=yektanet
+ADS_SCRIPT_URL=https://cdn.example.com/path/publisher.js
+ADS_SCRIPT_ID=publisher-script-id
+ADS_ALLOWED_ORIGINS=https://cdn.example.com,https://*.example.com
+ADS_SLOT_HOME_INLINE=placement-id
+ADS_SLOT_TEMPLATES_INLINE=placement-id
+ADS_SLOT_LEARN_INLINE=placement-id
 ```
 
-اگر نام یا URL خالی باشد، جایگاه به‌طور کامل مخفی می‌ماند.
+راهنمای کامل و ترتیب پیشنهادی فعال‌سازی در [`ADS_FA.md`](ADS_FA.md) آمده است. اگر `ADS_ENABLED=false` باشد یا شناسه‌ای ناقص باشد، هیچ درخواست شخص ثالثی ارسال نمی‌شود.
 
 ## محدودیت‌های پیشنهادی سرور
 

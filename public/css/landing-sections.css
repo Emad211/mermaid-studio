@@ -261,41 +261,6 @@ html[data-theme="light"] .privacy-visual {
   font-weight: 600;
 }
 
-.sponsor-section {
-  padding-top: 60px;
-}
-
-.sponsor-card {
-  min-height: 86px;
-  padding: 17px 22px;
-  display: flex;
-  align-items: center;
-  gap: 22px;
-  border: 1px dashed var(--border-strong);
-  border-radius: 18px;
-  background: var(--panel);
-}
-
-.sponsor-card > span {
-  color: var(--muted-2);
-  font-size: 11px;
-}
-
-.sponsor-card a {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.sponsor-card strong {
-  font-size: 16px;
-}
-
-.sponsor-card small {
-  color: var(--muted);
-  font-size: 11px;
-}
-
 .faq-grid {
   max-width: 900px;
   margin: 0 auto;

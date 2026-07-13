@@ -1,7 +1,7 @@
 {
   "name": "mermaid-studio",
-  "version": "1.2.1",
-  "description": "A Persian-first, privacy-friendly Mermaid product with a searchable template library, CLI and bounded render API.",
+  "version": "1.3.0",
+  "description": "A free Persian-first Mermaid studio funded exclusively by privacy-conscious publisher advertising.",
   "type": "module",
   "bin": {
     "mermaid-studio": "bin/cli.js",
@@ -13,11 +13,13 @@
     "serve:public": "node bin/cli.js serve --host 0.0.0.0 --no-open",
     "render": "node bin/cli.js render",
     "build": "node scripts/build-vendor.mjs",
-    "check": "node --check public/js/app.js && node --check public/js/exporter.js && node --check public/js/editor.js && node --check public/js/templates.js && node --check public/js/svg-safety.js && node --check public/js/share.js && node --check public/js/mermaid-runtime.js && node --check public/js/headless.js && node --check src/server/app.js && node --check src/server/guards.js && node --check src/core/renderer.js",
+    "check": "node --check public/js/app.js && node --check public/js/exporter.js && node --check public/js/editor.js && node --check public/js/templates.js && node --check public/js/ads.js && node --check public/js/svg-safety.js && node --check public/js/share.js && node --check public/js/mermaid-runtime.js && node --check public/js/headless.js && node --check src/server/app.js && node --check src/server/ads.js && node --check src/server/guards.js && node --check src/core/renderer.js",
     "test:security": "node --test tests/security.test.mjs",
-    "test:product": "node --test tests/product.test.mjs",
-    "test": "npm run check && node --test tests/security.test.mjs tests/product.test.mjs && node tests/run.mjs",
-    "postinstall": "node scripts/build-vendor.mjs"
+    "test:product": "node --test tests/browser.test.mjs tests/localization.test.mjs tests/ads.test.mjs && node tests/product.mjs",
+    "test": "npm run check && npm run test:product && node tests/run.mjs",
+    "postinstall": "node scripts/build-vendor.mjs",
+    "test:ads": "node --test tests/ads.test.mjs",
+    "smoke:production": "node scripts/smoke-production.mjs"
   },
   "keywords": [
     "mermaid",

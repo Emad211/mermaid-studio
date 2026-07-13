@@ -169,21 +169,12 @@
     translateProductSelects();
   }
 
-  function applySponsor(meta) {
-    const slot = document.getElementById('sponsor-slot');
-    const name = document.getElementById('sponsor-slot-name');
-    if (!slot || !name || !meta?.sponsor?.name || !meta?.sponsor?.url) return;
-    name.textContent = meta.sponsor.name;
-    slot.href = meta.sponsor.url;
-    slot.hidden = false;
-  }
 
   function loadProductMeta() {
     fetch('/api/meta', { credentials: 'same-origin' })
       .then((response) => (response.ok ? response.json() : null))
       .then((meta) => {
         if (!meta) return;
-        applySponsor(meta);
         if (meta.publicMode && !meta.allowUnsafeMermaid) {
           document.documentElement.dataset.safeMode = 'true';
         }

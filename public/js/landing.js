@@ -43,19 +43,6 @@ $('#copy-demo')?.addEventListener('click', async () => {
   }
 });
 
-function safeSponsor(meta) {
-  if (!meta?.sponsor?.name || !meta?.sponsor?.url) return;
-  const section = $('#sponsor-section');
-  const link = $('#sponsor-link');
-  const name = $('#sponsor-name');
-  const note = $('#sponsor-note');
-  if (!section || !link || !name) return;
-
-  name.textContent = meta.sponsor.name;
-  link.href = meta.sponsor.url;
-  if (meta.sponsor.note && note) note.textContent = meta.sponsor.note;
-  section.hidden = false;
-}
 
 fetch('/api/meta', { credentials: 'same-origin' })
   .then((response) => (response.ok ? response.json() : null))
@@ -63,7 +50,6 @@ fetch('/api/meta', { credentials: 'same-origin' })
     if (!meta) return;
     const version = $('#app-version');
     if (version) version.textContent = meta.version || '—';
-    safeSponsor(meta);
   })
   .catch(() => {
     // The landing page remains fully usable without metadata.

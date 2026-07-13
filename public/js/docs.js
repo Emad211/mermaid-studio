@@ -58,26 +58,9 @@ function setupExamples() {
   }
 }
 
-async function loadMeta() {
-  try {
-    const response = await fetch('/api/meta', { credentials: 'same-origin' });
-    if (!response.ok) return;
-    const meta = await response.json();
-    const sponsor = $('#docs-sponsor');
-    if (sponsor && meta?.sponsor?.name && meta?.sponsor?.url) {
-      const link = $('a', sponsor);
-      link.textContent = meta.sponsor.name;
-      link.href = meta.sponsor.url;
-      sponsor.classList.add('is-visible');
-    }
-  } catch {
-    // Documentation remains fully usable offline.
-  }
-}
 
 setTheme(localStorage.getItem(THEME_KEY) || 'dark');
 $('#theme-toggle')?.addEventListener('click', () => {
   setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
 });
 setupExamples();
-loadMeta();

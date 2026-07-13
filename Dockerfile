@@ -6,6 +6,9 @@ ENV NODE_ENV=production \
     MSTUDIO_PUBLIC_MODE=1 \
     PUPPETEER_SKIP_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium \
+    HOME=/tmp \
+    XDG_CACHE_HOME=/tmp \
+    XDG_CONFIG_HOME=/tmp \
     PUPPETEER_NO_SANDBOX=true
 
 RUN apt-get update \
