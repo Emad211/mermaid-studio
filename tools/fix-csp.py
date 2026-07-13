@@ -51,8 +51,13 @@ source = source.replace(
     1,
 )
 source = source.replace(
-    "    `script-src 'self'${external}`,",
-    "    `script-src 'self'${external}${inlineHashes.length ? ` ${inlineHashes.join(' ')}` : ''}`,",
+    "    `script-src 'self'${external}` ,",
+    "    `script-src 'self'${external}${inlineHashes.length ? ` ${inlineHashes.join(' ')}` : ''}` ,",
+    1,
+)
+source = source.replace(
+    "    `script-src 'self'${external}` ,".replace('` ,', '`,'),
+    "    `script-src 'self'${external}${inlineHashes.length ? ` ${inlineHashes.join(' ')}` : ''}` ,".replace('` ,', '`,'),
     1,
 )
 
@@ -62,33 +67,16 @@ if "inlineHashes.join(' ')" not in source:
     raise SystemExit('inline CSP hashes were not added')
 path.write_text(source, encoding='utf-8')
 
+# Mermaid C4 output may use the standard xlink prefix without declaring its
+# namespace. The shared sanitizer must normalize that one namespace before the
+# strict XML parse. Keep this check idempotent and do not weaken parsing with an
+# HTML-mode fallback.
 svg_path = Path('public/js/svg-safety.js')
 svg_source = svg_path.read_text(encoding='utf-8')
-old_parser = """  const parsed = new DOMParser().parseFromString(source, 'image/svg+xml');
-  if (parsed.querySelector('parsererror')) {
-    throw new Error('SVG_PARSE_ERROR');
-  }
-
-  const svg = parsed.documentElement;
-"""
-new_parser = """  const parsed = new DOMParser().parseFromString(source, 'image/svg+xml');
-  let svg = parsed.documentElement;
-
-  // Mermaid diagram types such as C4 may embed XHTML labels that are valid in
-  // browsers but rejected by the strict XML parser (for example HTML entities).
-  // DOMParser's HTML mode does not execute scripts; we still extract only the
-  // SVG root and run the full element, attribute, URL and CSS sanitizer below.
-  if (parsed.querySelector('parsererror')) {
-    const htmlDocument = new DOMParser().parseFromString(source, 'text/html');
-    svg = htmlDocument.querySelector('svg');
-  }
-
-"""
-if old_parser in svg_source:
-    svg_source = svg_source.replace(old_parser, new_parser, 1)
-elif "htmlDocument.querySelector('svg')" not in svg_source:
-    raise SystemExit('SVG parser block did not match')
-svg_path.write_text(svg_source, encoding='utf-8')
+if 'function normalizeSvgNamespaces(source)' not in svg_source:
+    raise SystemExit('SVG namespace normalization is missing')
+if 'const normalizedSource = normalizeSvgNamespaces(source);' not in svg_source:
+    raise SystemExit('SVG parser is not using normalized namespaces')
 
 ci_path = Path('.github/workflows/ci.yml')
 ci = ci_path.read_text(encoding='utf-8')
@@ -100,4 +88,4 @@ if 'PUPPETEER_NO_SANDBOX: true' not in ci:
     ci = ci.replace(marker, replacement, 1)
 ci_path.write_text(ci, encoding='utf-8')
 
-print('CSP hashes, safe C4 SVG fallback and CI Chromium compatibility enabled.')
+print('CSP hashes, C4 SVG namespace normalization and CI Chromium compatibility enabled.')
