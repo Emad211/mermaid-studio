@@ -9,9 +9,6 @@ on:
       - tools/finalize-deploy.py
       - tools/fix-csp.py
       - .github/workflows/finalize-on-pr.yml
-  pull_request:
-    branches:
-      - main
 
 permissions:
   contents: write
@@ -25,7 +22,6 @@ concurrency:
 
 jobs:
   finalize:
-    if: github.event_name == 'push' || github.event.pull_request.head.ref == 'agent/persian-product-foundation'
     runs-on: ubuntu-latest
     timeout-minutes: 50
     steps:
@@ -128,14 +124,25 @@ jobs:
           include-hidden-files: true
           retention-days: 2
 
-      - name: Commit validated final source
+      - name: Commit validated product files
         shell: bash
         run: |
           set -euo pipefail
-          rm -rf tools
-          rm -f .github/workflows/apply-ads-phase.yml .github/workflows/finalize-on-pr.yml
+          exec > >(tee /tmp/commit.log) 2>&1
+          original_head="$(git rev-parse HEAD)"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
+          git restore --staged --worktree=false tools .github/workflows
+          git status --short
           git commit -m "Finalize free ad-supported production deployment"
-          git push origin HEAD:agent/persian-product-foundation
+          git push --force-with-lease=refs/heads/agent/persian-product-foundation:${original_head} origin HEAD:agent/persian-product-foundation
+
+      - name: Upload commit diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: commit-diagnostics
+          path: /tmp/commit.log
+          if-no-files-found: warn
+          retention-days: 2
