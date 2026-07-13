@@ -61,17 +61,30 @@ jobs:
           retention-days: 2
 
       - name: Install, build and test source
+        shell: bash
         run: |
-          npm ci
-          npm run build
-          npm test
-          npm run smoke:production
+          set -euo pipefail
+          {
+            npm ci
+            npm run build
+            npm test
+            npm run smoke:production
+          } 2>&1 | tee /tmp/build-test.log
+
+      - name: Upload build and test diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-test-diagnostics
+          path: /tmp/build-test.log
+          if-no-files-found: warn
+          retention-days: 2
 
       - name: Build and smoke-test production image
         shell: bash
         run: |
           set -euo pipefail
-          docker build --pull --tag mermaid-studio:final .
+          docker build --pull --tag mermaid-studio:final . 2>&1 | tee /tmp/container-test.log
           docker run -d --name mermaid-studio-final -p 127.0.0.1:4321:4321 mermaid-studio:final
           trap 'docker logs mermaid-studio-final || true; docker rm -f mermaid-studio-final >/dev/null 2>&1 || true' EXIT
           for attempt in $(seq 1 90); do
@@ -87,6 +100,15 @@ jobs:
             --data '{"code":"flowchart TD; A-->B","format":"svg"}' \
             --output /tmp/final.svg
           grep -q '<svg' /tmp/final.svg
+
+      - name: Upload container diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: container-test-diagnostics
+          path: /tmp/container-test.log
+          if-no-files-found: warn
+          retention-days: 2
 
       - name: Preserve validated source artifact
         uses: actions/upload-artifact@v4
