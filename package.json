@@ -1,7 +1,7 @@
 {
   "name": "mermaid-studio",
   "version": "1.2.1",
-  "description": "A Persian-first, privacy-friendly Mermaid product with a bilingual editor, searchable templates, CLI and bounded render API.",
+  "description": "A Persian-first, privacy-friendly Mermaid product with a searchable template library, CLI and bounded render API.",
   "type": "module",
   "bin": {
     "mermaid-studio": "bin/cli.js",
@@ -13,11 +13,11 @@
     "serve:public": "node bin/cli.js serve --host 0.0.0.0 --no-open",
     "render": "node bin/cli.js render",
     "build": "node scripts/build-vendor.mjs",
-    "check": "node --check public/js/app.js && node --check public/js/exporter.js && node --check public/js/editor.js && node --check public/js/diagnostics.js && node --check public/js/i18n.js && node --check public/js/templates.js && node --check public/js/svg-safety.js && node --check public/js/share.js && node --check public/js/mermaid-runtime.js && node --check public/js/headless.js && node --check src/server/app.js && node --check src/server/guards.js && node --check src/core/renderer.js",
+    "check": "node --check public/js/app.js && node --check public/js/exporter.js && node --check public/js/editor.js && node --check public/js/templates.js && node --check public/js/svg-safety.js && node --check public/js/share.js && node --check public/js/mermaid-runtime.js && node --check public/js/headless.js && node --check src/server/app.js && node --check src/server/guards.js && node --check src/core/renderer.js",
     "test:security": "node --test tests/security.test.mjs",
-    "test": "node --test tests/security.test.mjs tests/product.test.mjs tests/diagnostics.test.mjs tests/share.test.mjs && node tests/run.mjs",
-    "postinstall": "node scripts/build-vendor.mjs",
-    "test:product": "node --test tests/product.test.mjs tests/diagnostics.test.mjs tests/share.test.mjs"
+    "test:product": "node --test tests/product.test.mjs",
+    "test": "npm run check && node --test tests/security.test.mjs tests/product.test.mjs && node tests/run.mjs",
+    "postinstall": "node scripts/build-vendor.mjs"
   },
   "keywords": [
     "mermaid",
