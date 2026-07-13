@@ -2,7 +2,7 @@
 
 Mermaid Studio یک استودیوی رایگان و متن‌باز برای ساخت و خروجی گرفتن از نمودارهای Mermaid است. محصول فارسی، بدون ثبت‌نام و بدون پلن پولی باقی می‌ماند و درآمد نسخهٔ عمومی فقط از تبلیغات ناشری ایرانی در صفحات محتوایی تأمین می‌شود؛ ادیتور هیچ اسکریپت تبلیغاتی شخص ثالثی بارگذاری نمی‌کند.
 
-## شروع سریع
+## شروع سریع بدون Docker
 
 ```bash
 npm install
@@ -15,6 +15,39 @@ npm run serve
 - ادیتور: `http://127.0.0.1:4321/editor`
 - سلامت سرویس: `http://127.0.0.1:4321/api/health`
 - مرکز کنترل رشد: `http://127.0.0.1:4321/admin/analytics`
+
+## اجرای لوکال با Docker
+
+این مسیر برای تست کامل محصول، پنل ادمین، آنالیتیکس، Chromium و ممیزی SEO پیشنهاد می‌شود. دامنه، HTTPS، Caddy و حساب تبلیغاتی لازم نیستند.
+
+macOS، Linux، WSL یا Git Bash:
+
+```bash
+chmod +x scripts/docker-local.sh
+./scripts/docker-local.sh up
+./scripts/docker-local.sh test-full
+```
+
+Windows PowerShell:
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+.\scripts\docker-local.ps1 up
+.\scripts\docker-local.ps1 test-full
+```
+
+اسکریپت به‌صورت خودکار `.env.local` و Secretهای امن را می‌سازد، Image را Build می‌کند، تا Healthy شدن کانتینر منتظر می‌ماند و آدرس‌ها و Credential پنل ادمین را نمایش می‌دهد. سرویس فقط روی `127.0.0.1` منتشر می‌شود.
+
+فرمان‌های مفید:
+
+```bash
+./scripts/docker-local.sh status
+./scripts/docker-local.sh logs
+./scripts/docker-local.sh down
+./scripts/docker-local.sh reset --yes
+```
+
+راهنمای کامل و عیب‌یابی در [`docs/LOCAL_DOCKER_FA.md`](docs/LOCAL_DOCKER_FA.md) قرار دارد.
 
 ## امکانات نسخه فارسی
 
@@ -133,7 +166,7 @@ npm run test:admin
 npm run smoke:production
 ```
 
-CI علاوه بر تست منبع، audit وابستگی‌های production، اعتبارسنجی Docker Compose، ساخت Docker image، volume ماندگار analytics و smoke test رندر SVG/PDF را بررسی می‌کند.
+CI علاوه بر تست منبع، هر دو فایل Compose، ساخت Docker image، محیط لوکال ایزوله، volume ماندگار analytics و smoke test رندر SVG/PDF را بررسی می‌کند.
 
 ## مدل درآمد
 
