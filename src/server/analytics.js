@@ -222,13 +222,13 @@ function emptyDay(day) {
 
 function hydrateDay(value, day) {
   const fresh = emptyDay(day);
-  if (!value || typeof value !== 'object') return fresh;
+  const persisted = value && typeof value === 'object' ? value : {};
   const merged = {
     ...fresh,
-    ...value,
-    totals: { ...fresh.totals, ...(value.totals || {}) },
-    unique: { ...fresh.unique, ...(value.unique || {}) },
-    vitals: { ...fresh.vitals, ...(value.vitals || {}) },
+    ...persisted,
+    totals: { ...fresh.totals, ...(persisted.totals || {}) },
+    unique: { ...fresh.unique, ...(persisted.unique || {}) },
+    vitals: { ...fresh.vitals, ...(persisted.vitals || {}) },
   };
   Object.defineProperties(merged, {
     _sessionSet: { value: new Set(merged.unique.sessions || []), enumerable: false },
@@ -405,6 +405,15 @@ class AnalyticsService {
     };
   }
 
+  enqueue(task) {
+    const result = this.operation.catch(() => {}).then(task);
+    this.operation = result.catch((error) => {
+      this.lastError = error?.message || String(error);
+      this.logger.error('[analytics:operation]', error);
+    });
+    return result;
+  }
+
   async init() {
     if (!this.config.enabled) return;
     if (!this.readyPromise) {
@@ -509,7 +518,7 @@ class AnalyticsService {
   record(body, req) {
     if (!this.config.enabled) return Promise.resolve();
     const payload = normalizeAnalyticsEvent(body);
-    this.operation = this.operation.then(async () => {
+    return this.enqueue(async () => {
       await this.init();
       const day = isoDay(new Date(), this.config.timeZone);
       const data = await this.loadDay(day);
@@ -602,11 +611,7 @@ class AnalyticsService {
       }
 
       this.markDirty(day);
-    }).catch((error) => {
-      this.lastError = error.message;
-      throw error;
     });
-    return this.operation;
   }
 
   async loadCollection(filePath, fallback) {
@@ -629,7 +634,7 @@ class AnalyticsService {
       throw new AnalyticsError(400, 'INVALID_REVENUE_BATCH', 'Revenue batch must contain between 1 and 1000 entries.');
     }
     const normalized = list.map(normalizeRevenueEntry);
-    this.operation = this.operation.then(async () => {
+    return this.enqueue(async () => {
       await this.init();
       const collection = await this.loadCollection(this.revenuePath(), { version: 1, entries: [] });
       const byId = new Map((collection.entries || []).map((entry) => [entry.id, entry]));
@@ -638,13 +643,12 @@ class AnalyticsService {
       await atomicWrite(this.revenuePath(), collection);
       return normalized;
     });
-    return this.operation;
   }
 
   deleteRevenue(id) {
     const safeId = safeKey(id, 80);
     if (!safeId) throw new AnalyticsError(400, 'INVALID_REVENUE_ID', 'Invalid revenue entry id.');
-    this.operation = this.operation.then(async () => {
+    return this.enqueue(async () => {
       await this.init();
       const collection = await this.loadCollection(this.revenuePath(), { version: 1, entries: [] });
       const before = collection.entries.length;
@@ -652,7 +656,6 @@ class AnalyticsService {
       if (collection.entries.length === before) throw new AnalyticsError(404, 'REVENUE_NOT_FOUND', 'Revenue entry not found.');
       await atomicWrite(this.revenuePath(), collection);
     });
-    return this.operation;
   }
 
   importSearch(rows, defaultDate = isoDay(new Date(), this.config.timeZone)) {
@@ -662,7 +665,7 @@ class AnalyticsService {
     }
     const normalized = rows.map((row) => normalizeSearchRow(row, defaultDate)).filter(Boolean);
     if (!normalized.length) throw new AnalyticsError(400, 'EMPTY_SEARCH_BATCH', 'No valid Search Console rows were supplied.');
-    this.operation = this.operation.then(async () => {
+    return this.enqueue(async () => {
       await this.init();
       const collection = await this.loadCollection(this.searchPath(), { version: 1, rows: [] });
       const map = new Map();
@@ -679,7 +682,6 @@ class AnalyticsService {
       await atomicWrite(this.searchPath(), collection);
       return normalized.length;
     });
-    return this.operation;
   }
 
   async summary({ from, to, days = 30 } = {}) {
