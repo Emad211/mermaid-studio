@@ -1,0 +1,58 @@
+name: Debug admin growth control center
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  diagnostics:
+    if: github.event.pull_request.head.ref == 'agent/admin-growth-control-center'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/admin-growth-control-center
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - name: Apply generated backend source
+        run: python tools/finalize-admin-growth.py
+      - run: npm install --package-lock-only --ignore-scripts
+      - name: Run diagnostics
+        id: diagnostics
+        shell: bash
+        env:
+          PUPPETEER_NO_SANDBOX: true
+        run: |
+          set +e
+          : > admin-growth-diagnostics.log
+          overall=0
+          for command in \
+            "npm ci" \
+            "npm run build" \
+            "npm run check" \
+            "npm run test:admin" \
+            "npm test" \
+            "npm run smoke:production" \
+            "npm audit --omit=dev --audit-level=high"; do
+            echo "===== $command =====" | tee -a admin-growth-diagnostics.log
+            bash -lc "$command" >> admin-growth-diagnostics.log 2>&1
+            status=$?
+            echo "STATUS=$status" | tee -a admin-growth-diagnostics.log
+            if [ "$status" -ne 0 ]; then overall=$status; fi
+          done
+          echo "status=$overall" >> "$GITHUB_OUTPUT"
+          exit 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: admin-growth-diagnostics
+          path: admin-growth-diagnostics.log
+          retention-days: 2
+      - name: Fail when diagnostics failed
+        if: steps.diagnostics.outputs.status != '0'
+        run: exit 1
