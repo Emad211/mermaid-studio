@@ -43,10 +43,15 @@ test('admin growth control center works in desktop and mobile browsers', { timeo
   await page.authenticate({ username: env.ANALYTICS_ADMIN_USER, password: env.ANALYTICS_ADMIN_PASSWORD });
   await page.setViewport({ width: 1500, height: 1050, deviceScaleFactor: 1 });
   const errors = [];
+  const dialogs = [];
   page.on('console', (message) => {
     if (message.type() === 'error') errors.push(message.text());
   });
   page.on('pageerror', (error) => errors.push(error.message));
+  page.on('dialog', async (dialog) => {
+    dialogs.push(`${dialog.type()}: ${dialog.message()}`);
+    await dialog.dismiss();
+  });
 
   await page.goto(`${server.url}/admin/analytics`, { waitUntil: 'networkidle0' });
   await page.waitForFunction(() => document.querySelector('#dashboard-status')?.classList.contains('ok'), { timeout: 30_000 });
@@ -58,6 +63,8 @@ test('admin growth control center works in desktop and mobile browsers', { timeo
   await page.waitForFunction(() => document.querySelector('[data-view-panel="audit"]')?.classList.contains('is-active'));
   await page.click('#run-seo-audit');
   await page.waitForFunction(() => document.querySelector('#audit-score')?.textContent !== '—' && !document.querySelector('#run-seo-audit')?.disabled, { timeout: 45_000 });
+  await page.waitForFunction(() => document.querySelector('#admin-toast')?.classList.contains('is-visible'));
+  assert.match(await page.$eval('#admin-toast', (node) => node.textContent), /ممیزی با امتیاز/);
   const score = await page.$eval('#audit-score-ring', (node) => Number(node.style.getPropertyValue('--score')));
   assert.ok(score >= 70, `unexpected browser SEO score: ${score}`);
 
@@ -73,5 +80,6 @@ test('admin growth control center works in desktop and mobile browsers', { timeo
   const dimensions = await page.evaluate(() => ({ bodyWidth: document.body.scrollWidth, viewportWidth: window.innerWidth }));
   assert.ok(dimensions.bodyWidth <= dimensions.viewportWidth + 2, `admin mobile overflow: ${JSON.stringify(dimensions)}`);
 
+  assert.deepEqual(dialogs, [], `blocking browser dialogs detected: ${dialogs.join(' | ')}`);
   assert.deepEqual(errors, []);
 });
