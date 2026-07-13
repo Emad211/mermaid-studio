@@ -8,17 +8,65 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PUPPETEER_NO_SANDBOX: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
       - run: npm ci
       - run: npm run build
       - run: npm test
-      - run: npm run test:product
+      - run: npm run smoke:production
+      - name: Reject high-severity production dependency vulnerabilities
+        run: npm audit --omit=dev --audit-level=high
+      - name: Validate Docker Compose configuration
+        shell: bash
+        run: |
+          cp .env.example .env
+          docker compose config --quiet
+
+  container:
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build production image
+        run: docker build --pull --tag mermaid-studio:ci .
+      - name: Smoke-test production container
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run -d --name mermaid-studio-ci -p 127.0.0.1:4321:4321 mermaid-studio:ci
+          trap 'docker logs mermaid-studio-ci || true; docker rm -f mermaid-studio-ci >/dev/null 2>&1 || true' EXIT
+          for attempt in $(seq 1 90); do
+            if curl -fsS http://127.0.0.1:4321/api/health >/dev/null; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:4321/api/health
+          curl -fsS http://127.0.0.1:4321/ >/dev/null
+          curl -fsS http://127.0.0.1:4321/editor >/dev/null
+          curl -fsS http://127.0.0.1:4321/templates >/dev/null
+          curl -fsS http://127.0.0.1:4321/learn >/dev/null
+          curl -fsS -X POST http://127.0.0.1:4321/api/render \
+            -H 'content-type: application/json' \
+            --data '{"code":"flowchart TD; A-->B","format":"svg"}' \
+            --output /tmp/diagram.svg
+          grep -q '<svg' /tmp/diagram.svg
+          curl -fsS -X POST http://127.0.0.1:4321/api/render \
+            -H 'content-type: application/json' \
+            --data '{"code":"flowchart TD; A-->B","format":"pdf"}' \
+            --output /tmp/diagram.pdf
+          grep -q '%PDF-' /tmp/diagram.pdf
