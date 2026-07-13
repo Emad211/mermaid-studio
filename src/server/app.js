@@ -1,12 +1,13 @@
 /**
- * Mermaid Studio HTTP server.
+ * Express application for the hosted/local Mermaid Studio product.
  *
- * Public product routes:
- *   /                Persian landing page
- *   /editor           Mermaid editor
- *   /headless         internal Puppeteer renderer
- *   /api/render       protected render API
- *   /api/meta         product capabilities and public configuration
+ * Routes:
+ *   /             Persian product landing page
+ *   /editor       bilingual editor
+ *   /templates    searchable Persian template gallery
+ *   /headless     isolated page used by Puppeteer
+ *   /api/render   bounded render API
+ *   /api/meta     editor metadata and optional sponsor configuration
  */
 
 import express from 'express';
@@ -25,307 +26,245 @@ import {
   mimeFor,
 } from '../shared/config.js';
 import { renderDiagram } from '../core/renderer.js';
+import {
+  HttpError,
+  createRateLimiter,
+  createRenderGate,
+  normalizeRenderRequest,
+  positiveInteger,
+} from './guards.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..', '..');
 const PUBLIC_DIR = path.join(ROOT, 'public');
-const NM = path.join(ROOT, 'node_modules');
+const NODE_MODULES = path.join(ROOT, 'node_modules');
 const require = createRequire(import.meta.url);
 const pkg = require('../../package.json');
 
 const BUILD = `${pkg.version}.${Date.now().toString(36)}`;
-const LANDING_HTML = path.join(PUBLIC_DIR, 'index.html');
-const EDITOR_HTML = path.join(PUBLIC_DIR, 'editor.html');
+const LANDING_HTML = path.join(PUBLIC_DIR, 'landing.html');
+const EDITOR_HTML = path.join(PUBLIC_DIR, 'index.html');
+const TEMPLATES_HTML = path.join(PUBLIC_DIR, 'templates.html');
 const HEADLESS_HTML = path.join(PUBLIC_DIR, 'headless.html');
-
-const PUBLIC_MODE = process.env.MSTUDIO_PUBLIC_MODE === '1' || process.env.NODE_ENV === 'production';
-const ALLOW_UNSAFE_MERMAID = process.env.MSTUDIO_ALLOW_UNSAFE_MERMAID === '1';
-
-function intFromEnv(name, fallback, min, max) {
-  const parsed = Number.parseInt(process.env[name] || '', 10);
-  if (!Number.isFinite(parsed)) return fallback;
-  return Math.min(max, Math.max(min, parsed));
-}
-
-const MAX_CODE_LENGTH = intFromEnv('MSTUDIO_MAX_CODE_LENGTH', 120_000, 1_000, 500_000);
-const MAX_CSS_LENGTH = intFromEnv('MSTUDIO_MAX_CSS_LENGTH', 20_000, 0, 100_000);
-const MAX_CONFIG_LENGTH = intFromEnv('MSTUDIO_MAX_CONFIG_LENGTH', 40_000, 1_000, 200_000);
-const MAX_RENDER_CONCURRENCY = intFromEnv('MSTUDIO_RENDER_CONCURRENCY', PUBLIC_MODE ? 2 : 4, 1, 12);
-const MAX_RENDER_QUEUE = intFromEnv('MSTUDIO_RENDER_QUEUE', PUBLIC_MODE ? 20 : 100, 0, 500);
-const RATE_LIMIT_PER_MINUTE = intFromEnv('MSTUDIO_RATE_LIMIT', PUBLIC_MODE ? 40 : 600, 1, 10_000);
+const PRIVACY_HTML = path.join(PUBLIC_DIR, 'privacy.html');
+const TERMS_HTML = path.join(PUBLIC_DIR, 'terms.html');
 
 const ICON_PACKS = ['logos', 'mdi', 'fa6-solid', 'fa6-brands'];
 const DIAGRAM_TYPES = [
-  'flowchart', 'sequence', 'class', 'state', 'entity-relationship', 'user journey',
-  'gantt', 'pie', 'quadrant', 'requirement', 'gitgraph', 'C4', 'mindmap', 'timeline',
-  'sankey', 'xychart', 'block', 'packet', 'kanban', 'architecture', 'radar', 'zenuml',
+  'flowchart',
+  'sequence',
+  'class',
+  'state',
+  'entity-relationship',
+  'user journey',
+  'gantt',
+  'pie',
+  'quadrant',
+  'requirement',
+  'gitgraph',
+  'C4',
+  'mindmap',
+  'timeline',
+  'sankey',
+  'xychart',
+  'block',
+  'packet',
+  'kanban',
+  'architecture',
+  'radar',
+  'zenuml',
 ];
 
-function safeHttpUrl(value) {
-  if (!value) return null;
-  try {
-    const url = new URL(value);
-    return url.protocol === 'https:' || url.protocol === 'http:' ? url.toString() : null;
-  } catch {
-    return null;
-  }
+const FORMAT_SET = new Set(FORMATS);
+const THEME_SET = new Set(THEMES);
+const LAYOUT_SET = new Set(LAYOUTS);
+const PAPER_SET = new Set(PDF_PAPERS);
+const BACKGROUND_SET = new Set(Object.keys(BACKGROUNDS));
+
+function envBoolean(name, fallback = false) {
+  const value = process.env[name];
+  if (value === undefined) return fallback;
+  return ['1', 'true', 'yes', 'on'].includes(String(value).toLowerCase());
 }
 
-const SPONSOR_URL = safeHttpUrl(process.env.SPONSOR_URL);
-const SPONSOR = process.env.SPONSOR_NAME && SPONSOR_URL
-  ? {
-      name: String(process.env.SPONSOR_NAME).slice(0, 80),
-      url: SPONSOR_URL,
-      note: String(process.env.SPONSOR_NOTE || '').slice(0, 180) || undefined,
-    }
-  : null;
-
-function renderPage(filePath, res) {
-  let html = fs.readFileSync(filePath, 'utf8');
-  html = html.split('%V%').join(BUILD);
-  res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.setHeader('Cache-Control', 'no-store');
-  res.send(html);
-}
-
-function jsType(res, filePath) {
+function javascriptType(res, filePath) {
   if (filePath.endsWith('.mjs') || filePath.endsWith('.js')) {
     res.setHeader('Content-Type', 'text/javascript; charset=utf-8');
   }
 }
 
 function vendorHeaders(res, filePath) {
-  jsType(res, filePath);
-  res.setHeader('Cache-Control', 'public, max-age=86400, immutable');
-}
-
-function appHeaders(res, filePath) {
-  jsType(res, filePath);
-  if (filePath.endsWith('.html')) res.setHeader('Cache-Control', 'no-store');
-  else res.setHeader('Cache-Control', 'public, max-age=300');
-}
-
-function securityHeaders(_req, res, next) {
+  javascriptType(res, filePath);
+  res.setHeader('Cache-Control', 'public, max-age=86400');
   res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+}
+
+function appAssetHeaders(res, filePath) {
+  javascriptType(res, filePath);
+  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+}
+
+function sendHtml(res, filePath) {
+  const html = fs.readFileSync(filePath, 'utf8').split('%V%').join(BUILD);
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-store');
+  res.send(html);
+}
+
+function contentSecurityPolicy() {
+  return [
+    "default-src 'self'",
+    "base-uri 'none'",
+    "object-src 'none'",
+    "frame-ancestors 'none'",
+    "form-action 'self'",
+    "script-src 'self'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob:",
+    "font-src 'self' data:",
+    "connect-src 'self'",
+    "media-src 'none'",
+    "worker-src 'self' blob:",
+    "manifest-src 'self'",
+  ].join('; ');
+}
+
+function securityHeaders(req, res, next) {
+  res.setHeader('Content-Security-Policy', contentSecurityPolicy());
   res.setHeader('Referrer-Policy', 'no-referrer');
-  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
-  res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
   res.setHeader(
-    'Content-Security-Policy',
-    [
-      "default-src 'self'",
-      "script-src 'self' 'unsafe-inline'",
-      "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob:",
-      "font-src 'self' data:",
-      "connect-src 'self'",
-      "worker-src 'self' blob:",
-      "object-src 'none'",
-      "base-uri 'self'",
-      "form-action 'self'",
-      "frame-ancestors 'self'",
-    ].join('; '),
+    'Permissions-Policy',
+    'accelerometer=(), camera=(), geolocation=(), gyroscope=(), microphone=(), payment=(), usb=()'
   );
+  if (req.secure || envBoolean('FORCE_HSTS')) {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  }
   next();
 }
 
-const rateBuckets = new Map();
-const RATE_WINDOW_MS = 60_000;
+function sponsorFromEnvironment() {
+  const name = String(process.env.SPONSOR_NAME || '').trim().slice(0, 80);
+  if (!name) return null;
 
-function cleanupRateBuckets() {
-  const oldest = Date.now() - RATE_WINDOW_MS * 2;
-  for (const [key, bucket] of rateBuckets) {
-    if (bucket.startedAt < oldest) rateBuckets.delete(key);
-  }
-}
-
-const cleanupTimer = setInterval(cleanupRateBuckets, RATE_WINDOW_MS);
-cleanupTimer.unref?.();
-
-function renderRateLimit(req, res, next) {
-  const key = req.ip || req.socket.remoteAddress || 'unknown';
-  const now = Date.now();
-  let bucket = rateBuckets.get(key);
-
-  if (!bucket || now - bucket.startedAt >= RATE_WINDOW_MS) {
-    bucket = { startedAt: now, count: 0 };
-    rateBuckets.set(key, bucket);
-  }
-
-  bucket.count += 1;
-  const remaining = Math.max(0, RATE_LIMIT_PER_MINUTE - bucket.count);
-  const resetSeconds = Math.ceil((bucket.startedAt + RATE_WINDOW_MS - now) / 1000);
-
-  res.setHeader('X-RateLimit-Limit', String(RATE_LIMIT_PER_MINUTE));
-  res.setHeader('X-RateLimit-Remaining', String(remaining));
-  res.setHeader('X-RateLimit-Reset', String(Math.max(1, resetSeconds)));
-
-  if (bucket.count > RATE_LIMIT_PER_MINUTE) {
-    res.setHeader('Retry-After', String(Math.max(1, resetSeconds)));
-    return res.status(429).json({
-      error: 'تعداد درخواست‌ها بیش از حد مجاز است. کمی بعد دوباره تلاش کنید.',
-      code: 'RATE_LIMITED',
-    });
-  }
-
-  next();
-}
-
-let activeRenders = 0;
-const renderQueue = [];
-
-class QueueFullError extends Error {
-  constructor() {
-    super('صف رندر پر است. چند لحظه دیگر دوباره تلاش کنید.');
-    this.name = 'QueueFullError';
-    this.statusCode = 503;
-    this.code = 'RENDER_QUEUE_FULL';
-  }
-}
-
-async function withRenderSlot(task) {
-  if (activeRenders >= MAX_RENDER_CONCURRENCY) {
-    if (renderQueue.length >= MAX_RENDER_QUEUE) throw new QueueFullError();
-    await new Promise((resolve) => renderQueue.push(resolve));
-  }
-
-  activeRenders += 1;
-  try {
-    return await task();
-  } finally {
-    activeRenders -= 1;
-    const next = renderQueue.shift();
-    if (next) next();
-  }
-}
-
-function boundedNumber(value, min, max) {
-  if (value === undefined || value === null || value === '') return undefined;
-  const number = Number(value);
-  if (!Number.isFinite(number)) return undefined;
-  return Math.min(max, Math.max(min, number));
-}
-
-function parseConfig(value) {
-  if (!value) return undefined;
-  if (typeof value === 'object' && !Array.isArray(value)) return value;
-  if (typeof value === 'string') {
+  const rawUrl = String(process.env.SPONSOR_URL || '').trim();
+  let url = '';
+  if (rawUrl) {
     try {
-      const parsed = JSON.parse(value);
-      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) return parsed;
+      const parsed = new URL(rawUrl);
+      if (parsed.protocol === 'https:') url = parsed.href;
     } catch {
-      // Normalized below as a client error.
+      // Invalid sponsor links are omitted instead of breaking metadata.
     }
   }
-  throw Object.assign(new Error('تنظیمات Mermaid باید یک شیء JSON معتبر باشد.'), {
-    statusCode: 400,
-    code: 'INVALID_CONFIG',
-  });
-}
-
-function normalizeBackground(value) {
-  if (!value) return undefined;
-  const background = String(value).trim();
-  if (background in BACKGROUNDS) return background;
-  // The public API only needs the value produced by <input type="color">.
-  // Restricting this field prevents CSS url() values and same-origin request tricks.
-  if (/^#[0-9a-f]{3,4}(?:[0-9a-f]{3,4})?$/i.test(background)) return background;
-  throw Object.assign(new Error('رنگ پس‌زمینه معتبر نیست.'), {
-    statusCode: 400,
-    code: 'INVALID_BACKGROUND',
-  });
-}
-
-function pickRenderOptions(src = {}) {
-  const theme = THEMES.includes(String(src.theme || '')) ? String(src.theme) : undefined;
-  const layout = LAYOUTS.includes(String(src.layout || '')) ? String(src.layout) : undefined;
-  const pdfPaper = PDF_PAPERS.includes(String(src.pdfPaper || '')) ? String(src.pdfPaper) : undefined;
-  const background = normalizeBackground(src.background);
 
   return {
-    theme,
-    background,
-    scale: boundedNumber(src.scale, 1, 5),
-    quality: boundedNumber(src.quality, 1, 100),
-    width: boundedNumber(src.width, 1, 5_000),
-    height: boundedNumber(src.height, 1, 5_000),
-    layout,
-    css: src.css ? String(src.css) : undefined,
-    config: parseConfig(src.config),
-    pdfPaper,
-    pdfLandscape: src.pdfLandscape === true || src.pdfLandscape === 'true',
-    pdfFit: src.pdfFit === true || src.pdfFit === 'true',
+    name,
+    url,
+    label: String(process.env.SPONSOR_LABEL || '').trim().slice(0, 50) || undefined,
   };
 }
 
-function validateRenderInput(code, options) {
-  if (!code || !String(code).trim()) {
-    throw Object.assign(new Error('کد نمودار وارد نشده است.'), { statusCode: 400, code: 'EMPTY_CODE' });
-  }
-  if (String(code).length > MAX_CODE_LENGTH) {
-    throw Object.assign(new Error(`حداکثر طول کد ${MAX_CODE_LENGTH} نویسه است.`), { statusCode: 413, code: 'CODE_TOO_LARGE' });
-  }
-  if (options.css && options.css.length > MAX_CSS_LENGTH) {
-    throw Object.assign(new Error(`حجم CSS از حد مجاز ${MAX_CSS_LENGTH} نویسه بیشتر است.`), { statusCode: 413, code: 'CSS_TOO_LARGE' });
-  }
-  if (options.config && JSON.stringify(options.config).length > MAX_CONFIG_LENGTH) {
-    throw Object.assign(new Error('حجم تنظیمات Mermaid از حد مجاز بیشتر است.'), { statusCode: 413, code: 'CONFIG_TOO_LARGE' });
-  }
+function internalServerUrl(req) {
+  return `http://127.0.0.1:${req.socket.localPort}`;
 }
 
-function sendResult(res, result, format, download) {
+function sendRenderResult(res, result, format, download) {
   const bytes = Buffer.isBuffer(result.buffer) ? result.buffer : Buffer.from(result.buffer);
+  const normalizedFormat = format === 'jpeg' ? 'jpg' : format;
   res.setHeader('Content-Type', result.mime || mimeFor(format));
-  res.setHeader('Content-Length', bytes.length);
+  res.setHeader('Content-Length', String(bytes.length));
   res.setHeader('Cache-Control', 'no-store');
-  if (download) res.setHeader('Content-Disposition', `attachment; filename="diagram.${format}"`);
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  if (format === 'svg') {
+    res.setHeader('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'; img-src data:");
+  }
+  if (download) {
+    res.setHeader('Content-Disposition', `attachment; filename="diagram.${normalizedFormat}"`);
+  }
   res.end(bytes);
 }
 
-function sendApiError(res, error) {
-  const status = Number(error?.statusCode) || (error?.name === 'MermaidParseError' ? 422 : 500);
-  if (status >= 500 && process.env.NODE_ENV !== 'test') {
-    console.error('[mermaid-studio]', error);
+function decodeQueryCode(query) {
+  const raw = query.code || '';
+  if (query.encoding !== 'base64') return String(raw);
+
+  const encoded = String(raw).replace(/\s+/g, '');
+  if (!encoded || encoded.length % 4 === 1 || !/^[A-Za-z0-9+/]*={0,2}$/.test(encoded)) {
+    throw new HttpError(400, 'INVALID_ENCODING', 'The base64 diagram code is invalid.');
   }
-  res.status(status).json({
-    error: error?.message || 'خطای پیش‌بینی‌نشده در سرور.',
-    name: error?.name || 'Error',
-    code: error?.code,
-  });
+  return Buffer.from(encoded, 'base64').toString('utf8');
+}
+
+function publicError(error) {
+  if (error instanceof HttpError) return error;
+  if (error?.type === 'entity.too.large') {
+    return new HttpError(413, 'REQUEST_TOO_LARGE', 'The request body is too large.');
+  }
+  if (error instanceof SyntaxError && Object.prototype.hasOwnProperty.call(error, 'body')) {
+    return new HttpError(400, 'INVALID_JSON', 'The request body must be valid JSON.');
+  }
+  if (error?.name === 'MermaidParseError') {
+    return new HttpError(422, 'MERMAID_PARSE_ERROR', error.message || 'The Mermaid diagram is invalid.');
+  }
+  if (error?.name === 'ChromeUnavailableError') {
+    return new HttpError(503, 'RENDERER_UNAVAILABLE', 'The server-side renderer is unavailable.');
+  }
+  if (error?.name === 'RenderTimeoutError') {
+    return new HttpError(504, 'RENDER_TIMEOUT', 'The render operation exceeded its time limit.');
+  }
+  if (error?.name === 'RenderSizeError') {
+    return new HttpError(413, 'OUTPUT_TOO_LARGE', error.message || 'The rendered diagram is too large.');
+  }
+  return new HttpError(500, 'INTERNAL_ERROR', 'The render request could not be completed.');
 }
 
 export function createApp() {
   const app = express();
   app.disable('x-powered-by');
-  if (process.env.TRUST_PROXY === '1') app.set('trust proxy', 1);
 
+  if (envBoolean('TRUST_PROXY')) app.set('trust proxy', 1);
   app.use(securityHeaders);
-  app.use(express.json({ limit: '1mb', strict: true }));
+  app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || '256kb', strict: true }));
 
-  app.use('/vendor/mermaid', express.static(path.join(NM, 'mermaid', 'dist'), { setHeaders: vendorHeaders }));
-  app.use('/vendor/codemirror', express.static(path.join(NM, 'codemirror'), { setHeaders: vendorHeaders }));
-  app.use('/vendor/katex', express.static(path.join(NM, 'katex', 'dist'), { setHeaders: vendorHeaders }));
-  app.use('/vendor/pako', express.static(path.join(NM, 'pako', 'dist'), { setHeaders: vendorHeaders }));
-  app.use('/vendor/iconify', express.static(path.join(NM, '@iconify-json'), { setHeaders: vendorHeaders }));
+  const renderRateLimit = createRateLimiter({
+    windowMs: positiveInteger(process.env.RENDER_RATE_WINDOW_MS, 60_000, 1_000, 3_600_000),
+    max: positiveInteger(process.env.RENDER_RATE_MAX, 30, 1, 10_000),
+  });
+  const renderGate = createRenderGate({
+    concurrency: positiveInteger(process.env.RENDER_CONCURRENCY, 2, 1, 16),
+    maxQueue: positiveInteger(process.env.RENDER_QUEUE_MAX, 20, 0, 1_000),
+  });
 
-  app.get(['/', '/index.html'], (_req, res) => renderPage(LANDING_HTML, res));
-  app.get(['/editor', '/editor/'], (_req, res) => renderPage(EDITOR_HTML, res));
-  app.get('/headless', (_req, res) => res.sendFile(HEADLESS_HTML));
-
+  // Locally vendored dependencies: no CDN is required for the editor.
+  app.use('/vendor/mermaid', express.static(path.join(NODE_MODULES, 'mermaid', 'dist'), { setHeaders: vendorHeaders }));
+  app.use('/vendor/codemirror', express.static(path.join(NODE_MODULES, 'codemirror'), { setHeaders: vendorHeaders }));
+  app.use('/vendor/katex', express.static(path.join(NODE_MODULES, 'katex', 'dist'), { setHeaders: vendorHeaders }));
+  app.use('/vendor/pako', express.static(path.join(NODE_MODULES, 'pako', 'dist'), { setHeaders: vendorHeaders }));
+  app.use('/vendor/iconify', express.static(path.join(NODE_MODULES, '@iconify-json'), { setHeaders: vendorHeaders }));
   app.use('/vendor-build', express.static(path.join(PUBLIC_DIR, 'vendor-build'), { setHeaders: vendorHeaders }));
-  app.use(express.static(PUBLIC_DIR, { setHeaders: appHeaders, index: false }));
 
-  app.get('/api/health', (_req, res) => res.json({
-    ok: true,
-    version: pkg.version,
-    activeRenders,
-    queuedRenders: renderQueue.length,
-  }));
-  app.get('/api/version', (_req, res) => res.json({ name: pkg.name, version: pkg.version }));
+  // Product pages are served explicitly so HTML always receives the build token.
+  app.get(['/', '/fa', '/fa/'], (_req, res) => sendHtml(res, LANDING_HTML));
+  app.get(['/editor', '/editor/', '/index.html'], (_req, res) => sendHtml(res, EDITOR_HTML));
+  app.get(['/templates', '/templates/', '/examples', '/examples/'], (_req, res) => sendHtml(res, TEMPLATES_HTML));
+  app.get('/headless', (_req, res) => sendHtml(res, HEADLESS_HTML));
+  app.get(['/privacy', '/privacy/'], (_req, res) => sendHtml(res, PRIVACY_HTML));
+  app.get(['/terms', '/terms/'], (_req, res) => sendHtml(res, TERMS_HTML));
 
-  const meta = () => ({
+  app.use(express.static(PUBLIC_DIR, { setHeaders: appAssetHeaders, index: false }));
+
+  const metadata = () => ({
     version: pkg.version,
+    product: {
+      defaultLanguage: 'fa',
+      languages: ['fa', 'en'],
+      safeMode: true,
+      localPreview: true,
+    },
     examples: EXAMPLES,
     themes: THEMES,
     formats: FORMATS,
@@ -335,81 +274,61 @@ export function createApp() {
     iconPacks: ICON_PACKS,
     diagramTypes: DIAGRAM_TYPES,
     defaults: DEFAULTS,
-    publicMode: PUBLIC_MODE,
-    allowUnsafeMermaid: ALLOW_UNSAFE_MERMAID,
-    sponsor: SPONSOR,
-    limits: {
-      maxCodeLength: MAX_CODE_LENGTH,
-      maxCssLength: MAX_CSS_LENGTH,
-      maxConfigLength: MAX_CONFIG_LENGTH,
-      rendersPerMinute: RATE_LIMIT_PER_MINUTE,
-    },
+    sponsor: sponsorFromEnvironment(),
   });
-  app.get('/api/meta', (_req, res) => res.json(meta()));
-  app.get('/api/examples', (_req, res) => res.json(meta()));
 
-  const selfUrl = (req) => `http://127.0.0.1:${req.socket.localPort}`;
+  app.get('/api/health', (_req, res) => {
+    res.setHeader('Cache-Control', 'no-store');
+    res.json({ ok: true, version: pkg.version, render: renderGate.stats() });
+  });
+  app.get('/api/version', (_req, res) => res.json({ name: pkg.name, version: pkg.version }));
+  app.get('/api/meta', (_req, res) => res.json(metadata()));
+  app.get('/api/examples', (_req, res) => res.json(metadata()));
 
-  app.use('/api/render', renderRateLimit);
+  const normalize = (source) =>
+    normalizeRenderRequest(source, {
+      formats: FORMAT_SET,
+      themes: THEME_SET,
+      layouts: LAYOUT_SET,
+      papers: PAPER_SET,
+      backgrounds: BACKGROUND_SET,
+    });
 
-  app.post('/api/render', async (req, res) => {
+  app.post('/api/render', renderRateLimit, async (req, res, next) => {
     try {
-      const { code, format = 'svg', download } = req.body || {};
-      const normalizedFormat = String(format).toLowerCase();
-      if (!FORMATS.includes(normalizedFormat)) {
-        throw Object.assign(new Error(`فرمت «${normalizedFormat}» پشتیبانی نمی‌شود.`), { statusCode: 400, code: 'UNKNOWN_FORMAT' });
-      }
-      const options = pickRenderOptions(req.body || {});
-      validateRenderInput(code, options);
-      const result = await withRenderSlot(() => renderDiagram({
-        serverUrl: selfUrl(req),
-        code: String(code),
-        format: normalizedFormat,
-        ...options,
-      }));
-      sendResult(res, result, normalizedFormat, download);
+      const options = normalize(req.body);
+      const result = await renderGate.run(() =>
+        renderDiagram({ serverUrl: internalServerUrl(req), ...options })
+      );
+      sendRenderResult(res, result, options.format, options.download);
     } catch (error) {
-      sendApiError(res, error);
+      next(error);
     }
   });
 
-  app.get('/api/render', async (req, res) => {
+  app.get('/api/render', renderRateLimit, async (req, res, next) => {
     try {
-      let code = req.query.code || '';
-      if (req.query.encoding === 'base64' && code) {
-        try {
-          code = Buffer.from(String(code), 'base64').toString('utf8');
-        } catch {
-          throw Object.assign(new Error('کد Base64 معتبر نیست.'), { statusCode: 400, code: 'INVALID_BASE64' });
-        }
-      }
-
-      const format = String(req.query.format || 'svg').toLowerCase();
-      if (!FORMATS.includes(format)) {
-        throw Object.assign(new Error(`فرمت «${format}» پشتیبانی نمی‌شود.`), { statusCode: 400, code: 'UNKNOWN_FORMAT' });
-      }
-      const options = pickRenderOptions(req.query || {});
-      validateRenderInput(code, options);
-      const result = await withRenderSlot(() => renderDiagram({
-        serverUrl: selfUrl(req),
-        code: String(code),
-        format,
-        ...options,
-      }));
-      sendResult(res, result, format, req.query.download);
+      const options = normalize({ ...req.query, code: decodeQueryCode(req.query) });
+      const result = await renderGate.run(() =>
+        renderDiagram({ serverUrl: internalServerUrl(req), ...options })
+      );
+      sendRenderResult(res, result, options.format, options.download);
     } catch (error) {
-      sendApiError(res, error);
+      next(error);
     }
+  });
+
+  app.use('/api', (_req, _res, next) => {
+    next(new HttpError(404, 'API_NOT_FOUND', 'API route not found.'));
   });
 
   app.use((error, _req, res, _next) => {
-    if (error?.type === 'entity.too.large') {
-      return res.status(413).json({ error: 'حجم درخواست بیش از حد مجاز است.', code: 'BODY_TOO_LARGE' });
+    const safe = publicError(error);
+    if (safe.status >= 500) {
+      console.error(`[${safe.code}]`, error?.message || error);
     }
-    if (error instanceof SyntaxError && 'body' in error) {
-      return res.status(400).json({ error: 'بدنهٔ JSON معتبر نیست.', code: 'INVALID_JSON' });
-    }
-    sendApiError(res, error);
+    if (res.headersSent) return;
+    res.status(safe.status).json({ error: safe.message, code: safe.code });
   });
 
   return app;
@@ -419,14 +338,14 @@ export function startServer({ port = 0, host = '127.0.0.1' } = {}) {
   const app = createApp();
   return new Promise((resolve, reject) => {
     const server = app.listen(port, host, () => {
-      const addr = server.address();
-      const actualPort = typeof addr === 'object' && addr ? addr.port : port;
+      const address = server.address();
+      const actualPort = typeof address === 'object' && address ? address.port : port;
       const displayHost = host === '0.0.0.0' ? 'localhost' : host;
       resolve({
         server,
         port: actualPort,
         url: `http://${displayHost}:${actualPort}`,
-        close: () => new Promise((res) => server.close(() => res())),
+        close: () => new Promise((done) => server.close(done)),
       });
     });
     server.on('error', reject);
