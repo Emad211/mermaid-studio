@@ -1,85 +1,119 @@
 # راهنمای انتشار نسخهٔ آنلاین Mermaid Studio
 
-این راهنما برای اجرای عمومی محصول روی یک سرور یا سرویس کانتینری نوشته شده است.
+این راهنما برای اجرای عمومی محصول رایگان Mermaid Studio روی یک سرور دارای Docker نوشته شده است. مسیر پیشنهادی production از Docker Compose و Caddy استفاده می‌کند تا HTTPS، health check و راه‌اندازی مجدد سرویس به‌صورت استاندارد مدیریت شوند.
 
-## اجرای سریع با Docker
+## پیش‌نیازها
+
+- یک سرور Linux با Docker Engine و Docker Compose
+- دامنه‌ای که رکوردهای DNS آن به IP سرور اشاره می‌کنند
+- دسترسی عمومی پورت‌های ۸۰ و ۴۴۳
+- حداقل حدود ۲ گیگابایت RAM؛ برای ترافیک یا رندر PDF بیشتر، منابع بالاتر توصیه می‌شود
+
+## اجرای نهایی با Docker Compose
 
 ```bash
-docker build -t mermaid-studio .
-docker run --rm -p 4321:4321 --env-file .env mermaid-studio
+cp .env.example .env
 ```
 
-سپس صفحهٔ اصلی روی `http://localhost:4321` و ادیتور روی
-`http://localhost:4321/editor` در دسترس هستند.
-
-## متغیرهای ضروری
-
-فایل `.env.example` را به `.env` کپی کنید. برای نسخهٔ اینترنتی این مقادیر توصیه
-می‌شوند:
+در فایل `.env` مقدار دامنه را تغییر دهید:
 
 ```dotenv
-NODE_ENV=production
-HOST=0.0.0.0
-PORT=4321
-MSTUDIO_PUBLIC_MODE=1
-MSTUDIO_ALLOW_UNSAFE_MERMAID=0
+DOMAIN=diagram.example.com
 ```
 
-حالت ناامن Mermaid را روی اینترنت فعال نکنید. این حالت فقط برای محیط محلی مورد
-اعتماد و سازگاری با نمودارهایی است که عمداً از HTML یا callback استفاده می‌کنند.
+سپس:
+
+```bash
+docker compose build --pull
+docker compose up -d
+docker compose ps
+```
+
+Caddy برای دامنهٔ معتبر به‌طور خودکار گواهی HTTPS دریافت می‌کند. صفحهٔ اصلی روی دامنه و ادیتور روی `/editor` در دسترس خواهد بود.
+
+## متغیرهای اصلی سرور
+
+```dotenv
+HOST=0.0.0.0
+PORT=4321
+TRUST_PROXY=true
+FORCE_HSTS=false
+NO_OPEN=1
+```
+
+`TRUST_PROXY=true` در ترکیب رسمی Compose لازم است، چون Caddy reverse proxy مورد اعتماد جلوی برنامه قرار دارد. اگر برنامه را بدون proxy مستقیماً اجرا می‌کنید، این مقدار را `false` قرار دهید.
+
+## محافظت API رندر
+
+```dotenv
+RENDER_RATE_WINDOW_MS=60000
+RENDER_RATE_MAX=30
+RENDER_CONCURRENCY=2
+RENDER_QUEUE_MAX=20
+JSON_BODY_LIMIT=256kb
+```
+
+هر رندر سروری می‌تواند یک صفحهٔ Chromium باز کند. افزایش هم‌زمانی بدون پایش RAM و CPU ممکن است سرویس را ناپایدار کند. خروجی‌های معمول تصویری ابتدا در مرورگر ساخته می‌شوند تا هزینهٔ سرور کاهش یابد.
+
+## Chromium در کانتینر
+
+ترکیب رسمی Compose این مقدار را تنظیم می‌کند:
+
+```dotenv
+PUPPETEER_NO_SANDBOX=true
+```
+
+Sandbox داخلی Chromium در بسیاری از میزبان‌های Docker در دسترس نیست؛ به همین دلیل کانتینر برنامه با کاربر غیرروت، فایل‌سیستم read-only، شبکهٔ backend داخلی، حذف capabilityها، `no-new-privileges`، محدودیت PID و فضای موقت محدود اجرا می‌شود. اگر محیط اختصاصی شما user namespace و sandbox Chromium را به‌درستی پشتیبانی می‌کند، می‌توانید این مقدار را `false` آزمایش کنید.
 
 ## تبلیغات یکتانت یا تپسل
 
-محصول کاملاً رایگان است و درآمد نسخهٔ آنلاین فقط از تبلیغات صفحات محتوایی تأمین می‌شود. اسکریپت شبکهٔ تبلیغاتی داخل ادیتور بارگذاری نمی‌شود.
+محصول کاملاً رایگان است و درآمد نسخهٔ عمومی فقط از تبلیغات صفحات محتوایی تأمین می‌شود. هیچ اسکریپت تبلیغاتی در `/editor` یا `/headless` بارگذاری نمی‌شود.
 
-پس از تأیید سایت در پنل ناشر، URL اسکریپت سراسری و شناسهٔ هر جایگاه را در `.env` قرار دهید:
+سایت را ابتدا با تبلیغات خاموش منتشر کنید:
+
+```dotenv
+ADS_ENABLED=false
+```
+
+پس از تأیید دامنه در پنل ناشر، URL اسکریپت و شناسه‌های واقعی را وارد کنید:
 
 ```dotenv
 ADS_ENABLED=true
 ADS_PROVIDER=yektanet
-ADS_SCRIPT_URL=https://cdn.example.com/path/publisher.js
-ADS_SCRIPT_ID=publisher-script-id
-ADS_ALLOWED_ORIGINS=https://cdn.example.com,https://*.example.com
-ADS_SLOT_HOME_INLINE=placement-id
-ADS_SLOT_TEMPLATES_INLINE=placement-id
-ADS_SLOT_LEARN_INLINE=placement-id
+ADS_SCRIPT_URL=https://cdn.yektanet.com/.../rg.complete.js
+ADS_SCRIPT_ID=ua-script-XXXXXXXX
+ADS_ALLOWED_ORIGINS=https://cdn.yektanet.com,https://*.yektanet.com
+ADS_LOAD_DELAY_MS=700
+
+ADS_SLOT_HOME_TOP=
+ADS_SLOT_HOME_INLINE=pos-article-display-card-111111
+ADS_SLOT_TEMPLATES_TOP=
+ADS_SLOT_TEMPLATES_INLINE=pos-article-display-card-222222
+ADS_SLOT_LEARN_TOP=
+ADS_SLOT_LEARN_INLINE=pos-article-display-card-333333
 ```
 
-راهنمای کامل و ترتیب پیشنهادی فعال‌سازی در [`ADS_FA.md`](ADS_FA.md) آمده است. اگر `ADS_ENABLED=false` باشد یا شناسه‌ای ناقص باشد، هیچ درخواست شخص ثالثی ارسال نمی‌شود.
+مقادیر نمونه را با داده‌های دقیق پنل خودتان جایگزین کنید. راهنمای کامل در [`ADS_FA.md`](ADS_FA.md) قرار دارد. اگر تنظیمات ناقص یا `ADS_ENABLED=false` باشد، مرورگر هیچ درخواست تبلیغاتی شخص ثالثی ارسال نمی‌کند.
 
-## محدودیت‌های پیشنهادی سرور
-
-```dotenv
-MSTUDIO_RATE_LIMIT=40
-MSTUDIO_RENDER_CONCURRENCY=2
-MSTUDIO_RENDER_QUEUE=20
-MSTUDIO_MAX_CODE_LENGTH=120000
-MSTUDIO_MAX_CSS_LENGTH=20000
-MSTUDIO_MAX_CONFIG_LENGTH=40000
-```
-
-مقادیر مناسب به CPU، RAM و تعداد کاربران بستگی دارند. هر رندر PNG یا PDF یک صفحهٔ
-Chromium باز می‌کند؛ بنابراین افزایش concurrency بدون اندازه‌گیری می‌تواند حافظه را
-تمام کند.
-
-## Reverse proxy
-
-در Nginx، Caddy یا پنل میزبان، HTTPS را فعال و درخواست‌ها را به پورت برنامه هدایت
-کنید. اگر فقط یک reverse proxy مورد اعتماد جلوی برنامه قرار دارد، `TRUST_PROXY=1`
-را تنظیم کنید تا Rate Limit بر اساس IP واقعی کاربر اعمال شود.
-
-## حریم خصوصی
-
-- بدنهٔ درخواست‌های `/api/render` را در access log ذخیره نکنید.
-- کد Mermaid کاربران را وارد ابزارهای analytics یا گزارش خطا نکنید.
-- لاگ‌های IP را فقط به‌اندازهٔ نیاز امنیتی نگه دارید.
-- از تبلیغات پاپ‌آپ یا اسکریپت‌هایی که محتوای ادیتور را می‌خوانند استفاده نکنید.
-
-## بررسی سلامت
+## بررسی سلامت و لاگ‌ها
 
 ```bash
-curl http://localhost:4321/api/health
+curl -fsS https://YOUR_DOMAIN/api/health
+docker compose logs --tail=200 app
+docker compose logs --tail=200 caddy
 ```
 
-پاسخ شامل نسخه، تعداد رندرهای فعال و طول صف است و برای health check میزبان قابل
-استفاده است.
+پاسخ سلامت شامل نسخه و وضعیت صف رندر است. بدنهٔ درخواست‌های `/api/render` یا کد Mermaid کاربران را در access log، analytics یا سامانهٔ گزارش خطا ذخیره نکنید.
+
+## به‌روزرسانی
+
+```bash
+git pull --ff-only
+docker compose build --pull
+docker compose up -d --remove-orphans
+curl -fsS https://YOUR_DOMAIN/api/health
+```
+
+## بازگشت به نسخهٔ قبلی
+
+برنامه پایگاه داده ندارد. برای rollback، commit یا image قبلی را اجرا و فایل `.env` سازگار با همان نسخه را بازیابی کنید. داده‌های Caddy در volumeهای `caddy_data` و `caddy_config` نگهداری می‌شوند و نباید هنگام rollback عادی حذف شوند.
