@@ -22,12 +22,12 @@ function Invoke-Docker([string[]]$Arguments, [switch]$AllowFailure) {
   if (-not $AllowFailure -and $status -ne 0) {
     Fail "فرمان Docker با کد $status شکست خورد: docker $($Arguments -join ' ')"
   }
-  return $status
+  if ($AllowFailure) { return $status }
 }
 
 function Invoke-Compose([string[]]$Arguments, [switch]$AllowFailure) {
   $base = @('compose', '--env-file', $EnvFile, '-f', $ComposeFile)
-  return Invoke-Docker ($base + $Arguments) -AllowFailure:$AllowFailure
+  Invoke-Docker ($base + $Arguments) -AllowFailure:$AllowFailure
 }
 
 function Require-Docker {
@@ -115,13 +115,13 @@ function Wait-Healthy([int]$TimeoutSeconds = 150) {
       $status = (& docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' $container 2>$null)
       if ($status -eq 'healthy') { return }
       if ($status -in @('unhealthy', 'exited', 'dead')) {
-        Invoke-Compose @('logs', '--tail', '200', 'app') -AllowFailure | Out-Null
+        & docker compose --env-file $EnvFile -f $ComposeFile logs --tail 200 app
         Fail "کانتینر با وضعیت $status متوقف شد."
       }
     }
     Start-Sleep -Seconds 2
   }
-  Invoke-Compose @('logs', '--tail', '200', 'app') -AllowFailure | Out-Null
+  & docker compose --env-file $EnvFile -f $ComposeFile logs --tail 200 app
   Fail 'سرویس در زمان مورد انتظار healthy نشد.'
 }
 
@@ -162,7 +162,7 @@ switch ($Command) {
     Require-Docker
     Ensure-Environment
     Invoke-Compose @('config', '--quiet') | Out-Null
-    Invoke-Compose @('up', '-d', '--build', '--remove-orphans') | Out-Null
+    Invoke-Compose @('up', '-d', '--build', '--remove-orphans')
     Wait-Healthy
     Show-Access
   }
@@ -170,37 +170,37 @@ switch ($Command) {
     Require-Docker
     Ensure-Environment
     Wait-Healthy 30
-    Invoke-Compose @('exec', '-T', 'app', 'node', 'scripts/docker-local-smoke.mjs') | Out-Null
+    Invoke-Compose @('exec', '-T', 'app', 'node', 'scripts/docker-local-smoke.mjs')
   }
   'test-full' {
     Require-Docker
     Ensure-Environment
     Wait-Healthy 30
-    Invoke-Compose @('exec', '-T', 'app', 'node', 'scripts/docker-local-smoke.mjs', '--full') | Out-Null
+    Invoke-Compose @('exec', '-T', 'app', 'node', 'scripts/docker-local-smoke.mjs', '--full')
   }
   'status' {
     Require-Docker
     Ensure-Environment
-    Invoke-Compose @('ps') | Out-Null
+    Invoke-Compose @('ps')
     $container = (& docker compose --env-file $EnvFile -f $ComposeFile ps -q app 2>$null | Select-Object -First 1)
     if ($container) { & docker inspect --format 'Health: {{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' $container }
   }
   'logs' {
     Require-Docker
     Ensure-Environment
-    Invoke-Compose @('logs', '-f', '--tail', '200', 'app') | Out-Null
+    Invoke-Compose @('logs', '-f', '--tail', '200', 'app')
   }
   'restart' {
     Require-Docker
     Ensure-Environment
-    Invoke-Compose @('restart', 'app') | Out-Null
+    Invoke-Compose @('restart', 'app')
     Wait-Healthy
     Show-Access
   }
   'down' {
     Require-Docker
     Ensure-Environment
-    Invoke-Compose @('down', '--remove-orphans') | Out-Null
+    Invoke-Compose @('down', '--remove-orphans')
     Write-Host 'سرویس متوقف شد؛ دادهٔ لوکال حفظ شده است.' -ForegroundColor Green
   }
   'reset' {
@@ -210,7 +210,7 @@ switch ($Command) {
       $answer = Read-Host 'تمام دادهٔ آنالیتیکس لوکال حذف شود؟ [y/N]'
       if ($answer -notmatch '^[Yy]$') { Write-Host 'لغو شد.'; break }
     }
-    Invoke-Compose @('down', '--volumes', '--remove-orphans') | Out-Null
+    Invoke-Compose @('down', '--volumes', '--remove-orphans')
     Write-Host 'کانتینرها و دادهٔ لوکال حذف شدند؛ .env.local حفظ شد.' -ForegroundColor Green
   }
   'clean' {
@@ -220,7 +220,7 @@ switch ($Command) {
       $answer = Read-Host 'کانتینر، volume و image لوکال حذف شوند؟ [y/N]'
       if ($answer -notmatch '^[Yy]$') { Write-Host 'لغو شد.'; break }
     }
-    Invoke-Compose @('down', '--volumes', '--rmi', 'local', '--remove-orphans') | Out-Null
+    Invoke-Compose @('down', '--volumes', '--rmi', 'local', '--remove-orphans')
     Write-Host 'منابع Docker لوکال پاک شدند؛ .env.local حفظ شد.' -ForegroundColor Green
   }
   'credentials' {
