@@ -1,0 +1,20 @@
+{
+  "name": "Mermaid Studio — استودیوی فارسی نمودار",
+  "short_name": "Mermaid Studio",
+  "description": "ادیتور فارسی و متن‌باز برای ساخت و خروجی گرفتن از نمودارهای Mermaid.",
+  "lang": "fa",
+  "dir": "rtl",
+  "start_url": "/editor",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0e0f15",
+  "theme_color": "#0e0f15",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
