@@ -1,14 +1,7 @@
 /**
- * Shared Mermaid runtime. Imported by BOTH the live GUI and the headless page
- * Puppeteer drives, so the browser preview and the exported files come from the
- * exact same Mermaid build and configuration.
- *
- * Capabilities wired here:
- *   • full config (theme, themeVariables, per-diagram config)
- *   • icon packs (logos / mdi / fa6) — lazily fetched on first use
- *   • ELK layout — lazily imported only when requested
- *   • KaTeX math — bundled in Mermaid; CSS is loaded by the host page
- *   • custom CSS injected into the produced SVG
+ * Shared Mermaid runtime used by both the live editor and the headless exporter.
+ * Safe mode is the default. Unsafe Mermaid HTML/click features can only be enabled
+ * explicitly by the server through MSTUDIO_ALLOW_UNSAFE_MERMAID=1.
  */
 
 import mermaid from '/vendor/mermaid/mermaid.esm.min.mjs';
@@ -16,18 +9,64 @@ import mermaid from '/vendor/mermaid/mermaid.esm.min.mjs';
 let counter = 0;
 let iconPacksRegistered = false;
 let elkRegistered = false;
+let capabilitiesPromise = null;
 
 export const ICON_PACKS = ['logos', 'mdi', 'fa6-solid', 'fa6-brands'];
 
 const BASE_CONFIG = {
   startOnLoad: false,
-  securityLevel: 'loose',
+  securityLevel: 'strict',
   fontFamily:
-    'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+    'Vazirmatn, Tahoma, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
 };
 
-/** Register all icon packs with lazy loaders (the JSON is only fetched when a
- *  diagram actually references that pack, e.g. `logos:aws`). */
+function loadCapabilities() {
+  if (!capabilitiesPromise) {
+    capabilitiesPromise = fetch('/api/meta', { credentials: 'same-origin' })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((meta) => ({ allowUnsafeMermaid: meta?.allowUnsafeMermaid === true }))
+      .catch(() => ({ allowUnsafeMermaid: false }));
+  }
+  return capabilitiesPromise;
+}
+
+function plainObject(value) {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+}
+
+function safeConfig(config, allowUnsafe) {
+  const source = plainObject(config);
+  const result = { ...source };
+
+  delete result.__proto__;
+  delete result.prototype;
+  delete result.constructor;
+
+  if (allowUnsafe) {
+    if (!result.securityLevel) result.securityLevel = 'loose';
+  } else {
+    result.securityLevel = 'strict';
+    if (result.themeCSS) result.themeCSS = safeCss(result.themeCSS, false);
+  }
+
+  return result;
+}
+
+function safeCss(css, allowUnsafe) {
+  const value = String(css || '').trim();
+  if (!value) return '';
+
+  if (!allowUnsafe) {
+    const blocked = /(?:@import\b|url\s*\(|expression\s*\(|behavior\s*:|<|>)/i;
+    if (blocked.test(value)) {
+      throw new Error('در حالت امن، @import، url() و کد HTML داخل CSS مجاز نیست.');
+    }
+  }
+
+  // Never allow a custom value to terminate the generated style element.
+  return value.replace(/<\/style/gi, '<\\/style');
+}
+
 export function registerIconPacks() {
   if (iconPacksRegistered) return;
   iconPacksRegistered = true;
@@ -35,19 +74,21 @@ export function registerIconPacks() {
     mermaid.registerIconPacks(
       ICON_PACKS.map((name) => ({
         name,
-        loader: () => fetch(`/vendor/iconify/${name}/icons.json`).then((r) => r.json()),
-      }))
+        loader: () => fetch(`/vendor/iconify/${name}/icons.json`).then((response) => {
+          if (!response.ok) throw new Error(`Icon pack ${name} could not be loaded.`);
+          return response.json();
+        }),
+      })),
     );
-  } catch (err) {
-    console.warn('icon pack registration failed:', err);
+  } catch (error) {
+    console.warn('icon pack registration failed:', error);
   }
 }
 
-/** Import + register the ELK layout engine (≈1.5 MB) only when needed. */
 export async function registerElk() {
   if (elkRegistered) return;
-  const mod = await import('/vendor-build/layout-elk.mjs');
-  mermaid.registerLayoutLoaders(mod.default);
+  const module = await import('/vendor-build/layout-elk.mjs');
+  mermaid.registerLayoutLoaders(module.default);
   elkRegistered = true;
 }
 
@@ -55,60 +96,71 @@ function wantsElk(config, layout) {
   return layout === 'elk' || config?.layout === 'elk';
 }
 
-/** Insert a custom <style> block into a rendered SVG string. */
 function injectCss(svg, css) {
-  if (!css || !css.trim()) return svg;
-  const styleTag = `<style>${css}</style>`;
-  return svg.replace(/(<svg\b[^>]*>)/, `$1${styleTag}`);
+  if (!css) return svg;
+  return svg.replace(/(<svg\b[^>]*>)/, `$1<style>${css}</style>`);
 }
 
 /**
- * Render Mermaid source to an SVG string.
+ * Render Mermaid source into an SVG string.
+ *
  * @param {string} code
- * @param {object} [opts]
- * @param {string} [opts.theme]
- * @param {object} [opts.config]  full mermaid config (themeVariables, flowchart{}, layout, …)
- * @param {string} [opts.layout]  shortcut for config.layout ('elk' | 'dagre')
- * @param {string} [opts.css]     extra CSS injected into the SVG
+ * @param {object} [options]
+ * @param {string} [options.theme]
+ * @param {object} [options.config]
+ * @param {string} [options.layout]
+ * @param {string} [options.css]
+ * @param {boolean} [options.allowUnsafe]
  */
-export async function renderToSvg(code, { theme = 'default', config = {}, layout, css } = {}) {
+export async function renderToSvg(
+  code,
+  { theme = 'default', config = {}, layout, css, allowUnsafe } = {},
+) {
   registerIconPacks();
-  if (wantsElk(config, layout)) {
+
+  const capabilities = allowUnsafe === undefined ? await loadCapabilities() : null;
+  const unsafeAllowed = allowUnsafe === true || capabilities?.allowUnsafeMermaid === true;
+  const normalizedConfig = safeConfig(config, unsafeAllowed);
+  const normalizedCss = safeCss(css, unsafeAllowed);
+
+  if (wantsElk(normalizedConfig, layout)) {
     try {
       await registerElk();
-    } catch (err) {
-      console.warn('ELK layout unavailable, falling back to default:', err);
+    } catch (error) {
+      console.warn('ELK layout unavailable, falling back to default:', error);
     }
   }
-  const merged = { ...BASE_CONFIG, theme, ...config };
+
+  const merged = { ...BASE_CONFIG, theme, ...normalizedConfig };
   if (layout) merged.layout = layout;
+  if (!unsafeAllowed) merged.securityLevel = 'strict';
+
   mermaid.initialize(merged);
   const id = `mstudio-${++counter}`;
-  const { svg } = await mermaid.render(id, code);
-  return injectCss(svg, css);
+  const { svg } = await mermaid.render(id, String(code || ''));
+  return injectCss(svg, normalizedCss);
 }
 
-/** Validate without rendering. Returns {valid, message?, line?}. */
 export async function validate(code, { theme = 'default' } = {}) {
   try {
-    mermaid.initialize({ ...BASE_CONFIG, theme });
-    await mermaid.parse(code);
+    mermaid.initialize({ ...BASE_CONFIG, theme, securityLevel: 'strict' });
+    await mermaid.parse(String(code || ''));
     return { valid: true };
-  } catch (err) {
-    const message = err?.message || String(err);
-    const m = /line (\d+)/i.exec(message);
-    return { valid: false, message, line: m ? Number(m[1]) : null };
+  } catch (error) {
+    const message = error?.message || String(error);
+    const match = /line (\d+)/i.exec(message);
+    return { valid: false, message, line: match ? Number(match[1]) : null };
   }
 }
 
-/** Best-effort detection of the diagram type from the source's first keyword. */
 export function detectType(code) {
-  const firstLine = (code || '')
+  const firstLine = String(code || '')
     .split('\n')
-    .map((l) => l.replace(/%%.*$/, '').trim())
-    .find((l) => l.length > 0);
+    .map((line) => line.replace(/%%.*$/, '').trim())
+    .find((line) => line.length > 0);
   if (!firstLine) return 'unknown';
-  const map = [
+
+  const types = [
     [/^(flowchart|graph)\b/i, 'flowchart'],
     [/^sequenceDiagram\b/i, 'sequence'],
     [/^classDiagram\b/i, 'class'],
@@ -132,7 +184,10 @@ export function detectType(code) {
     [/^radar(-beta)?\b/i, 'radar'],
     [/^zenuml\b/i, 'zenuml'],
   ];
-  for (const [re, name] of map) if (re.test(firstLine)) return name;
+
+  for (const [pattern, name] of types) {
+    if (pattern.test(firstLine)) return name;
+  }
   return 'unknown';
 }
 
