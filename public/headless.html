@@ -1,7 +1,8 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8" />
+    <meta name="robots" content="noindex,nofollow" />
     <title>Mermaid Studio · headless renderer</title>
     <link rel="stylesheet" href="/vendor/katex/katex.min.css" />
     <style>
@@ -21,48 +22,6 @@
   </head>
   <body>
     <div id="container"></div>
-    <script type="module">
-      import { renderToSvg, validate } from '/js/mermaid-runtime.js';
-
-      // Called by Puppeteer for the `validate` CLI command.
-      window.__validate = async ({ code, theme }) => validate(code, { theme });
-
-      /** Give the SVG concrete pixel dimensions so screenshots/PDF are exact. */
-      function applySize(svg, width, height) {
-        const parts = (svg.getAttribute('viewBox') || '').trim().split(/[\s,]+/).map(Number);
-        const vbW = parts[2] || svg.clientWidth || 100;
-        const vbH = parts[3] || svg.clientHeight || 100;
-        let w = width;
-        let h = height;
-        if (w && !h) h = (w * vbH) / vbW;
-        else if (h && !w) w = (h * vbW) / vbH;
-        else if (!w && !h) {
-          w = vbW;
-          h = vbH;
-        }
-        svg.setAttribute('width', Math.round(w));
-        svg.setAttribute('height', Math.round(h));
-        svg.style.maxWidth = 'none';
-      }
-
-      // Called by Puppeteer (see src/core/renderer.js).
-      window.__render = async ({ code, theme, background, width, height, config, layout, css }) => {
-        try {
-          const svg = await renderToSvg(code, { theme, config, layout, css });
-          const container = document.getElementById('container');
-          container.innerHTML = svg;
-          document.body.style.background = background || 'transparent';
-          container.style.background = background || 'transparent';
-          const el = container.querySelector('svg');
-          applySize(el, width, height);
-          const rect = el.getBoundingClientRect();
-          return { svg: container.innerHTML, width: rect.width, height: rect.height };
-        } catch (err) {
-          return { error: err && err.message ? err.message : String(err) };
-        }
-      };
-
-      window.__mermaidReady = true;
-    </script>
+    <script type="module" src="/js/headless.js"></script>
   </body>
 </html>

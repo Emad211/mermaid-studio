@@ -1,17 +1,10 @@
 /**
- * Shared Mermaid runtime. Imported by BOTH the live GUI and the headless page
- * Puppeteer drives, so the browser preview and the exported files come from the
- * exact same Mermaid build and configuration.
- *
- * Capabilities wired here:
- *   • full config (theme, themeVariables, per-diagram config)
- *   • icon packs (logos / mdi / fa6) — lazily fetched on first use
- *   • ELK layout — lazily imported only when requested
- *   • KaTeX math — bundled in Mermaid; CSS is loaded by the host page
- *   • custom CSS injected into the produced SVG
+ * Shared Mermaid runtime used by both the live editor and the headless page.
+ * Public/shared diagrams are always rendered in Mermaid's strict security mode.
  */
 
 import mermaid from '/vendor/mermaid/mermaid.esm.min.mjs';
+import { sanitizeCssText } from '/js/svg-safety.js';
 
 let counter = 0;
 let iconPacksRegistered = false;
@@ -19,35 +12,37 @@ let elkRegistered = false;
 
 export const ICON_PACKS = ['logos', 'mdi', 'fa6-solid', 'fa6-brands'];
 
-const BASE_CONFIG = {
+const BASE_CONFIG = Object.freeze({
   startOnLoad: false,
-  securityLevel: 'loose',
+  securityLevel: 'strict',
   fontFamily:
-    'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-};
+    'Vazirmatn, Tahoma, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+});
 
-/** Register all icon packs with lazy loaders (the JSON is only fetched when a
- *  diagram actually references that pack, e.g. `logos:aws`). */
 export function registerIconPacks() {
   if (iconPacksRegistered) return;
   iconPacksRegistered = true;
+
   try {
     mermaid.registerIconPacks(
       ICON_PACKS.map((name) => ({
         name,
-        loader: () => fetch(`/vendor/iconify/${name}/icons.json`).then((r) => r.json()),
+        loader: async () => {
+          const response = await fetch(`/vendor/iconify/${name}/icons.json`);
+          if (!response.ok) throw new Error(`Could not load icon pack ${name}`);
+          return response.json();
+        },
       }))
     );
-  } catch (err) {
-    console.warn('icon pack registration failed:', err);
+  } catch (error) {
+    console.warn('Icon pack registration failed:', error);
   }
 }
 
-/** Import + register the ELK layout engine (≈1.5 MB) only when needed. */
 export async function registerElk() {
   if (elkRegistered) return;
-  const mod = await import('/vendor-build/layout-elk.mjs');
-  mermaid.registerLayoutLoaders(mod.default);
+  const module = await import('/vendor-build/layout-elk.mjs');
+  mermaid.registerLayoutLoaders(module.default);
   elkRegistered = true;
 }
 
@@ -55,60 +50,84 @@ function wantsElk(config, layout) {
   return layout === 'elk' || config?.layout === 'elk';
 }
 
-/** Insert a custom <style> block into a rendered SVG string. */
-function injectCss(svg, css) {
-  if (!css || !css.trim()) return svg;
-  const styleTag = `<style>${css}</style>`;
-  return svg.replace(/(<svg\b[^>]*>)/, `$1${styleTag}`);
+function safeConfig(config, theme, layout) {
+  const userConfig = config && typeof config === 'object' && !Array.isArray(config) ? { ...config } : {};
+  delete userConfig.securityLevel;
+  delete userConfig.startOnLoad;
+  delete userConfig.secure;
+  if (typeof userConfig.themeCSS === 'string') {
+    userConfig.themeCSS = sanitizeCssText(userConfig.themeCSS);
+  }
+
+  return {
+    ...BASE_CONFIG,
+    ...userConfig,
+    theme,
+    ...(layout ? { layout } : {}),
+    // Keep these last so a shared URL/config can never opt into loose HTML.
+    startOnLoad: false,
+    securityLevel: 'strict',
+  };
 }
 
-/**
- * Render Mermaid source to an SVG string.
- * @param {string} code
- * @param {object} [opts]
- * @param {string} [opts.theme]
- * @param {object} [opts.config]  full mermaid config (themeVariables, flowchart{}, layout, …)
- * @param {string} [opts.layout]  shortcut for config.layout ('elk' | 'dagre')
- * @param {string} [opts.css]     extra CSS injected into the SVG
- */
-export async function renderToSvg(code, { theme = 'default', config = {}, layout, css } = {}) {
+function injectCss(svgText, css) {
+  const cleanCss = sanitizeCssText(css);
+  if (!cleanCss.trim()) return svgText;
+
+  const documentNode = new DOMParser().parseFromString(svgText, 'image/svg+xml');
+  if (documentNode.querySelector('parsererror') || documentNode.documentElement.localName !== 'svg') {
+    throw new Error('Could not apply custom CSS to an invalid SVG');
+  }
+
+  const style = documentNode.createElementNS('http://www.w3.org/2000/svg', 'style');
+  style.textContent = cleanCss;
+  documentNode.documentElement.prepend(style);
+  return new XMLSerializer().serializeToString(documentNode.documentElement);
+}
+
+export async function renderToSvg(code, { theme = 'default', config = {}, layout, css = '' } = {}) {
   registerIconPacks();
+
   if (wantsElk(config, layout)) {
     try {
       await registerElk();
-    } catch (err) {
-      console.warn('ELK layout unavailable, falling back to default:', err);
+    } catch (error) {
+      console.warn('ELK layout unavailable; falling back to the default layout:', error);
     }
   }
-  const merged = { ...BASE_CONFIG, theme, ...config };
-  if (layout) merged.layout = layout;
+
+  const merged = safeConfig(config, theme, layout);
   mermaid.initialize(merged);
-  const id = `mstudio-${++counter}`;
-  const { svg } = await mermaid.render(id, code);
+  const id = `mstudio-${Date.now().toString(36)}-${++counter}`;
+  const { svg } = await mermaid.render(id, String(code || ''));
   return injectCss(svg, css);
 }
 
-/** Validate without rendering. Returns {valid, message?, line?}. */
 export async function validate(code, { theme = 'default' } = {}) {
   try {
-    mermaid.initialize({ ...BASE_CONFIG, theme });
-    await mermaid.parse(code);
+    mermaid.initialize(safeConfig({}, theme));
+    await mermaid.parse(String(code || ''));
     return { valid: true };
-  } catch (err) {
-    const message = err?.message || String(err);
-    const m = /line (\d+)/i.exec(message);
-    return { valid: false, message, line: m ? Number(m[1]) : null };
+  } catch (error) {
+    const message = error?.message || String(error);
+    const lineMatch = /line\s+(\d+)/i.exec(message);
+    return {
+      valid: false,
+      message,
+      line: lineMatch ? Number(lineMatch[1]) : null,
+    };
   }
 }
 
-/** Best-effort detection of the diagram type from the source's first keyword. */
 export function detectType(code) {
-  const firstLine = (code || '')
+  const firstLine = String(code || '')
     .split('\n')
-    .map((l) => l.replace(/%%.*$/, '').trim())
-    .find((l) => l.length > 0);
+    .map((line) => line.replace(/%%.*$/, '').trim())
+    .find(Boolean);
+
   if (!firstLine) return 'unknown';
-  const map = [
+
+  const types = [
     [/^(flowchart|graph)\b/i, 'flowchart'],
     [/^sequenceDiagram\b/i, 'sequence'],
     [/^classDiagram\b/i, 'class'],
@@ -132,7 +151,10 @@ export function detectType(code) {
     [/^radar(-beta)?\b/i, 'radar'],
     [/^zenuml\b/i, 'zenuml'],
   ];
-  for (const [re, name] of map) if (re.test(firstLine)) return name;
+
+  for (const [pattern, name] of types) {
+    if (pattern.test(firstLine)) return name;
+  }
   return 'unknown';
 }
 

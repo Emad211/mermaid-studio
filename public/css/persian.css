@@ -1,0 +1,270 @@
+/* Persian product layer — layout, typography, RTL and responsive behavior. */
+
+:root {
+  --font-ui-fa: Vazirmatn, IRANSansX, Shabnam, Tahoma, "Segoe UI", sans-serif;
+}
+
+html,
+body {
+  direction: rtl;
+}
+
+body,
+button,
+select,
+input {
+  font-family: var(--font-ui-fa);
+}
+
+.brand-home .logo {
+  color: inherit;
+  text-decoration: none;
+}
+
+.toolbar {
+  gap: 14px;
+}
+
+.toolbar-group.right {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.field > span {
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+select {
+  padding-left: 28px;
+  padding-right: 10px;
+}
+
+.editor-header,
+.status-bar,
+.drawer,
+.modal-card,
+.shortcuts,
+.hint {
+  direction: rtl;
+}
+
+#editor,
+.CodeMirror,
+.code-input,
+#preview-error-text,
+pre,
+code,
+kbd,
+.meta,
+.zoom-level,
+.dims {
+  direction: ltr;
+  text-align: left;
+  unicode-bidi: plaintext;
+}
+
+.CodeMirror-scroll,
+.CodeMirror-lines {
+  direction: ltr;
+}
+
+.CodeMirror-gutters {
+  left: 0 !important;
+  right: auto !important;
+}
+
+.CodeMirror-sizer {
+  margin-left: 34px !important;
+  margin-right: 0 !important;
+}
+
+.preview,
+.stage,
+.stage svg {
+  direction: ltr;
+}
+
+.preview-tools {
+  left: 14px;
+  right: auto;
+}
+
+.dims {
+  left: 14px;
+  right: auto;
+}
+
+.preview-error-card {
+  border-left-width: 1px;
+  border-right-width: 4px;
+}
+
+.modal-head,
+.modal-foot,
+.row,
+.drawer-head {
+  direction: rtl;
+}
+
+.row > span:first-child {
+  text-align: right;
+}
+
+.checkbox input {
+  margin-left: 8px;
+  margin-right: 0;
+}
+
+.input-error {
+  direction: ltr;
+  text-align: left;
+}
+
+.shortcuts > div {
+  direction: rtl;
+}
+
+.shortcuts kbd {
+  display: inline-flex;
+  direction: ltr;
+}
+
+.toast {
+  right: auto;
+  left: 18px;
+  text-align: right;
+}
+
+@media (max-width: 1280px) {
+  .toolbar {
+    gap: 9px;
+    padding: 8px 10px;
+  }
+
+  .toolbar-group {
+    gap: 7px;
+  }
+
+  .brand-text small {
+    display: none;
+  }
+
+  .sponsor-slot {
+    display: none !important;
+  }
+
+  .btn,
+  .icon-btn.wide {
+    padding-inline: 9px;
+  }
+}
+
+@media (max-width: 1040px) {
+  .view-actions {
+    order: 4;
+    width: 100%;
+    padding-top: 7px;
+    border-top: 1px solid var(--border);
+  }
+
+  .toolbar-group.right {
+    margin-right: auto;
+  }
+}
+
+@media (max-width: 900px) {
+  body {
+    overflow: hidden;
+  }
+
+  .toolbar {
+    max-height: 154px;
+    overflow: auto;
+  }
+
+  .brand-text,
+  .file-actions .icon-btn.wide:nth-child(3),
+  .export-actions .btn.ghost {
+    display: none;
+  }
+
+  .workspace {
+    flex-direction: column;
+  }
+
+  .editor-pane {
+    width: 100% !important;
+    flex: 0 0 48%;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .divider {
+    display: none;
+  }
+
+  .preview-pane {
+    flex: 1 1 52%;
+  }
+
+  .zoom-controls {
+    bottom: 8px;
+    max-width: calc(100% - 20px);
+  }
+
+  .zoom-controls .icon-btn.wide {
+    display: none;
+  }
+
+  .drawer {
+    width: min(92vw, 440px);
+  }
+}
+
+@media (max-width: 560px) {
+  .toolbar {
+    gap: 6px;
+    padding: 7px;
+  }
+
+  .file-actions .icon-btn.wide,
+  #btn-copy,
+  #btn-svg,
+  #btn-png,
+  #btn-help {
+    display: none;
+  }
+
+  .view-actions {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+
+  .view-actions .field {
+    min-width: 118px;
+  }
+
+  .view-actions .field:nth-child(3) {
+    min-width: auto;
+  }
+
+  .editor-header {
+    padding-inline: 8px;
+  }
+
+  .status-bar {
+    gap: 7px;
+    padding-inline: 8px;
+  }
+
+  #char-count {
+    display: none;
+  }
+
+  .modal-card {
+    width: calc(100vw - 20px);
+    max-height: calc(100vh - 20px);
+    overflow: auto;
+  }
+}

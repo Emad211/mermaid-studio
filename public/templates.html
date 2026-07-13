@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="fa" dir="rtl" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0d1020" />
+    <meta name="description" content="قالب‌های رایگان و فارسی Mermaid برای فلوچارت، Sequence، ERD، کلاس، گانت، معماری و نقشه ذهنی." />
+    <meta name="robots" content="index,follow" />
+    <title>قالب‌های Mermaid فارسی | Mermaid Studio</title>
+    <link rel="icon" href="/logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/css/landing.css?v=%V%" />
+    <link rel="stylesheet" href="/css/landing-sections.css?v=%V%" />
+    <link rel="stylesheet" href="/css/landing-utilities.css?v=%V%" />
+    <link rel="stylesheet" href="/css/templates.css?v=%V%" />
+    <link rel="stylesheet" href="/css/ads.css?v=%V%" />
+  </head>
+  <body>
+    <div class="page-glow glow-one" aria-hidden="true"></div>
+    <div class="page-glow glow-two" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="Mermaid Studio">
+        <img src="/logo.svg" width="38" height="38" alt="" />
+        <span class="brand-copy"><strong>Mermaid Studio</strong><small>کتابخانه قالب‌های فارسی</small></span>
+      </a>
+      <nav class="main-nav" aria-label="ناوبری اصلی">
+        <a href="/">خانه</a>
+        <a href="/templates" aria-current="page">قالب‌ها</a>
+        <a href="/privacy">حریم خصوصی</a>
+        <a href="https://github.com/Emad211/mermaid-studio" target="_blank" rel="noreferrer">گیت‌هاب</a>
+      </nav>
+      <div class="header-actions"><a class="button button-small" href="/editor">ورود به ادیتور</a></div>
+    </header>
+
+    <main>
+      <section class="templates-hero section-shell">
+        <div class="eyebrow"><span></span> شروع سریع، بدون صفحهٔ خالی</div>
+        <h1>قالب مناسب را انتخاب کن و همان لحظه ویرایشش کن.</h1>
+        <p>برای فرایندها، مستندات نرم‌افزار، طراحی پایگاه داده و برنامه‌ریزی پروژه نمونه‌های فارسی آماده کرده‌ایم.</p>
+        <label class="template-search">
+          <span aria-hidden="true">⌕</span>
+          <input id="template-search" type="search" placeholder="جست‌وجو؛ مثلاً ERD، معماری یا گانت…" autocomplete="off" />
+        </label>
+        <div class="filter-row" role="group" aria-label="دسته‌بندی قالب‌ها">
+          <button class="filter-chip active" type="button" data-category="all">همه</button>
+          <button class="filter-chip" type="button" data-category="process">فرایند</button>
+          <button class="filter-chip" type="button" data-category="software">نرم‌افزار</button>
+          <button class="filter-chip" type="button" data-category="data">داده</button>
+          <button class="filter-chip" type="button" data-category="planning">برنامه‌ریزی</button>
+          <span id="template-count" class="template-count" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <aside class="ad-slot ad-slot--compact" data-ad-slot="templatesTop" hidden aria-label="تبلیغات">
+        <span class="ad-slot__label">تبلیغات</span>
+        <a class="ad-slot__privacy" href="/privacy#advertising">درباره تبلیغات</a>
+        <div class="ad-slot__mount" data-ad-mount></div>
+      </aside>
+
+      <section class="section-shell templates-section" aria-labelledby="templates-title">
+        <div class="section-heading align-right">
+          <span class="section-kicker">قابل ویرایش و رایگان</span>
+          <h2 id="templates-title">نمونه‌های آماده Mermaid</h2>
+          <p>دکمهٔ «ویرایش» کد و تنظیمات قالب را مستقیماً داخل ادیتور باز می‌کند.</p>
+        </div>
+        <div id="templates-grid" class="templates-grid"></div>
+        <div id="template-empty" class="template-empty" hidden>
+          <strong>قالبی پیدا نشد.</strong>
+          <span>عبارت کوتاه‌تری امتحان کن یا همهٔ دسته‌ها را نمایش بده.</span>
+        </div>
+      </section>
+
+      <aside class="ad-slot ad-slot--compact" data-ad-slot="templatesInline" hidden aria-label="تبلیغات">
+        <span class="ad-slot__label">تبلیغات</span>
+        <a class="ad-slot__privacy" href="/privacy#advertising">درباره تبلیغات</a>
+        <div class="ad-slot__mount" data-ad-mount></div>
+      </aside>
+
+      <section class="template-guide section-shell section-block">
+        <div class="section-heading align-right"><span class="section-kicker">سه گام ساده</span><h2>قالب را برای پروژهٔ خودت آماده کن</h2></div>
+        <div class="guide-grid">
+          <article><span>۱</span><h3>ساختار را انتخاب کن</h3><p>ببین نمودار قرار است فرایند، تعامل، داده یا زمان‌بندی را توضیح بدهد.</p></article>
+          <article><span>۲</span><h3>نام‌ها را عوض کن</h3><p>متن داخل براکت‌ها و عنوان‌ها را با اصطلاحات واقعی پروژه جایگزین کن.</p></article>
+          <article><span>۳</span><h3>خروجی بگیر</h3><p>برای وب SVG یا WebP و برای سند و چاپ PNG باکیفیت یا PDF را انتخاب کن.</p></article>
+        </div>
+      </section>
+
+      <section class="section-shell template-cta">
+        <div><span class="section-kicker">قالب دلخواهت نبود؟</span><h2>از یک نمودار خالی شروع کن.</h2><p>ادیتور نوع نمودار را تشخیص می‌دهد و نتیجه را هم‌زمان با تایپ نمایش می‌دهد.</p></div>
+        <a class="button button-primary" href="/editor">باز کردن ادیتور <span aria-hidden="true">←</span></a>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div><strong>Mermaid Studio</strong><span>ساخت نمودار با کد، سریع و خصوصی</span></div>
+      <div><a href="/privacy">حریم خصوصی</a><a href="/terms">قوانین</a><a href="/editor">ادیتور</a></div>
+    </footer>
+
+    <div id="copy-toast" class="copy-toast" role="status" aria-live="polite"></div>
+    <script type="module" src="/js/templates.js?v=%V%"></script>
+    <script type="module" src="/js/ads.js?v=%V%"></script>
+  </body>
+</html>

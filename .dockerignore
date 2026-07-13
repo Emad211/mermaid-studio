@@ -1,0 +1,11 @@
+node_modules
+.git
+.github
+out
+build
+graphify-out
+.playwright-mcp
+*.log
+.env
+.DS_Store
+Thumbs.db

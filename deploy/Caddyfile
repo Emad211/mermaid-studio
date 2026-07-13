@@ -1,0 +1,16 @@
+{$DOMAIN:localhost} {
+  encode zstd gzip
+
+  @static path /css/* /js/* /vendor/* /vendor-build/* /logo.svg /manifest.webmanifest
+  header @static Cache-Control "public, max-age=86400"
+
+  reverse_proxy app:4321 {
+    health_uri /api/health
+    health_interval 30s
+    health_timeout 5s
+  }
+
+  header {
+    -Server
+  }
+}
