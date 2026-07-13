@@ -13,8 +13,11 @@ services:
       HOST: 0.0.0.0
       PORT: 4321
       NO_OPEN: 1
+      PUPPETEER_NO_SANDBOX: "true"
     expose:
       - "4321"
+    networks:
+      - backend
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4321/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
       interval: 30s
@@ -26,23 +29,45 @@ services:
     tmpfs:
       - /tmp:size=1073741824,mode=1777
     shm_size: 1gb
+    pids_limit: 256
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
 
   caddy:
-    image: caddy:2.8-alpine
+    image: caddy:2-alpine
     restart: unless-stopped
     depends_on:
       app:
         condition: service_healthy
     environment:
-      DOMAIN: ${DOMAIN:-localhost}
+      DOMAIN: ${DOMAIN:?Set DOMAIN in .env}
     ports:
       - "80:80"
       - "443:443"
       - "443:443/udp"
+    networks:
+      - frontend
+      - backend
     volumes:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
+    read_only: true
+    tmpfs:
+      - /tmp:size=67108864,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+
+networks:
+  frontend:
+  backend:
+    internal: true
 
 volumes:
   caddy_data:
