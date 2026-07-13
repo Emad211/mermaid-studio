@@ -1,0 +1,9 @@
+node_modules/
+out/
+build/
+public/vendor-build/
+.playwright-mcp/
+graphify-out/
+*.log
+.DS_Store
+Thumbs.db

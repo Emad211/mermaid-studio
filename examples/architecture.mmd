@@ -1,0 +1,7 @@
+architecture-beta
+    group cloud(logos:aws)[Cloud]
+    service api(logos:aws-lambda)[API] in cloud
+    service db(logos:aws-rds)[Database] in cloud
+    service store(logos:aws-s3)[Storage] in cloud
+    api:R --> L:db
+    api:B --> T:store

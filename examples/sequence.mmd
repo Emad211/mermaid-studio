@@ -1,0 +1,9 @@
+sequenceDiagram
+    autonumber
+    participant U as User
+    participant CLI as Mermaid Studio
+    participant B as Headless Chrome
+    U->>CLI: render diagram.mmd
+    CLI->>B: load mermaid + code
+    B-->>CLI: SVG / PNG / PDF
+    CLI-->>U: out.png ✔

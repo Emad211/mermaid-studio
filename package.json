@@ -1,0 +1,54 @@
+{
+  "name": "mermaid-studio",
+  "version": "1.0.0",
+  "description": "A fully-local Mermaid diagram renderer with a friendly CLI and a polished web GUI. Convert Mermaid code to SVG / PNG / PDF offline.",
+  "type": "module",
+  "bin": {
+    "mermaid-studio": "bin/cli.js",
+    "mstudio": "bin/cli.js"
+  },
+  "scripts": {
+    "start": "node bin/cli.js serve",
+    "serve": "node bin/cli.js serve",
+    "render": "node bin/cli.js render",
+    "build": "node scripts/build-vendor.mjs",
+    "test": "node tests/run.mjs",
+    "postinstall": "node scripts/build-vendor.mjs"
+  },
+  "keywords": [
+    "mermaid",
+    "diagram",
+    "cli",
+    "gui",
+    "svg",
+    "png",
+    "pdf",
+    "flowchart",
+    "renderer",
+    "offline",
+    "local"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@iconify-json/fa6-brands": "^1.2.6",
+    "@iconify-json/fa6-solid": "^1.2.4",
+    "@iconify-json/logos": "^1.2.11",
+    "@iconify-json/mdi": "^1.2.3",
+    "@mermaid-js/layout-elk": "^0.1.9",
+    "chokidar": "^4.0.3",
+    "codemirror": "^5.65.19",
+    "commander": "^12.1.0",
+    "express": "^4.21.2",
+    "mermaid": "^11.4.1",
+    "open": "^10.1.0",
+    "pako": "^2.1.0",
+    "puppeteer": "^23.11.1"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.2"
+  }
+}

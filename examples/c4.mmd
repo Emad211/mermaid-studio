@@ -1,0 +1,7 @@
+C4Context
+    title System Context — Mermaid Studio
+    Person(user, "User", "Writes diagrams")
+    System(studio, "Mermaid Studio", "Local CLI + GUI renderer")
+    System_Ext(browser, "Headless Chrome", "Renders to image/PDF")
+    Rel(user, studio, "Uses")
+    Rel(studio, browser, "Drives")

@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en" data-app-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mermaid Studio</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23b16cea'/%3E%3Ctext x='16' y='23' font-size='20' font-family='Arial' fill='white' text-anchor='middle'%3EM%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/vendor/codemirror/lib/codemirror.css" />
+    <link rel="stylesheet" href="/vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="/css/styles.css?v=%V%" />
+  </head>
+  <body>
+    <header class="toolbar">
+      <div class="brand">
+        <span class="logo" aria-hidden="true">
+          <svg viewBox="0 0 32 32" width="26" height="26">
+            <defs>
+              <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#b16cea" />
+                <stop offset="1" stop-color="#ff5e92" />
+              </linearGradient>
+            </defs>
+            <rect width="32" height="32" rx="9" fill="url(#g)" />
+            <path d="M7 22V11l5 6 5-6v11M22 11c3 0 4 2 4 4 0 4-5 4-5 7" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </span>
+        <div class="brand-text"><strong>Mermaid Studio</strong><small>local diagram renderer</small></div>
+      </div>
+
+      <div class="toolbar-group">
+        <button id="btn-new" class="icon-btn wide" title="New (clears the editor)">New</button>
+        <button id="btn-open" class="icon-btn wide" title="Open a .mmd / .md file">Open</button>
+        <button id="btn-save" class="icon-btn wide" title="Save source as .mmd">Save</button>
+        <button id="btn-share" class="icon-btn wide" title="Copy a shareable link">Share</button>
+      </div>
+
+      <div class="toolbar-group">
+        <label class="field"><span>Theme</span><select id="theme-select" title="Mermaid theme"></select></label>
+        <label class="field"><span>Layout</span><select id="layout-select" title="Layout engine"></select></label>
+        <div class="field">
+          <span>Background</span>
+          <div class="seg-group" id="bg-group" role="group">
+            <button class="seg" data-bg="transparent" title="Transparent">▦</button>
+            <button class="seg" data-bg="white" title="White">◻</button>
+            <button class="seg" data-bg="dark" title="Dark">◼</button>
+          </div>
+        </div>
+        <label class="field"><span>Load</span><select id="examples-select" title="Load an example"></select></label>
+      </div>
+
+      <div class="toolbar-group right">
+        <button id="btn-settings" class="icon-btn" title="Config & CSS">⚙</button>
+        <button id="btn-export-dialog" class="btn" title="Export with options">Export…</button>
+        <button id="btn-svg" class="btn ghost" title="Quick SVG (Ctrl+S)">SVG</button>
+        <button id="btn-png" class="btn ghost" title="Quick PNG">PNG</button>
+        <button id="btn-copy" class="btn ghost" title="Copy SVG">Copy</button>
+        <button id="btn-help" class="icon-btn" title="Keyboard shortcuts (?)">?</button>
+        <button id="app-theme-toggle" class="icon-btn" title="Toggle light/dark UI">☾</button>
+      </div>
+    </header>
+
+    <main class="workspace" id="workspace">
+      <section class="pane editor-pane">
+        <div class="editor-header">
+          <span class="eh-label">Editor</span>
+          <span class="spacer"></span>
+          <span id="type-chip" class="chip" title="Detected diagram type">—</span>
+          <button id="btn-wrap" class="icon-btn sm" title="Toggle word wrap">⤶</button>
+          <button id="btn-font-dec" class="icon-btn sm" title="Smaller font">A−</button>
+          <button id="btn-font-inc" class="icon-btn sm" title="Larger font">A+</button>
+        </div>
+        <textarea id="editor" spellcheck="false"></textarea>
+        <footer class="status-bar">
+          <span id="status-msg" class="status-msg muted">Ready</span>
+          <span class="spacer"></span>
+          <span id="cursor-pos" class="meta">Ln 1, Col 1</span>
+          <span id="char-count" class="meta">0 chars</span>
+        </footer>
+      </section>
+
+      <div class="divider" id="divider" title="Drag to resize"></div>
+
+      <section class="pane preview-pane">
+        <div id="preview" class="preview bg-white">
+          <div id="stage" class="stage"></div>
+
+          <div class="preview-tools">
+            <button id="btn-autofit" class="icon-btn sm active" title="Auto-fit on render">⤢</button>
+            <button id="btn-fullscreen" class="icon-btn sm" title="Fullscreen preview">⛶</button>
+          </div>
+
+          <div class="zoom-controls">
+            <button id="zoom-out" class="icon-btn" title="Zoom out">−</button>
+            <span id="zoom-level" class="zoom-level">100%</span>
+            <button id="zoom-in" class="icon-btn" title="Zoom in">+</button>
+            <span class="sep"></span>
+            <button id="zoom-fit" class="icon-btn wide" title="Fit to screen">Fit</button>
+            <button id="zoom-reset" class="icon-btn wide" title="Reset zoom">1:1</button>
+          </div>
+
+          <div id="dims" class="dims"></div>
+
+          <div id="preview-error" class="preview-error">
+            <div class="preview-error-card">
+              <div class="preview-error-title">⚠ Diagram error</div>
+              <pre id="preview-error-text"></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Settings drawer -->
+    <aside id="drawer" class="drawer">
+      <div class="drawer-head">
+        <div class="tabs">
+          <button class="tab active" data-tab="config">Config (JSON)</button>
+          <button class="tab" data-tab="css">Custom CSS</button>
+        </div>
+        <button id="drawer-close" class="icon-btn sm" title="Close">✕</button>
+      </div>
+      <div class="drawer-body">
+        <div class="tab-pane active" data-pane="config">
+          <p class="hint">Merged into <code>mermaid.initialize()</code> — themeVariables, per-diagram options, etc.</p>
+          <textarea id="config-input" class="code-input" spellcheck="false" placeholder='{ "themeVariables": { "primaryColor": "#b16cea" } }'></textarea>
+          <div id="config-error" class="input-error"></div>
+        </div>
+        <div class="tab-pane" data-pane="css">
+          <p class="hint">CSS injected into the diagram's SVG.</p>
+          <textarea id="css-input" class="code-input" spellcheck="false" placeholder=".node rect { stroke-width: 2px; }"></textarea>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Export dialog -->
+    <div id="export-modal" class="modal">
+      <div class="modal-card">
+        <div class="modal-head"><h3>Export diagram</h3><button id="exp-cancel" class="icon-btn sm">✕</button></div>
+        <div class="modal-body">
+          <label class="row"><span>Format</span>
+            <select id="exp-format">
+              <option value="svg">SVG (vector)</option>
+              <option value="png">PNG</option>
+              <option value="jpg">JPG</option>
+              <option value="webp">WebP</option>
+              <option value="pdf">PDF (vector)</option>
+            </select>
+          </label>
+          <label class="row" data-when="raster"><span>Scale</span><input id="exp-scale" type="number" min="1" max="5" step="1" value="2" /></label>
+          <label class="row" data-when="lossy"><span>Quality</span><input id="exp-quality" type="number" min="1" max="100" step="1" value="92" /></label>
+          <div class="row" data-when="bg"><span>Background</span>
+            <div class="bg-pick">
+              <div class="seg-group" id="exp-bg-group">
+                <button class="seg" data-bg="transparent" type="button">▦</button>
+                <button class="seg active" data-bg="white" type="button">◻</button>
+                <button class="seg" data-bg="dark" type="button">◼</button>
+              </div>
+              <input id="exp-bg-color" type="color" value="#ffffff" title="Custom color" />
+            </div>
+          </div>
+          <label class="row" data-when="pdf"><span>Paper</span>
+            <select id="exp-pdf-paper">
+              <option value="auto">Auto (fit diagram)</option>
+              <option value="a4">A4</option><option value="a3">A3</option><option value="a5">A5</option>
+              <option value="letter">Letter</option><option value="legal">Legal</option><option value="tabloid">Tabloid</option>
+            </select>
+          </label>
+          <label class="row checkbox" data-when="pdf-fixed"><input id="exp-pdf-landscape" type="checkbox" /><span>Landscape</span></label>
+          <label class="row checkbox" data-when="pdf-fixed"><input id="exp-pdf-fit" type="checkbox" checked /><span>Fit to one page width</span></label>
+        </div>
+        <div class="modal-foot">
+          <button id="exp-copy" class="btn ghost" title="Copy image to clipboard">Copy image</button>
+          <button id="exp-download" class="btn">Download</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Help modal -->
+    <div id="help-modal" class="modal">
+      <div class="modal-card">
+        <div class="modal-head"><h3>Keyboard shortcuts</h3><button id="help-cancel" class="icon-btn sm">✕</button></div>
+        <div class="modal-body shortcuts">
+          <div><kbd>Ctrl/⌘</kbd>+<kbd>S</kbd><span>Download SVG</span></div>
+          <div><kbd>Ctrl/⌘</kbd>+<kbd>E</kbd><span>Open export dialog</span></div>
+          <div><kbd>Ctrl/⌘</kbd>+<kbd>O</kbd><span>Open a file</span></div>
+          <div><kbd>Ctrl/⌘</kbd>+<kbd>K</kbd><span>Copy shareable link</span></div>
+          <div><kbd>Ctrl/⌘</kbd>+<kbd>0</kbd><span>Fit / reset zoom</span></div>
+          <div><kbd>F</kbd><span>Fullscreen preview</span></div>
+          <div><kbd>?</kbd><span>This help</span></div>
+          <div><kbd>Esc</kbd><span>Close dialogs / fullscreen</span></div>
+          <div><kbd>Scroll</kbd><span>Zoom · <kbd>Drag</kbd> Pan</span></div>
+          <div><kbd>Tab</kbd><span>Indent (in editor)</span></div>
+        </div>
+      </div>
+    </div>
+
+    <input id="file-input" type="file" accept=".mmd,.mermaid,.md,.markdown,.txt" hidden />
+    <div id="toast" class="toast"></div>
+
+    <script src="/vendor/codemirror/lib/codemirror.js"></script>
+    <script src="/vendor/codemirror/addon/mode/simple.js"></script>
+    <script src="/vendor/codemirror/addon/edit/closebrackets.js"></script>
+    <script src="/vendor/codemirror/addon/edit/matchbrackets.js"></script>
+    <script src="/vendor/pako/pako.min.js"></script>
+
+    <script>
+      (function () {
+        var divider = document.getElementById('divider');
+        var ws = document.getElementById('workspace');
+        var dragging = false;
+        divider.addEventListener('pointerdown', function (e) {
+          dragging = true;
+          divider.setPointerCapture(e.pointerId);
+          document.body.style.userSelect = 'none';
+        });
+        window.addEventListener('pointermove', function (e) {
+          if (!dragging) return;
+          var rect = ws.getBoundingClientRect();
+          var pct = ((e.clientX - rect.left) / rect.width) * 100;
+          pct = Math.min(75, Math.max(20, pct));
+          ws.style.setProperty('--editor-w', pct + '%');
+          window.dispatchEvent(new Event('mstudio:resize'));
+        });
+        window.addEventListener('pointerup', function () {
+          dragging = false;
+          document.body.style.userSelect = '';
+        });
+      })();
+    </script>
+
+    <!-- Cache-bust local ES modules via the build token (keeps the JS files clean). -->
+    <script type="importmap">
+      {
+        "imports": {
+          "/js/mermaid-runtime.js": "/js/mermaid-runtime.js?v=%V%",
+          "/js/editor.js": "/js/editor.js?v=%V%",
+          "/js/exporter.js": "/js/exporter.js?v=%V%",
+          "/js/share.js": "/js/share.js?v=%V%"
+        }
+      }
+    </script>
+    <script type="module" src="/js/app.js?v=%V%"></script>
+  </body>
+</html>
