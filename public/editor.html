@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="fa" dir="rtl" data-app-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0e0f15" />
+    <meta name="description" content="ادیتور فارسی Mermaid Studio با پیش‌نمایش زنده و خروجی SVG، PNG، JPG، WebP و PDF" />
+    <meta name="robots" content="noindex,follow" />
+    <title>ادیتور Mermaid Studio</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/vendor/codemirror/lib/codemirror.css" />
+    <link rel="stylesheet" href="/vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="/css/styles.css?v=%V%" />
+    <link rel="stylesheet" href="/css/persian.css?v=%V%" />
+  </head>
+  <body>
+    <header class="toolbar">
+      <div class="brand brand-home">
+        <a class="logo" href="/" title="بازگشت به صفحه اصلی" aria-label="صفحه اصلی">
+          <svg viewBox="0 0 32 32" width="26" height="26">
+            <defs>
+              <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#b16cea" />
+                <stop offset="1" stop-color="#ff5e92" />
+              </linearGradient>
+            </defs>
+            <rect width="32" height="32" rx="9" fill="url(#g)" />
+            <path d="M7 22V11l5 6 5-6v11M22 11c3 0 4 2 4 4 0 4-5 4-5 7" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </a>
+        <div class="brand-text"><strong>Mermaid Studio</strong><small>ادیتور محلی و خصوصی نمودار</small></div>
+      </div>
+
+      <div class="toolbar-group file-actions">
+        <button id="btn-new" class="icon-btn wide" title="ساخت نمودار جدید">جدید</button>
+        <button id="btn-open" class="icon-btn wide" title="باز کردن فایل .mmd یا Markdown">باز کردن</button>
+        <button id="btn-save" class="icon-btn wide" title="ذخیره کد به صورت فایل .mmd">ذخیره</button>
+        <button id="btn-share" class="icon-btn wide" title="کپی لینک اشتراک‌گذاری">اشتراک‌گذاری</button>
+      </div>
+
+      <div class="toolbar-group view-actions">
+        <label class="field"><span>پوسته نمودار</span><select id="theme-select" title="پوسته Mermaid"></select></label>
+        <label class="field"><span>چیدمان</span><select id="layout-select" title="موتور چیدمان"></select></label>
+        <div class="field">
+          <span>پس‌زمینه</span>
+          <div class="seg-group" id="bg-group" role="group" aria-label="انتخاب پس‌زمینه">
+            <button class="seg" data-bg="transparent" title="شفاف">▦</button>
+            <button class="seg" data-bg="white" title="سفید">◻</button>
+            <button class="seg" data-bg="dark" title="تیره">◼</button>
+          </div>
+        </div>
+        <label class="field"><span>نمونه آماده</span><select id="examples-select" title="بارگذاری یک نمونه"></select></label>
+      </div>
+
+      <a id="sponsor-slot" class="sponsor-slot" href="#" target="_blank" rel="sponsored noreferrer" hidden>
+        <small>با حمایت</small>
+        <strong id="sponsor-slot-name"></strong>
+      </a>
+
+      <div class="toolbar-group right export-actions">
+        <button id="btn-settings" class="icon-btn" title="تنظیمات Mermaid و CSS">⚙</button>
+        <button id="btn-export-dialog" class="btn" title="خروجی با تنظیمات کامل">خروجی…</button>
+        <button id="btn-svg" class="btn ghost" title="دانلود سریع SVG">SVG</button>
+        <button id="btn-png" class="btn ghost" title="دانلود سریع PNG">PNG</button>
+        <button id="btn-copy" class="btn ghost" title="کپی کد SVG">کپی</button>
+        <button id="btn-help" class="icon-btn" title="راهنمای میانبرها">؟</button>
+        <button id="app-theme-toggle" class="icon-btn" title="تغییر پوسته رابط">☾</button>
+      </div>
+    </header>
+
+    <main class="workspace" id="workspace">
+      <section class="pane editor-pane">
+        <div class="editor-header">
+          <span class="eh-label">کد Mermaid</span>
+          <span class="spacer"></span>
+          <span id="type-chip" class="chip" title="نوع نمودار تشخیص‌داده‌شده">—</span>
+          <button id="btn-wrap" class="icon-btn sm" title="شکستن خطوط بلند">⤶</button>
+          <button id="btn-font-dec" class="icon-btn sm" title="کوچک کردن قلم">A−</button>
+          <button id="btn-font-inc" class="icon-btn sm" title="بزرگ کردن قلم">A+</button>
+        </div>
+        <textarea id="editor" spellcheck="false" aria-label="کد Mermaid"></textarea>
+        <footer class="status-bar">
+          <span id="status-msg" class="status-msg muted">آماده</span>
+          <span class="spacer"></span>
+          <span id="cursor-pos" class="meta">خط ۱، ستون ۱</span>
+          <span id="char-count" class="meta">۰ نویسه</span>
+        </footer>
+      </section>
+
+      <div class="divider" id="divider" title="برای تغییر اندازه بکشید"></div>
+
+      <section class="pane preview-pane">
+        <div id="preview" class="preview bg-white">
+          <div id="stage" class="stage"></div>
+
+          <div class="preview-tools">
+            <button id="btn-autofit" class="icon-btn sm active" title="تنظیم خودکار اندازه">⤢</button>
+            <button id="btn-fullscreen" class="icon-btn sm" title="پیش‌نمایش تمام‌صفحه">⛶</button>
+          </div>
+
+          <div class="zoom-controls">
+            <button id="zoom-out" class="icon-btn" title="کوچک‌نمایی">−</button>
+            <span id="zoom-level" class="zoom-level">۱۰۰٪</span>
+            <button id="zoom-in" class="icon-btn" title="بزرگ‌نمایی">+</button>
+            <span class="sep"></span>
+            <button id="zoom-fit" class="icon-btn wide" title="جا دادن در صفحه">اندازه مناسب</button>
+            <button id="zoom-reset" class="icon-btn wide" title="اندازه واقعی">۱:۱</button>
+          </div>
+
+          <div id="dims" class="dims"></div>
+
+          <div id="preview-error" class="preview-error">
+            <div class="preview-error-card">
+              <div class="preview-error-title">⚠ خطا در نمودار</div>
+              <pre id="preview-error-text"></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <aside id="drawer" class="drawer">
+      <div class="drawer-head">
+        <div class="tabs">
+          <button class="tab active" data-tab="config">تنظیمات Mermaid</button>
+          <button class="tab" data-tab="css">CSS اختصاصی</button>
+        </div>
+        <button id="drawer-close" class="icon-btn sm" title="بستن">✕</button>
+      </div>
+      <div class="drawer-body">
+        <div class="tab-pane active" data-pane="config">
+          <p class="hint">این JSON با تنظیمات اصلی Mermaid ادغام می‌شود؛ مانند <code>themeVariables</code> و تنظیمات هر نمودار.</p>
+          <textarea id="config-input" class="code-input" spellcheck="false" dir="ltr" placeholder='{ "themeVariables": { "primaryColor": "#b16cea" } }'></textarea>
+          <div id="config-error" class="input-error"></div>
+        </div>
+        <div class="tab-pane" data-pane="css">
+          <p class="hint">CSS زیر داخل SVG نمودار قرار می‌گیرد. در نسخه عمومی، CSS ناامن و منابع خارجی مسدود هستند.</p>
+          <textarea id="css-input" class="code-input" spellcheck="false" dir="ltr" placeholder=".node rect { stroke-width: 2px; }"></textarea>
+        </div>
+      </div>
+    </aside>
+
+    <div id="export-modal" class="modal">
+      <div class="modal-card">
+        <div class="modal-head"><h3>دریافت خروجی</h3><button id="exp-cancel" class="icon-btn sm" title="بستن">✕</button></div>
+        <div class="modal-body">
+          <label class="row"><span>فرمت</span>
+            <select id="exp-format" dir="ltr">
+              <option value="svg">SVG (برداری)</option>
+              <option value="png">PNG</option>
+              <option value="jpg">JPG</option>
+              <option value="webp">WebP</option>
+              <option value="pdf">PDF (برداری)</option>
+            </select>
+          </label>
+          <label class="row" data-when="raster"><span>مقیاس تصویر</span><input id="exp-scale" type="number" min="1" max="5" step="1" value="2" /></label>
+          <label class="row" data-when="lossy"><span>کیفیت</span><input id="exp-quality" type="number" min="1" max="100" step="1" value="92" /></label>
+          <div class="row" data-when="bg"><span>پس‌زمینه</span>
+            <div class="bg-pick">
+              <div class="seg-group" id="exp-bg-group">
+                <button class="seg" data-bg="transparent" type="button" title="شفاف">▦</button>
+                <button class="seg active" data-bg="white" type="button" title="سفید">◻</button>
+                <button class="seg" data-bg="dark" type="button" title="تیره">◼</button>
+              </div>
+              <input id="exp-bg-color" type="color" value="#ffffff" title="رنگ دلخواه" />
+            </div>
+          </div>
+          <label class="row" data-when="pdf"><span>اندازه کاغذ</span>
+            <select id="exp-pdf-paper" dir="ltr">
+              <option value="auto">Auto (اندازه نمودار)</option>
+              <option value="a4">A4</option><option value="a3">A3</option><option value="a5">A5</option>
+              <option value="letter">Letter</option><option value="legal">Legal</option><option value="tabloid">Tabloid</option>
+            </select>
+          </label>
+          <label class="row checkbox" data-when="pdf-fixed"><input id="exp-pdf-landscape" type="checkbox" /><span>افقی</span></label>
+          <label class="row checkbox" data-when="pdf-fixed"><input id="exp-pdf-fit" type="checkbox" checked /><span>جا دادن نمودار در عرض یک صفحه</span></label>
+        </div>
+        <div class="modal-foot">
+          <button id="exp-copy" class="btn ghost" title="کپی تصویر در کلیپ‌بورد">کپی تصویر</button>
+          <button id="exp-download" class="btn">دانلود</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="help-modal" class="modal">
+      <div class="modal-card">
+        <div class="modal-head"><h3>میانبرهای صفحه‌کلید</h3><button id="help-cancel" class="icon-btn sm" title="بستن">✕</button></div>
+        <div class="modal-body shortcuts">
+          <div><kbd>Ctrl/⌘</kbd>+<kbd>S</kbd><span>دانلود SVG</span></div>
+          <div><kbd>Ctrl/⌘</kbd>+<kbd>E</kbd><span>باز کردن پنجره خروجی</span></div>
+          <div><kbd>Ctrl/⌘</kbd>+<kbd>O</kbd><span>باز کردن فایل</span></div>
+          <div><kbd>Ctrl/⌘</kbd>+<kbd>K</kbd><span>کپی لینک اشتراک‌گذاری</span></div>
+          <div><kbd>Ctrl/⌘</kbd>+<kbd>0</kbd><span>تنظیم اندازه نمودار</span></div>
+          <div><kbd>F</kbd><span>پیش‌نمایش تمام‌صفحه</span></div>
+          <div><kbd>?</kbd><span>نمایش این راهنما</span></div>
+          <div><kbd>Esc</kbd><span>بستن پنجره یا تمام‌صفحه</span></div>
+          <div><kbd>Scroll</kbd><span>بزرگ‌نمایی · <kbd>Drag</kbd> جابه‌جایی</span></div>
+          <div><kbd>Tab</kbd><span>تورفتگی در ادیتور</span></div>
+        </div>
+      </div>
+    </div>
+
+    <input id="file-input" type="file" accept=".mmd,.mermaid,.md,.markdown,.txt" hidden />
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script src="/vendor/codemirror/lib/codemirror.js"></script>
+    <script src="/vendor/codemirror/addon/mode/simple.js"></script>
+    <script src="/vendor/codemirror/addon/edit/closebrackets.js"></script>
+    <script src="/vendor/codemirror/addon/edit/matchbrackets.js"></script>
+    <script src="/vendor/pako/pako.min.js"></script>
+    <script src="/js/persian-ui.js?v=%V%"></script>
+
+    <script>
+      (function () {
+        var divider = document.getElementById('divider');
+        var ws = document.getElementById('workspace');
+        var dragging = false;
+        divider.addEventListener('pointerdown', function (e) {
+          if (window.matchMedia('(max-width: 900px)').matches) return;
+          dragging = true;
+          divider.setPointerCapture(e.pointerId);
+          document.body.style.userSelect = 'none';
+        });
+        window.addEventListener('pointermove', function (e) {
+          if (!dragging) return;
+          var rect = ws.getBoundingClientRect();
+          var pct = ((e.clientX - rect.left) / rect.width) * 100;
+          if (getComputedStyle(ws).direction === 'rtl') pct = 100 - pct;
+          pct = Math.min(75, Math.max(20, pct));
+          ws.style.setProperty('--editor-w', pct + '%');
+          window.dispatchEvent(new Event('mstudio:resize'));
+        });
+        window.addEventListener('pointerup', function () {
+          dragging = false;
+          document.body.style.userSelect = '';
+        });
+      })();
+    </script>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "/js/mermaid-runtime.js": "/js/mermaid-runtime.js?v=%V%",
+          "/js/editor.js": "/js/editor.js?v=%V%",
+          "/js/exporter.js": "/js/exporter.js?v=%V%",
+          "/js/share.js": "/js/share.js?v=%V%"
+        }
+      }
+    </script>
+    <script type="module" src="/js/app.js?v=%V%"></script>
+  </body>
+</html>
