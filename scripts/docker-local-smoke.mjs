@@ -22,8 +22,8 @@ async function fetchWithTimeout(pathname, options = {}, timeoutMs = 45_000) {
   }
 }
 
-async function expectStatus(pathname, expected = 200, options = {}) {
-  const response = await fetchWithTimeout(pathname, options);
+async function expectStatus(pathname, expected = 200, options = {}, timeoutMs = 45_000) {
+  const response = await fetchWithTimeout(pathname, options, timeoutMs);
   assert.equal(response.status, expected, `${pathname} returned ${response.status}, expected ${expected}`);
   return response;
 }
