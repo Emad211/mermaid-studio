@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="fa" dir="rtl" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow,noarchive" />
+    <meta name="theme-color" content="#0b0d15" />
+    <title>داشبورد آنالیز | Mermaid Studio</title>
+    <link rel="icon" href="/logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/css/analytics.css?v=%V%" />
+  </head>
+  <body>
+    <main class="analytics-shell">
+      <header class="analytics-header">
+        <a class="analytics-brand" href="/" aria-label="صفحه اصلی Mermaid Studio">
+          <img src="/logo.svg" width="40" height="40" alt="" />
+          <span><strong>Mermaid Studio</strong><small>آنالیز بازدید، درآمد و SEO</small></span>
+        </a>
+        <div class="analytics-controls">
+          <label>بازه آماده
+            <select id="range-preset">
+              <option value="7">۷ روز اخیر</option>
+              <option value="30" selected>۳۰ روز اخیر</option>
+              <option value="90">۹۰ روز اخیر</option>
+              <option value="365">یک سال اخیر</option>
+              <option value="custom">سفارشی</option>
+            </select>
+          </label>
+          <label>از تاریخ<input id="range-from" type="date" /></label>
+          <label>تا تاریخ<input id="range-to" type="date" /></label>
+          <button id="refresh-dashboard" class="a-button" type="button">به‌روزرسانی</button>
+          <a id="export-dashboard" class="a-button secondary" href="/api/admin/analytics/export.csv">خروجی CSV</a>
+        </div>
+      </header>
+
+      <section class="analytics-intro">
+        <div>
+          <h1>تصویر واقعی رشد و درآمد</h1>
+          <p>بازدید، کاربران یکتا، تعامل با ادیتور، خروجی‌ها، کیفیت تجربهٔ کاربر، جایگاه‌های تبلیغاتی، درآمد واقعی پنل ناشر و داده‌های Search Console در یک صفحه جمع می‌شوند.</p>
+        </div>
+        <div id="dashboard-status" class="analytics-status">در حال دریافت داده…</div>
+      </section>
+
+      <section class="kpi-grid" aria-label="شاخص‌های اصلی">
+        <article class="kpi-card" data-tone="blue"><span>بازدید صفحه</span><strong id="kpi-pageviews">—</strong><small id="kpi-pageviews-note">در بازه انتخاب‌شده</small></article>
+        <article class="kpi-card" data-tone="green"><span>جلسه‌های یکتا</span><strong id="kpi-sessions">—</strong><small id="kpi-bounce">نرخ پرش —</small></article>
+        <article class="kpi-card" data-tone="pink"><span>درآمد واقعی</span><strong id="kpi-revenue">—</strong><small id="kpi-rpm">RPM صفحه —</small></article>
+        <article class="kpi-card" data-tone="yellow"><span>خروجی نمودار</span><strong id="kpi-exports">—</strong><small id="kpi-exports-rate">به‌ازای هر جلسه —</small></article>
+        <article class="kpi-card"><span>کلیک ارگانیک</span><strong id="kpi-search-clicks">—</strong><small id="kpi-search-ctr">CTR جست‌وجو —</small></article>
+        <article class="kpi-card" data-tone="green"><span>پیش‌بینی ۳۰ روز</span><strong id="kpi-forecast">—</strong><small>براساس داده واقعی یا RPM برآوردی</small></article>
+      </section>
+
+      <section class="dashboard-grid">
+        <article class="panel span-8">
+          <div class="panel-head"><div><h2>روند ترافیک</h2><p>بازدید صفحه، جلسه و کاربر یکتا به تفکیک روز</p></div><span class="panel-tag">First-party</span></div>
+          <div class="chart-wrap"><canvas id="traffic-chart" aria-label="نمودار روند ترافیک"></canvas></div>
+          <div class="chart-legend"><span style="color:#63b3ff"><i></i>بازدید</span><span style="color:#9b6df3"><i></i>جلسه</span><span style="color:#38d39f"><i></i>کاربر یکتا</span></div>
+        </article>
+
+        <article class="panel span-4">
+          <div class="panel-head"><div><h2>کیفیت تعامل</h2><p>شاخص‌های رفتاری محصول</p></div></div>
+          <div class="metric-row">
+            <div class="metric-box"><span>میانگین تعامل</span><strong id="metric-engagement">—</strong></div>
+            <div class="metric-box"><span>ورود به ادیتور</span><strong id="metric-editor-rate">—</strong></div>
+            <div class="metric-box"><span>موفقیت رندر</span><strong id="metric-render-rate">—</strong></div>
+          </div>
+          <div class="panel-head" style="margin-top:24px"><div><h2>فرمت‌های خروجی</h2></div></div>
+          <div id="exports-bars" class="bar-list"></div>
+        </article>
+
+        <article class="panel span-7">
+          <div class="panel-head"><div><h2>درآمد و عملکرد تبلیغات</h2><p>درآمد ثبت‌شده از پنل ناشر، نمایش، کلیک، RPM و eCPM</p></div><span class="panel-tag">مبالغ به ریال</span></div>
+          <div class="chart-wrap compact"><canvas id="revenue-chart" aria-label="نمودار درآمد روزانه"></canvas></div>
+          <div class="metric-row" style="margin-top:16px">
+            <div class="metric-box"><span>eCPM</span><strong id="metric-ecpm">—</strong></div>
+            <div class="metric-box"><span>CPC</span><strong id="metric-cpc">—</strong></div>
+            <div class="metric-box"><span>CTR تبلیغ</span><strong id="metric-ad-ctr">—</strong></div>
+          </div>
+        </article>
+
+        <article class="panel span-5">
+          <div class="panel-head"><div><h2>ثبت درآمد واقعی</h2><p>اعداد گزارش یکتانت یا تپسل را روزانه یا هفتگی وارد کنید.</p></div></div>
+          <form id="revenue-form">
+            <div class="form-grid">
+              <label>تاریخ<input id="revenue-date" name="date" type="date" required /></label>
+              <label>شبکه<select id="revenue-provider" name="provider"><option value="yektanet">یکتانت</option><option value="tapsell">تپسل</option><option value="other">سایر</option></select></label>
+              <label>جایگاه<input id="revenue-slot" name="slot" value="all" maxlength="100" /></label>
+              <label>نمایش<input id="revenue-impressions" name="impressions" type="number" min="0" step="1" value="0" /></label>
+              <label>کلیک<input id="revenue-clicks" name="clicks" type="number" min="0" step="1" value="0" /></label>
+              <label>درآمد (ریال)<input id="revenue-rial" name="revenueRial" type="number" min="0" step="1" required /></label>
+              <label class="wide">یادداشت<input id="revenue-note" name="note" maxlength="240" placeholder="مثلاً گزارش هفتگی جایگاه آموزش" /></label>
+            </div>
+            <div class="form-actions"><button class="a-button" type="submit">ثبت درآمد</button><span id="revenue-message" class="form-message"></span></div>
+          </form>
+        </article>
+
+        <article class="panel span-12">
+          <div class="panel-head"><div><h2>Core Web Vitals واقعی کاربران</h2><p>صدک ۷۵ دادهٔ میدانی؛ هدف خوب: LCP ≤ ۲.۵s، INP ≤ ۲۰۰ms و CLS ≤ ۰.۱</p></div><span class="panel-tag">RUM</span></div>
+          <div id="vitals-grid" class="vitals-grid"></div>
+        </article>
+
+        <article class="panel span-6">
+          <div class="panel-head"><div><h2>صفحات پربازدید</h2><p>برای اولویت‌بندی محتوا و جایگاه تبلیغ</p></div></div>
+          <div class="table-wrap"><table><thead><tr><th>صفحه</th><th>بازدید</th><th>جلسه</th><th>تعامل</th></tr></thead><tbody id="pages-table"></tbody></table></div>
+        </article>
+
+        <article class="panel span-6">
+          <div class="panel-head"><div><h2>منابع ورودی</h2><p>مستقیم، جست‌وجوی ارگانیک، شبکه اجتماعی و کمپین</p></div></div>
+          <div id="channels-bars" class="bar-list"></div>
+          <div class="panel-head" style="margin-top:24px"><div><h2>دامنه‌های ارجاع‌دهنده</h2></div></div>
+          <div id="referrer-bars" class="bar-list"></div>
+        </article>
+
+        <article class="panel span-7">
+          <div class="panel-head"><div><h2>عملکرد جست‌وجوی گوگل</h2><p>کلیک، نمایش، CTR، جایگاه متوسط و عبارت‌های پربازده از فایل Search Console</p></div><span class="panel-tag">CSV import</span></div>
+          <div class="metric-row">
+            <div class="metric-box"><span>نمایش در نتایج</span><strong id="metric-search-impressions">—</strong></div>
+            <div class="metric-box"><span>CTR</span><strong id="metric-search-ctr">—</strong></div>
+            <div class="metric-box"><span>جایگاه متوسط</span><strong id="metric-search-position">—</strong></div>
+          </div>
+          <div class="table-wrap" style="margin-top:16px"><table><thead><tr><th>عبارت جست‌وجو</th><th>کلیک</th><th>نمایش</th><th>CTR</th><th>جایگاه</th></tr></thead><tbody id="queries-table"></tbody></table></div>
+        </article>
+
+        <article class="panel span-5">
+          <div class="panel-head"><div><h2>ورود CSV سرچ کنسول</h2><p>فایل Performance را باز و محتوای CSV را اینجا Paste کنید.</p></div></div>
+          <form id="search-import-form">
+            <div class="form-grid">
+              <label>تاریخ پیش‌فرض<input id="search-default-date" type="date" /></label>
+              <label class="wide">CSV<textarea id="search-csv" placeholder="date,query,page,clicks,impressions,position"></textarea></label>
+            </div>
+            <div class="form-actions"><button class="a-button" type="submit">ورود داده SEO</button><span id="search-message" class="form-message"></span></div>
+          </form>
+        </article>
+
+        <article class="panel span-6">
+          <div class="panel-head"><div><h2>جایگاه‌های تبلیغاتی</h2><p>نمایان‌شدن جایگاه در سایت با نمایش ثبت‌شده در پنل ناشر متفاوت است.</p></div></div>
+          <div class="table-wrap"><table><thead><tr><th>جایگاه</th><th>نمایان‌شدن</th><th>لود اسکریپت</th><th>خطا</th><th>مسدود</th></tr></thead><tbody id="ad-slots-table"></tbody></table></div>
+        </article>
+
+        <article class="panel span-6">
+          <div class="panel-head"><div><h2>دستگاه و مرورگر</h2><p>ترکیب مخاطبان برای تصمیم‌های طراحی و عملکرد</p></div></div>
+          <div id="devices-bars" class="bar-list"></div>
+          <div class="panel-head" style="margin-top:24px"><div><h2>مرورگرها</h2></div></div>
+          <div id="browsers-bars" class="bar-list"></div>
+        </article>
+
+        <article class="panel span-12">
+          <div class="panel-head"><div><h2>سوابق درآمد</h2><p>هر رکورد قابل حذف و جایگزینی است؛ منبع اصلی عدد باید گزارش پنل ناشر باشد.</p></div></div>
+          <div class="table-wrap"><table><thead><tr><th>تاریخ</th><th>شبکه</th><th>جایگاه</th><th>نمایش</th><th>کلیک</th><th>درآمد</th><th>عملیات</th></tr></thead><tbody id="revenue-table"></tbody></table></div>
+        </article>
+      </section>
+
+      <footer class="dashboard-footer"><span>کد نمودار، متن گره‌ها و IP خام ذخیره نمی‌شوند.</span><span>مسیر مدیریتی با HTTP Basic Auth و هدر <code>noindex</code> محافظت شده است.</span></footer>
+    </main>
+    <script type="module" src="/js/analytics-dashboard.js?v=%V%"></script>
+  </body>
+</html>
