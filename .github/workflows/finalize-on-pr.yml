@@ -5,6 +5,7 @@ on:
     branches:
       - agent/persian-product-foundation
     paths:
+      - tools/ads-phase.part*
       - tools/finalize-deploy.py
       - .github/workflows/finalize-on-pr.yml
   pull_request:
@@ -40,7 +41,8 @@ jobs:
         run: |
           set -euo pipefail
           exec > >(tee /tmp/finalizer.log) 2>&1
-          base64 --decode tools/ads-phase.b64 > /tmp/ads-phase.zip
+          test "$(find tools -maxdepth 1 -name 'ads-phase.part*' -type f | wc -l)" -eq 9
+          cat tools/ads-phase.part* | base64 --decode > /tmp/ads-phase.zip
           sha256sum /tmp/ads-phase.zip
           echo "450e42caf1397c96db9b1a5bf9372258dc07511b46ce2936dbb36e01b6029da3  /tmp/ads-phase.zip" | sha256sum --check --strict
           rm -rf /tmp/ads-phase
