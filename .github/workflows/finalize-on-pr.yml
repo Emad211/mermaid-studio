@@ -39,13 +39,24 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          exec > >(tee /tmp/finalizer.log) 2>&1
           base64 --decode tools/ads-phase.b64 > /tmp/ads-phase.zip
+          sha256sum /tmp/ads-phase.zip
           echo "450e42caf1397c96db9b1a5bf9372258dc07511b46ce2936dbb36e01b6029da3  /tmp/ads-phase.zip" | sha256sum --check --strict
           rm -rf /tmp/ads-phase
           mkdir -p /tmp/ads-phase
           unzip -q /tmp/ads-phase.zip -d /tmp/ads-phase
           python /tmp/ads-phase/mermaid-ads-patch/apply_ads_phase.py .
           python tools/finalize-deploy.py
+
+      - name: Upload finalizer diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: finalizer-diagnostics
+          path: /tmp/finalizer.log
+          if-no-files-found: warn
+          retention-days: 2
 
       - name: Install, build and test source
         run: |
