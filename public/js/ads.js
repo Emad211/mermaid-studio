@@ -1,11 +1,9 @@
-/**
- * Small provider-neutral loader for publisher ads.
- * The exact script URL and placement IDs come from the publisher panel and are
- * exposed by /api/ads. With ads disabled this module performs no third-party request.
- */
-
 const SLOT_SELECTOR = '[data-ad-slot]';
 const ENDPOINT = '/api/ads';
+
+function notify(type, slot = 'all') {
+  window.dispatchEvent(new CustomEvent('mstudio:ad', { detail: { type, slot } }));
+}
 
 function prepareYektanetQueue() {
   window.yektanetAnalyticsObject = window.yektanetAnalyticsObject || 'yektanet';
@@ -45,19 +43,14 @@ function publisherScriptUrl(config) {
 
 function loadScript(config) {
   const existing = document.getElementById(config.scriptId);
-  if (existing) {
-    return Promise.resolve(existing);
-  }
-
+  if (existing) return Promise.resolve(existing);
   if (config.provider === 'yektanet') prepareYektanetQueue();
 
   return new Promise((resolve, reject) => {
     const script = document.createElement('script');
     script.id = config.scriptId;
     script.src = publisherScriptUrl(config);
-    if (config.provider === 'yektanet') {
-      script.dataset.analyticsobject = window.yektanetAnalyticsObject;
-    }
+    if (config.provider === 'yektanet') script.dataset.analyticsobject = window.yektanetAnalyticsObject;
     script.async = true;
     script.type = 'text/javascript';
     script.referrerPolicy = 'strict-origin-when-cross-origin';
@@ -72,11 +65,8 @@ function afterPageSettles(delayMs) {
     const start = () => window.setTimeout(resolve, delayMs);
     if ('requestIdleCallback' in window) {
       window.requestIdleCallback(start, { timeout: Math.max(1_200, delayMs + 500) });
-    } else if (document.readyState === 'complete') {
-      start();
-    } else {
-      window.addEventListener('load', start, { once: true });
-    }
+    } else if (document.readyState === 'complete') start();
+    else window.addEventListener('load', start, { once: true });
   });
 }
 
@@ -102,6 +92,7 @@ async function initializeAds() {
     config = await response.json();
   } catch {
     hideSlots(shells, 'config-error');
+    notify('error', 'config');
     return;
   }
 
@@ -123,15 +114,17 @@ async function initializeAds() {
 
   if (!active.length) return;
   document.documentElement.dataset.adsProvider = config.provider;
-
   await afterPageSettles(Number(config.loadDelayMs) || 0);
+
   try {
     await loadScript(config);
     active.forEach((slot) => {
       slot.dataset.adState = 'loaded';
+      notify('loaded', slot.dataset.adSlot || 'unknown');
     });
   } catch {
     hideSlots(active, 'blocked');
+    active.forEach((slot) => notify(navigator.onLine ? 'blocked' : 'error', slot.dataset.adSlot || 'unknown'));
   }
 }
 
