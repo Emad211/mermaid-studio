@@ -1,0 +1,208 @@
+.hero-demo {
+  position: relative;
+  perspective: 1400px;
+}
+
+.hero-demo::before {
+  content: "";
+  position: absolute;
+  inset: 12% 8% -5%;
+  z-index: -1;
+  border-radius: 40px;
+  background: linear-gradient(120deg, rgba(139, 92, 246, 0.34), rgba(236, 72, 153, 0.18));
+  filter: blur(55px);
+  opacity: 0.6;
+}
+
+.demo-window {
+  overflow: hidden;
+  border: 1px solid var(--border-strong);
+  border-radius: 22px;
+  background: #10131f;
+  box-shadow: var(--shadow);
+  transform: rotateY(-3deg) rotateX(1deg);
+  transform-origin: center;
+}
+
+html[data-theme="light"] .demo-window {
+  background: #fff;
+}
+
+.window-bar,
+.demo-footer {
+  min-height: 48px;
+  padding: 0 15px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.demo-footer {
+  min-height: 42px;
+  justify-content: space-between;
+  border-top: 1px solid var(--border);
+  border-bottom: none;
+}
+
+.window-dots {
+  display: flex;
+  gap: 6px;
+  direction: ltr;
+}
+
+.window-dots i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #ff6b77;
+}
+
+.window-dots i:nth-child(2) {
+  background: #f7c45d;
+}
+
+.window-dots i:nth-child(3) {
+  background: #54d487;
+}
+
+.live-pill {
+  margin-right: auto;
+  padding: 4px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid rgba(82, 214, 164, 0.2);
+  border-radius: 99px;
+  color: var(--success);
+  background: rgba(82, 214, 164, 0.07);
+}
+
+.live-pill b {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 9px currentColor;
+}
+
+.demo-content {
+  min-height: 392px;
+  display: grid;
+  grid-template-columns: 46% 54%;
+  direction: ltr;
+}
+
+.demo-code {
+  margin: 0;
+  padding: 28px 22px;
+  overflow: hidden;
+  border-right: 1px solid var(--border);
+  background: #0c0f19;
+  color: #cdd4e4;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 1.9;
+  white-space: pre-wrap;
+}
+
+html[data-theme="light"] .demo-code {
+  background: #f7f8fb;
+  color: #354058;
+}
+
+.token-keyword {
+  color: #f472b6;
+  font-weight: 700;
+}
+
+.demo-diagram {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(139, 92, 246, 0.09), transparent 55%),
+    linear-gradient(rgba(148, 163, 184, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.045) 1px, transparent 1px);
+  background-size: auto, 24px 24px, 24px 24px;
+}
+
+.diagram-node {
+  position: absolute;
+  z-index: 2;
+  min-width: 98px;
+  padding: 9px 12px;
+  border: 1px solid rgba(167, 139, 250, 0.54);
+  border-radius: 10px;
+  background: #1c2030;
+  color: #eef1fb;
+  font-family: var(--font);
+  font-size: 10px;
+  text-align: center;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.22);
+}
+
+html[data-theme="light"] .diagram-node {
+  background: #fff;
+  color: #23283a;
+}
+
+.node-a { top: 35px; left: 50%; transform: translateX(-50%); }
+.decision {
+  top: 113px;
+  left: 50%;
+  min-width: 80px;
+  transform: translateX(-50%) rotate(45deg);
+  border-radius: 8px;
+}
+.decision::after {
+  content: "حساب دارد؟";
+  display: block;
+  transform: rotate(-45deg);
+  white-space: nowrap;
+}
+.decision { color: transparent; }
+.node-c { top: 217px; left: 35px; }
+.node-d { top: 217px; right: 35px; }
+.node-e { bottom: 24px; left: 50%; transform: translateX(-50%); border-color: rgba(82, 214, 164, 0.65); }
+
+.diagram-line,
+.diagram-branch {
+  position: absolute;
+  z-index: 1;
+  background: rgba(167, 139, 250, 0.55);
+}
+
+.line-a { top: 79px; left: 50%; width: 1px; height: 41px; }
+.line-c { bottom: 59px; left: 50%; width: 1px; height: 54px; }
+.branch-right,
+.branch-left {
+  top: 177px;
+  width: 87px;
+  height: 1px;
+}
+.branch-right { left: 50%; }
+.branch-left { right: 50%; }
+.branch-right::after,
+.branch-left::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 44px;
+  background: inherit;
+}
+.branch-right::after { right: 0; }
+.branch-left::after { left: 0; }
+.diagram-branch span {
+  position: absolute;
+  top: -20px;
+  color: var(--muted);
+  font-family: var(--font);
+  font-size: 9px;
+  background: transparent;
+}
+.branch-right span { right: 15px; }
+.branch-left span { left: 15px; }
+
