@@ -1,295 +1,253 @@
 <!doctype html>
-<html lang="fa" dir="rtl" data-theme="dark">
+<html lang="fa" dir="rtl" data-app-theme="dark">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#0d1020" />
-    <link rel="icon" href="/logo.svg" type="image/svg+xml" />
-    <meta name="color-scheme" content="dark light" />
-    <meta
-      name="description"
-      content="Mermaid Studio؛ ادیتور رایگان و فارسی برای ساخت، پیش‌نمایش و خروجی گرفتن از نمودارهای Mermaid به فرمت SVG، PNG، PDF و بیشتر."
-    />
-    <meta name="robots" content="index,follow" />
-    <meta property="og:type" content="website" />
-    <meta property="og:locale" content="fa_IR" />
-    <meta property="og:title" content="Mermaid Studio | ساخت نمودار با کد، سریع و رایگان" />
-    <meta
-      property="og:description"
-      content="کد Mermaid را بنویسید، نمودار را زنده ببینید و با کیفیت بالا خروجی بگیرید؛ بدون نیاز به ثبت‌نام."
-    />
-    <title>Mermaid Studio | ادیتور فارسی ساخت نمودار با کد</title>
+    <meta name="theme-color" content="#0e0f15" />
+    <meta name="description" content="ادیتور فارسی Mermaid Studio با پیش‌نمایش زنده و خروجی SVG، PNG، JPG، WebP و PDF" />
+    <meta name="robots" content="noindex,follow" />
+    <title>ادیتور Mermaid Studio</title>
     <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="stylesheet" href="/css/landing.css?v=%V%" />
-    <link rel="stylesheet" href="/css/landing-demo.css?v=%V%" />
-    <link rel="stylesheet" href="/css/landing-sections.css?v=%V%" />
-    <link rel="stylesheet" href="/css/landing-utilities.css?v=%V%" />
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "WebApplication",
-        "name": "Mermaid Studio",
-        "applicationCategory": "DeveloperApplication",
-        "operatingSystem": "Any",
-        "inLanguage": "fa",
-        "isAccessibleForFree": true,
-        "description": "ویرایشگر فارسی و رایگان Mermaid با پیش‌نمایش زنده و خروجی SVG، PNG و PDF"
-      }
-    </script>
+    <link rel="icon" href="/logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/vendor/codemirror/lib/codemirror.css" />
+    <link rel="stylesheet" href="/vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="/css/styles.css?v=%V%" />
+    <link rel="stylesheet" href="/css/persian.css?v=%V%" />
   </head>
   <body>
-    <div class="page-glow glow-one" aria-hidden="true"></div>
-    <div class="page-glow glow-two" aria-hidden="true"></div>
-
-    <header class="site-header">
-      <a class="brand" href="/" aria-label="Mermaid Studio">
-        <span class="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 40 40" width="34" height="34">
+    <header class="toolbar">
+      <div class="brand brand-home">
+        <a class="logo" href="/" title="بازگشت به صفحه اصلی" aria-label="صفحه اصلی">
+          <svg viewBox="0 0 32 32" width="26" height="26">
             <defs>
-              <linearGradient id="brand-gradient" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0" stop-color="#8b5cf6" />
-                <stop offset="1" stop-color="#ec4899" />
+              <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#b16cea" />
+                <stop offset="1" stop-color="#ff5e92" />
               </linearGradient>
             </defs>
-            <rect width="40" height="40" rx="12" fill="url(#brand-gradient)" />
-            <path d="M9 28V13l6.5 8 6.5-8v15M28 13c3.5 0 5 2.3 5 5 0 4.8-6 5-6 10" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" />
+            <rect width="32" height="32" rx="9" fill="url(#g)" />
+            <path d="M7 22V11l5 6 5-6v11M22 11c3 0 4 2 4 4 0 4-5 4-5 7" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
-        </span>
-        <span class="brand-copy">
-          <strong>Mermaid Studio</strong>
-          <small>نمودار حرفه‌ای، فقط با چند خط کد</small>
-        </span>
+        </a>
+        <div class="brand-text"><strong>Mermaid Studio</strong><small>ادیتور محلی و خصوصی نمودار</small></div>
+      </div>
+
+      <div class="toolbar-group file-actions">
+        <button id="btn-new" class="icon-btn wide" title="ساخت نمودار جدید">جدید</button>
+        <button id="btn-open" class="icon-btn wide" title="باز کردن فایل .mmd یا Markdown">باز کردن</button>
+        <button id="btn-save" class="icon-btn wide" title="ذخیره کد به صورت فایل .mmd">ذخیره</button>
+        <button id="btn-share" class="icon-btn wide" title="کپی لینک اشتراک‌گذاری">اشتراک‌گذاری</button>
+      </div>
+
+      <div class="toolbar-group view-actions">
+        <label class="field"><span>پوسته نمودار</span><select id="theme-select" title="پوسته Mermaid"></select></label>
+        <label class="field"><span>چیدمان</span><select id="layout-select" title="موتور چیدمان"></select></label>
+        <div class="field">
+          <span>پس‌زمینه</span>
+          <div class="seg-group" id="bg-group" role="group" aria-label="انتخاب پس‌زمینه">
+            <button class="seg" data-bg="transparent" title="شفاف">▦</button>
+            <button class="seg" data-bg="white" title="سفید">◻</button>
+            <button class="seg" data-bg="dark" title="تیره">◼</button>
+          </div>
+        </div>
+        <label class="field"><span>نمونه آماده</span><select id="examples-select" title="بارگذاری یک نمونه"></select></label>
+      </div>
+
+      <a id="sponsor-slot" class="sponsor-slot" href="#" target="_blank" rel="sponsored noreferrer" hidden>
+        <small>با حمایت</small>
+        <strong id="sponsor-slot-name"></strong>
       </a>
 
-      <nav class="main-nav" aria-label="ناوبری اصلی">
-        <a href="#features">امکانات</a>
-        <a href="/learn">آموزش فارسی</a>
-        <a href="#privacy">حریم خصوصی</a>
-        <a href="#faq">سوالات رایج</a>
-        <a href="https://github.com/Emad211/mermaid-studio" target="_blank" rel="noreferrer">گیت‌هاب</a>
-      </nav>
-
-      <div class="header-actions">
-        <button id="theme-toggle" class="icon-button" type="button" aria-label="تغییر پوسته">☾</button>
-        <a class="button button-small" href="/editor">ورود به ادیتور</a>
+      <div class="toolbar-group right export-actions">
+        <button id="btn-settings" class="icon-btn" title="تنظیمات Mermaid و CSS">⚙</button>
+        <button id="btn-export-dialog" class="btn" title="خروجی با تنظیمات کامل">خروجی…</button>
+        <button id="btn-svg" class="btn ghost" title="دانلود سریع SVG">SVG</button>
+        <button id="btn-png" class="btn ghost" title="دانلود سریع PNG">PNG</button>
+        <button id="btn-copy" class="btn ghost" title="کپی کد SVG">کپی</button>
+        <button id="btn-help" class="icon-btn" title="راهنمای میانبرها">؟</button>
+        <button id="app-theme-toggle" class="icon-btn" title="تغییر پوسته رابط">☾</button>
       </div>
     </header>
 
-    <main>
-      <section class="hero section-shell">
-        <div class="hero-copy">
-          <div class="eyebrow"><span></span> رایگان، فارسی و بدون ثبت‌نام</div>
-          <h1>
-            ایده‌ات را با کد بنویس؛
-            <em>نمودارش را همان لحظه ببین.</em>
-          </h1>
-          <p class="hero-lead">
-            Mermaid Studio یک محیط کامل برای ساخت فلوچارت، نمودار توالی، ERD، گانت، کلاس و ده‌ها نمودار دیگر است. کد را بنویس، نتیجه را زنده ببین و با کیفیت بالا خروجی بگیر.
-          </p>
-          <div class="hero-actions">
-            <a class="button button-primary" href="/editor">
-              شروع ساخت نمودار
-              <span aria-hidden="true">←</span>
-            </a>
-            <button id="copy-demo" class="button button-secondary" type="button">
-              کپی نمونه کد
-            </button>
-          </div>
-          <div class="trust-row" aria-label="مزیت‌های اصلی">
-            <span>✓ پیش‌نمایش زنده</span>
-            <span>✓ خروجی SVG، PNG و PDF</span>
-            <span>✓ پردازش محلی و خصوصی</span>
-          </div>
+    <main class="workspace" id="workspace">
+      <section class="pane editor-pane">
+        <div class="editor-header">
+          <span class="eh-label">کد Mermaid</span>
+          <span class="spacer"></span>
+          <span id="type-chip" class="chip" title="نوع نمودار تشخیص‌داده‌شده">—</span>
+          <button id="btn-wrap" class="icon-btn sm" title="شکستن خطوط بلند">⤶</button>
+          <button id="btn-font-dec" class="icon-btn sm" title="کوچک کردن قلم">A−</button>
+          <button id="btn-font-inc" class="icon-btn sm" title="بزرگ کردن قلم">A+</button>
         </div>
+        <textarea id="editor" spellcheck="false" aria-label="کد Mermaid"></textarea>
+        <footer class="status-bar">
+          <span id="status-msg" class="status-msg muted">آماده</span>
+          <span class="spacer"></span>
+          <span id="cursor-pos" class="meta">خط ۱، ستون ۱</span>
+          <span id="char-count" class="meta">۰ نویسه</span>
+        </footer>
+      </section>
 
-        <div class="hero-demo" aria-label="نمونه محیط Mermaid Studio">
-          <div class="demo-window">
-            <div class="window-bar">
-              <div class="window-dots" aria-hidden="true"><i></i><i></i><i></i></div>
-              <span>نمودار فرایند سفارش</span>
-              <span class="live-pill"><b></b> زنده</span>
-            </div>
-            <div class="demo-content">
-              <pre id="demo-code" class="demo-code" dir="ltr"><code><span class="token-keyword">flowchart</span> TD
-  A[ورود کاربر] --> B{حساب دارد؟}
-  B -- بله --> C[ورود به داشبورد]
-  B -- خیر --> D[ساخت حساب]
-  D --> C
-  C --> E[ایجاد نمودار]</code></pre>
-              <div class="demo-diagram" aria-hidden="true">
-                <div class="diagram-node node-a">ورود کاربر</div>
-                <div class="diagram-line line-a"></div>
-                <div class="diagram-node decision">حساب دارد؟</div>
-                <div class="diagram-branch branch-right"><span>بله</span></div>
-                <div class="diagram-branch branch-left"><span>خیر</span></div>
-                <div class="diagram-node node-c">داشبورد</div>
-                <div class="diagram-node node-d">ساخت حساب</div>
-                <div class="diagram-line line-c"></div>
-                <div class="diagram-node node-e">ایجاد نمودار</div>
-              </div>
-            </div>
-            <div class="demo-footer">
-              <span>رندر در کمتر از یک ثانیه</span>
-              <span>SVG · PNG · PDF</span>
+      <div class="divider" id="divider" title="برای تغییر اندازه بکشید"></div>
+
+      <section class="pane preview-pane">
+        <div id="preview" class="preview bg-white">
+          <div id="stage" class="stage"></div>
+
+          <div class="preview-tools">
+            <button id="btn-autofit" class="icon-btn sm active" title="تنظیم خودکار اندازه">⤢</button>
+            <button id="btn-fullscreen" class="icon-btn sm" title="پیش‌نمایش تمام‌صفحه">⛶</button>
+          </div>
+
+          <div class="zoom-controls">
+            <button id="zoom-out" class="icon-btn" title="کوچک‌نمایی">−</button>
+            <span id="zoom-level" class="zoom-level">۱۰۰٪</span>
+            <button id="zoom-in" class="icon-btn" title="بزرگ‌نمایی">+</button>
+            <span class="sep"></span>
+            <button id="zoom-fit" class="icon-btn wide" title="جا دادن در صفحه">اندازه مناسب</button>
+            <button id="zoom-reset" class="icon-btn wide" title="اندازه واقعی">۱:۱</button>
+          </div>
+
+          <div id="dims" class="dims"></div>
+
+          <div id="preview-error" class="preview-error">
+            <div class="preview-error-card">
+              <div class="preview-error-title">⚠ خطا در نمودار</div>
+              <pre id="preview-error-text"></pre>
             </div>
           </div>
         </div>
-      </section>
-
-      <section class="metric-strip section-shell" aria-label="ویژگی‌های کلیدی">
-        <div><strong>۲۰+</strong><span>نوع نمودار</span></div>
-        <div><strong>۵</strong><span>فرمت خروجی</span></div>
-        <div><strong>۰</strong><span>نیاز به ثبت‌نام</span></div>
-        <div><strong>۱۰۰٪</strong><span>قابل اجرا روی سیستم خودت</span></div>
-      </section>
-
-      <section id="features" class="features section-shell section-block">
-        <div class="section-heading">
-          <span class="section-kicker">همه‌چیز در یک محیط</span>
-          <h2>از اولین خط کد تا خروجی نهایی</h2>
-          <p>ابزارهایی که برای ساخت، اصلاح، اشتراک‌گذاری و خروجی گرفتن از نمودار لازم داری، کنار هم قرار گرفته‌اند.</p>
-        </div>
-
-        <div class="feature-grid">
-          <article class="feature-card featured">
-            <div class="feature-icon">⌁</div>
-            <h3>پیش‌نمایش زنده</h3>
-            <p>هم‌زمان با تایپ، نمودار بازسازی می‌شود تا نتیجهٔ هر تغییر را بلافاصله ببینی.</p>
-            <div class="mini-preview" aria-hidden="true">
-              <span></span><i></i><span></span><i></i><span></span>
-            </div>
-          </article>
-          <article class="feature-card">
-            <div class="feature-icon">⇩</div>
-            <h3>خروجی حرفه‌ای</h3>
-            <p>خروجی برداری SVG و PDF یا تصاویر PNG، JPG و WebP با اندازه و کیفیت دلخواه.</p>
-          </article>
-          <article class="feature-card">
-            <div class="feature-icon">⌘</div>
-            <h3>ادیتور مناسب توسعه‌دهنده</h3>
-            <p>هایلایت سینتکس، شماره خط، میانبرهای صفحه‌کلید، ذخیره فایل و Drag & Drop.</p>
-          </article>
-          <article class="feature-card">
-            <div class="feature-icon">◫</div>
-            <h3>قالب‌های آماده</h3>
-            <p>نمونه‌های آماده برای Flowchart، Sequence، ER، Class، Gantt، C4، Mindmap و بیشتر.</p>
-          </article>
-          <article class="feature-card">
-            <div class="feature-icon">◈</div>
-            <h3>تم و چیدمان دلخواه</h3>
-            <p>تم‌های متنوع، رنگ پس‌زمینه، CSS اختصاصی و موتورهای چیدمان Dagre و ELK.</p>
-          </article>
-          <article class="feature-card">
-            <div class="feature-icon">↗</div>
-            <h3>اشتراک‌گذاری با لینک</h3>
-            <p>کد و تنظیمات نمودار داخل لینک فشرده می‌شود؛ بدون اینکه پروژه در دیتابیس ذخیره شود.</p>
-          </article>
-        </div>
-      </section>
-
-      <section class="workflow section-shell section-block">
-        <div class="section-heading align-right">
-          <span class="section-kicker">ساده و سریع</span>
-          <h2>سه قدم تا یک نمودار آماده</h2>
-        </div>
-        <div class="steps">
-          <article><span>۱</span><div><h3>کد را بنویس</h3><p>از یک نمونه شروع کن یا کد Mermaid خودت را وارد کن.</p></div></article>
-          <article><span>۲</span><div><h3>ظاهر را تنظیم کن</h3><p>تم، چیدمان، پس‌زمینه، اندازه و تنظیمات پیشرفته را انتخاب کن.</p></div></article>
-          <article><span>۳</span><div><h3>خروجی بگیر</h3><p>فایل نهایی را در فرمت مناسب پروژه، ارائه یا مستنداتت دریافت کن.</p></div></article>
-        </div>
-      </section>
-
-      <section id="privacy" class="privacy-section section-shell section-block">
-        <div class="privacy-panel">
-          <div class="privacy-copy">
-            <span class="section-kicker">حریم خصوصی از ابتدا</span>
-            <h2>کد نمودارت، مال خودت می‌ماند.</h2>
-            <p>
-              پیش‌نمایش اصلی در مرورگر انجام می‌شود و لینک اشتراک‌گذاری نیز اطلاعات را داخل خود URL نگه می‌دارد. نسخهٔ محلی و CLI می‌توانند کاملاً آفلاین اجرا شوند.
-            </p>
-            <ul>
-              <li>بدون ثبت‌نام اجباری</li>
-              <li>بدون ذخیرهٔ خودکار کد نمودار روی سرور</li>
-              <li>نسخهٔ متن‌باز و قابل اجرا روی سیستم شخصی</li>
-            </ul>
-          </div>
-          <div class="privacy-visual" aria-hidden="true">
-            <div class="shield">✓</div>
-            <div class="privacy-line"><span>کد Mermaid</span><b>مرورگر شما</b></div>
-            <div class="privacy-line"><span>پیش‌نمایش</span><b>پردازش محلی</b></div>
-            <div class="privacy-line"><span>اشتراک‌گذاری</span><b>لینک فشرده</b></div>
-          </div>
-        </div>
-      </section>
-
-      <section id="sponsor-section" class="sponsor-section section-shell" hidden>
-        <div id="sponsor-card" class="sponsor-card">
-          <span>با حمایت</span>
-          <a id="sponsor-link" href="#" target="_blank" rel="sponsored noreferrer">
-            <strong id="sponsor-name"></strong>
-            <small id="sponsor-note">حامی توسعهٔ ابزارهای رایگان برای جامعهٔ فارسی‌زبان</small>
-          </a>
-        </div>
-      </section>
-
-      <section id="faq" class="faq section-shell section-block">
-        <div class="section-heading">
-          <span class="section-kicker">سوالات رایج</span>
-          <h2>قبل از شروع شاید این‌ها را بپرسی</h2>
-        </div>
-        <div class="faq-grid">
-          <details open>
-            <summary>Mermaid چیست؟</summary>
-            <p>Mermaid یک زبان متنی برای ساخت نمودار است. به‌جای جابه‌جایی شکل‌ها با ماوس، ساختار نمودار را با چند خط کد تعریف می‌کنی.</p>
-          </details>
-          <details>
-            <summary>استفاده از Mermaid Studio رایگان است؟</summary>
-            <p>بله. ادیتور و نسخهٔ محلی رایگان هستند و برای شروع به ساخت حساب کاربری نیاز نداری.</p>
-          </details>
-          <details>
-            <summary>آیا متن فارسی داخل نمودار پشتیبانی می‌شود؟</summary>
-            <p>بله. می‌توانی عنوان‌ها و متن گره‌ها را فارسی بنویسی. برای بهترین نتیجه، متن‌های طولانی را داخل کوتیشن قرار بده.</p>
-          </details>
-          <details>
-            <summary>چه فرمت‌هایی برای خروجی وجود دارد؟</summary>
-            <p>SVG، PNG، JPG، WebP و PDF پشتیبانی می‌شوند. SVG و PDF برای چاپ و بزرگ‌نمایی بهترین کیفیت را دارند.</p>
-          </details>
-          <details>
-            <summary>می‌توانم آن را روی سرور خودم اجرا کنم؟</summary>
-            <p>بله. پروژه متن‌باز است، CLI و وب‌اپ دارد و می‌تواند روی سیستم شخصی یا سرور خودت اجرا شود.</p>
-          </details>
-          <details>
-            <summary>کد نمودار من ذخیره می‌شود؟</summary>
-            <p>پیش‌فرض محصول بر پردازش محلی و حداقل‌سازی داده است. جزئیات دقیق هر نسخه در صفحهٔ حریم خصوصی توضیح داده می‌شود.</p>
-          </details>
-        </div>
-      </section>
-
-      <section class="final-cta section-shell">
-        <div>
-          <span>آماده‌ای؟</span>
-          <h2>اولین نمودارت را همین حالا بساز.</h2>
-          <p>بدون ثبت‌نام، بدون نصب و بدون محدودیت برای شروع.</p>
-        </div>
-        <a class="button button-primary" href="/editor">باز کردن ادیتور <span aria-hidden="true">←</span></a>
       </section>
     </main>
 
-    <footer class="site-footer section-shell">
-      <div>
-        <strong>Mermaid Studio</strong>
-        <span>ساخته‌شده برای توسعه‌دهندگان، دانشجویان و تیم‌های فارسی‌زبان.</span>
+    <aside id="drawer" class="drawer">
+      <div class="drawer-head">
+        <div class="tabs">
+          <button class="tab active" data-tab="config">تنظیمات Mermaid</button>
+          <button class="tab" data-tab="css">CSS اختصاصی</button>
+        </div>
+        <button id="drawer-close" class="icon-btn sm" title="بستن">✕</button>
       </div>
-      <nav aria-label="پیوندهای پایین صفحه">
-        <a href="/learn">آموزش فارسی</a>
-        <a href="/privacy.html">حریم خصوصی</a>
-        <a href="/terms.html">شرایط استفاده</a>
-        <a href="https://github.com/Emad211/mermaid-studio" target="_blank" rel="noreferrer">کد منبع</a>
-      </nav>
-      <small>نسخه <span id="app-version">—</span> · انتشار با مجوز MIT</small>
-    </footer>
+      <div class="drawer-body">
+        <div class="tab-pane active" data-pane="config">
+          <p class="hint">این JSON با تنظیمات اصلی Mermaid ادغام می‌شود؛ مانند <code>themeVariables</code> و تنظیمات هر نمودار.</p>
+          <textarea id="config-input" class="code-input" spellcheck="false" dir="ltr" placeholder='{ "themeVariables": { "primaryColor": "#b16cea" } }'></textarea>
+          <div id="config-error" class="input-error"></div>
+        </div>
+        <div class="tab-pane" data-pane="css">
+          <p class="hint">CSS زیر داخل SVG نمودار قرار می‌گیرد. در نسخه عمومی، CSS ناامن و منابع خارجی مسدود هستند.</p>
+          <textarea id="css-input" class="code-input" spellcheck="false" dir="ltr" placeholder=".node rect { stroke-width: 2px; }"></textarea>
+        </div>
+      </div>
+    </aside>
 
-    <div id="copy-toast" class="copy-toast" role="status" aria-live="polite">نمونه کد کپی شد</div>
-    <script type="module" src="/js/landing.js?v=%V%"></script>
+    <div id="export-modal" class="modal">
+      <div class="modal-card">
+        <div class="modal-head"><h3>دریافت خروجی</h3><button id="exp-cancel" class="icon-btn sm" title="بستن">✕</button></div>
+        <div class="modal-body">
+          <label class="row"><span>فرمت</span>
+            <select id="exp-format" dir="ltr">
+              <option value="svg">SVG (برداری)</option>
+              <option value="png">PNG</option>
+              <option value="jpg">JPG</option>
+              <option value="webp">WebP</option>
+              <option value="pdf">PDF (برداری)</option>
+            </select>
+          </label>
+          <label class="row" data-when="raster"><span>مقیاس تصویر</span><input id="exp-scale" type="number" min="1" max="5" step="1" value="2" /></label>
+          <label class="row" data-when="lossy"><span>کیفیت</span><input id="exp-quality" type="number" min="1" max="100" step="1" value="92" /></label>
+          <div class="row" data-when="bg"><span>پس‌زمینه</span>
+            <div class="bg-pick">
+              <div class="seg-group" id="exp-bg-group">
+                <button class="seg" data-bg="transparent" type="button" title="شفاف">▦</button>
+                <button class="seg active" data-bg="white" type="button" title="سفید">◻</button>
+                <button class="seg" data-bg="dark" type="button" title="تیره">◼</button>
+              </div>
+              <input id="exp-bg-color" type="color" value="#ffffff" title="رنگ دلخواه" />
+            </div>
+          </div>
+          <label class="row" data-when="pdf"><span>اندازه کاغذ</span>
+            <select id="exp-pdf-paper" dir="ltr">
+              <option value="auto">Auto (اندازه نمودار)</option>
+              <option value="a4">A4</option><option value="a3">A3</option><option value="a5">A5</option>
+              <option value="letter">Letter</option><option value="legal">Legal</option><option value="tabloid">Tabloid</option>
+            </select>
+          </label>
+          <label class="row checkbox" data-when="pdf-fixed"><input id="exp-pdf-landscape" type="checkbox" /><span>افقی</span></label>
+          <label class="row checkbox" data-when="pdf-fixed"><input id="exp-pdf-fit" type="checkbox" checked /><span>جا دادن نمودار در عرض یک صفحه</span></label>
+        </div>
+        <div class="modal-foot">
+          <button id="exp-copy" class="btn ghost" title="کپی تصویر در کلیپ‌بورد">کپی تصویر</button>
+          <button id="exp-download" class="btn">دانلود</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="help-modal" class="modal">
+      <div class="modal-card">
+        <div class="modal-head"><h3>میانبرهای صفحه‌کلید</h3><button id="help-cancel" class="icon-btn sm" title="بستن">✕</button></div>
+        <div class="modal-body shortcuts">
+          <div><kbd>Ctrl/⌘</kbd>+<kbd>S</kbd><span>دانلود SVG</span></div>
+          <div><kbd>Ctrl/⌘</kbd>+<kbd>E</kbd><span>باز کردن پنجره خروجی</span></div>
+          <div><kbd>Ctrl/⌘</kbd>+<kbd>O</kbd><span>باز کردن فایل</span></div>
+          <div><kbd>Ctrl/⌘</kbd>+<kbd>K</kbd><span>کپی لینک اشتراک‌گذاری</span></div>
+          <div><kbd>Ctrl/⌘</kbd>+<kbd>0</kbd><span>تنظیم اندازه نمودار</span></div>
+          <div><kbd>F</kbd><span>پیش‌نمایش تمام‌صفحه</span></div>
+          <div><kbd>?</kbd><span>نمایش این راهنما</span></div>
+          <div><kbd>Esc</kbd><span>بستن پنجره یا تمام‌صفحه</span></div>
+          <div><kbd>Scroll</kbd><span>بزرگ‌نمایی · <kbd>Drag</kbd> جابه‌جایی</span></div>
+          <div><kbd>Tab</kbd><span>تورفتگی در ادیتور</span></div>
+        </div>
+      </div>
+    </div>
+
+    <input id="file-input" type="file" accept=".mmd,.mermaid,.md,.markdown,.txt" hidden />
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script src="/vendor/codemirror/lib/codemirror.js"></script>
+    <script src="/vendor/codemirror/addon/mode/simple.js"></script>
+    <script src="/vendor/codemirror/addon/edit/closebrackets.js"></script>
+    <script src="/vendor/codemirror/addon/edit/matchbrackets.js"></script>
+    <script src="/vendor/pako/pako.min.js"></script>
+    <script src="/js/persian-ui.js?v=%V%"></script>
+
+    <script>
+      (function () {
+        var divider = document.getElementById('divider');
+        var ws = document.getElementById('workspace');
+        var dragging = false;
+        divider.addEventListener('pointerdown', function (e) {
+          if (window.matchMedia('(max-width: 900px)').matches) return;
+          dragging = true;
+          divider.setPointerCapture(e.pointerId);
+          document.body.style.userSelect = 'none';
+        });
+        window.addEventListener('pointermove', function (e) {
+          if (!dragging) return;
+          var rect = ws.getBoundingClientRect();
+          var pct = ((e.clientX - rect.left) / rect.width) * 100;
+          if (getComputedStyle(ws).direction === 'rtl') pct = 100 - pct;
+          pct = Math.min(75, Math.max(20, pct));
+          ws.style.setProperty('--editor-w', pct + '%');
+          window.dispatchEvent(new Event('mstudio:resize'));
+        });
+        window.addEventListener('pointerup', function () {
+          dragging = false;
+          document.body.style.userSelect = '';
+        });
+      })();
+    </script>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "/js/mermaid-runtime.js": "/js/mermaid-runtime.js?v=%V%",
+          "/js/editor.js": "/js/editor.js?v=%V%",
+          "/js/exporter.js": "/js/exporter.js?v=%V%",
+          "/js/share.js": "/js/share.js?v=%V%"
+        }
+      }
+    </script>
+    <script type="module" src="/js/app.js?v=%V%"></script>
   </body>
 </html>
