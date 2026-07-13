@@ -97,6 +97,24 @@ function setMessage(selector, message, state = '') {
   element.className = `form-message ${state}`.trim();
 }
 
+let notificationTimer;
+function notify(message, state = 'ok') {
+  let element = $('#admin-toast');
+  if (!element) {
+    element = document.createElement('div');
+    element.id = 'admin-toast';
+    element.setAttribute('role', state === 'error' ? 'alert' : 'status');
+    element.setAttribute('aria-live', state === 'error' ? 'assertive' : 'polite');
+    document.body.append(element);
+  }
+  element.textContent = String(message || '');
+  element.className = `admin-toast is-visible ${state}`.trim();
+  element.setAttribute('role', state === 'error' ? 'alert' : 'status');
+  element.setAttribute('aria-live', state === 'error' ? 'assertive' : 'polite');
+  clearTimeout(notificationTimer);
+  notificationTimer = setTimeout(() => element.classList.remove('is-visible'), 3_600);
+}
+
 async function api(url, options = {}) {
   const response = await fetch(url, {
     credentials: 'same-origin',
@@ -658,7 +676,7 @@ $('#revenue-table').addEventListener('click', async (event) => {
   if (!button || !confirm('این رکورد درآمد حذف شود؟')) return;
   button.disabled = true;
   try { await api(`/api/admin/analytics/revenue/${encodeURIComponent(button.dataset.id)}`, { method: 'DELETE' }); await loadDashboard(); }
-  catch (error) { alert(error.message); button.disabled = false; }
+  catch (error) { notify(error.message, 'error'); button.disabled = false; }
 });
 
 $('#search-import-form').addEventListener('submit', async (event) => {
@@ -679,9 +697,9 @@ $('#gsc-sync').addEventListener('click', async () => {
   button.textContent = 'در حال همگام‌سازی…';
   try {
     const result = await api('/api/admin/seo/search-console/sync', { method: 'POST', body: JSON.stringify({ from: $('#range-from').value, to: $('#range-to').value }) });
-    alert(`${formatNumber(result.imported)} ردیف نهایی Search Console همگام شد.`);
+    notify(`${formatNumber(result.imported)} ردیف نهایی Search Console همگام شد.`);
     await loadDashboard();
-  } catch (error) { alert(error.message); }
+  } catch (error) { notify(error.message, 'error'); }
   finally { button.textContent = 'همگام‌سازی Search Console'; button.disabled = !integrations?.searchConsole?.configured; }
 });
 
@@ -691,10 +709,10 @@ $('#run-seo-audit').addEventListener('click', async () => {
   button.textContent = 'در حال خزیدن صفحات…';
   try {
     const result = await api('/api/admin/seo/audit/run', { method: 'POST', body: JSON.stringify({}) });
-    alert(`ممیزی با امتیاز ${formatNumber(result.score)} از ۱۰۰ کامل شد.`);
+    notify(`ممیزی با امتیاز ${formatNumber(result.score)} از ۱۰۰ کامل شد.`);
     await loadDashboard();
     switchView('audit');
-  } catch (error) { alert(error.message); }
+  } catch (error) { notify(error.message, 'error'); }
   finally { button.disabled = false; button.textContent = 'اجرای ممیزی کامل'; }
 });
 
@@ -738,7 +756,7 @@ $('#annotations-table').addEventListener('click', async (event) => {
   const button = event.target.closest('.delete-annotation');
   if (!button || !confirm('این رویداد حذف شود؟')) return;
   try { await api(`/api/admin/annotations/${encodeURIComponent(button.dataset.id)}`, { method: 'DELETE' }); await loadDashboard(); }
-  catch (error) { alert(error.message); }
+  catch (error) { notify(error.message, 'error'); }
 });
 
 $('#copy-backup-command').addEventListener('click', async () => {
