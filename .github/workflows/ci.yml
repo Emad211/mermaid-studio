@@ -18,7 +18,7 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v6
@@ -31,7 +31,7 @@ jobs:
       - run: npm run smoke:production
       - name: Reject high-severity production dependency vulnerabilities
         run: npm audit --omit=dev --audit-level=high
-      - name: Validate Docker Compose configuration
+      - name: Validate production Docker Compose configuration
         shell: bash
         run: |
           cp .env.example .env
@@ -40,11 +40,21 @@ jobs:
           sed -i 's|^ANALYTICS_ADMIN_PASSWORD=.*|ANALYTICS_ADMIN_PASSWORD=ci-only-long-random-password|' .env
           sed -i 's|^ANALYTICS_HASH_SECRET=.*|ANALYTICS_HASH_SECRET=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef|' .env
           docker compose config --quiet
+      - name: Validate local Docker scripts and Compose configuration
+        shell: bash
+        run: |
+          cp .env.local.example .env.local
+          sed -i 's|^ANALYTICS_ADMIN_PASSWORD=.*|ANALYTICS_ADMIN_PASSWORD=ci-only-long-random-password|' .env.local
+          sed -i 's|^ANALYTICS_HASH_SECRET=.*|ANALYTICS_HASH_SECRET=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef|' .env.local
+          bash -n scripts/docker-local.sh
+          bash scripts/docker-local.sh doctor
+          docker compose --env-file .env.local -f compose.local.yaml config --quiet
+          pwsh -NoProfile -Command '$tokens=$null; $errors=$null; [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path "scripts/docker-local.ps1"), [ref]$tokens, [ref]$errors) | Out-Null; if ($errors.Count) { $errors | ForEach-Object { Write-Error $_.Message }; exit 1 }'
 
   container:
     needs: test
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@v7
       - name: Build production image
@@ -91,3 +101,26 @@ jobs:
             --data '{"code":"flowchart TD; A-->B","format":"pdf"}' \
             --output /tmp/diagram.pdf
           grep -q '%PDF-' /tmp/diagram.pdf
+      - name: Run the complete local Docker stack and in-container test suite
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp .env.local.example .env.local
+          sed -i 's|^LOCAL_IMAGE=.*|LOCAL_IMAGE=mermaid-studio:ci|' .env.local
+          sed -i 's|^ANALYTICS_ADMIN_PASSWORD=.*|ANALYTICS_ADMIN_PASSWORD=ci-only-long-random-password|' .env.local
+          sed -i 's|^ANALYTICS_HASH_SECRET=.*|ANALYTICS_HASH_SECRET=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef|' .env.local
+          cleanup() {
+            docker compose --env-file .env.local -f compose.local.yaml logs --tail 200 app || true
+            docker compose --env-file .env.local -f compose.local.yaml down --volumes --remove-orphans || true
+          }
+          trap cleanup EXIT
+          docker compose --env-file .env.local -f compose.local.yaml up -d --no-build --remove-orphans
+          for attempt in $(seq 1 100); do
+            container=$(docker compose --env-file .env.local -f compose.local.yaml ps -q app)
+            status=$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "$container" 2>/dev/null || true)
+            if [ "$status" = healthy ]; then break; fi
+            if [ "$status" = unhealthy ] || [ "$status" = exited ]; then exit 1; fi
+            sleep 1
+          done
+          docker compose --env-file .env.local -f compose.local.yaml exec -T app \
+            node scripts/docker-local-smoke.mjs --full
