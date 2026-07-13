@@ -16,6 +16,9 @@ on:
 permissions:
   contents: write
 
+env:
+  PUPPETEER_NO_SANDBOX: true
+
 concurrency:
   group: mermaid-studio-finalizer
   cancel-in-progress: true
