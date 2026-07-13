@@ -1,0 +1,67 @@
+name: Apply nonblocking admin notifications
+
+on:
+  push:
+    branches:
+      - agent/admin-growth-control-center
+    paths:
+      - tools/fix-admin-notifications.py
+      - .github/workflows/apply-admin-toast-fix.yml
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apply-admin-toast-fix
+  cancel-in-progress: false
+
+jobs:
+  apply-and-validate:
+    if: github.event_name == 'push' || github.event.pull_request.head.ref == 'agent/admin-growth-control-center'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/admin-growth-control-center
+          fetch-depth: 0
+          persist-credentials: true
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Apply nonblocking notification patch
+        run: python tools/fix-admin-notifications.py
+
+      - name: Verify source and browser behavior
+        env:
+          PUPPETEER_NO_SANDBOX: true
+        run: |
+          set -euo pipefail
+          npm ci
+          npm run build
+          npm run check
+          npm run test:admin
+          npm test
+          npm run smoke:production
+          npm audit --omit=dev --audit-level=high
+          ! grep -R "alert(\`ممیزی\|alert(\`\${formatNumber(result.imported)" public/js/analytics-dashboard.js
+
+      - name: Commit validated final source
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f tools/fix-admin-notifications.py
+          rm -f .github/workflows/debug-admin-browser.yml
+          rm -f .github/workflows/apply-admin-toast-fix.yml
+          rmdir tools 2>/dev/null || true
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Finalize nonblocking admin notifications"
+          git push origin HEAD:agent/admin-growth-control-center
