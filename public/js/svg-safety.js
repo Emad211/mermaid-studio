@@ -58,6 +58,22 @@ function sanitizeElement(element) {
 }
 
 /**
+ * Mermaid's C4 renderer currently emits xlink:href in image elements without
+ * declaring the xlink namespace on the root SVG. Browsers accept that markup
+ * when inserted as HTML, but an XML DOMParser correctly rejects it. Add only
+ * the missing standard namespace before strict XML parsing so the sanitizer
+ * can keep using the safer XML parser for every diagram type.
+ */
+function normalizeSvgNamespaces(source) {
+  const openingTag = source.match(/^\s*<svg\b[^>]*>/i)?.[0] || '';
+  if (!openingTag) return source;
+  if (/\bxlink:/.test(source) && !/\bxmlns:xlink\s*=/.test(openingTag)) {
+    return source.replace(/<svg\b/i, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
+  }
+  return source;
+}
+
+/**
  * Parse and sanitize an SVG string. Returns a detached SVGElement.
  */
 export function parseSafeSvg(svgText) {
@@ -66,7 +82,8 @@ export function parseSafeSvg(svgText) {
     throw new Error('SVG_SIZE_LIMIT');
   }
 
-  const parsed = new DOMParser().parseFromString(source, 'image/svg+xml');
+  const normalizedSource = normalizeSvgNamespaces(source);
+  const parsed = new DOMParser().parseFromString(normalizedSource, 'image/svg+xml');
   if (parsed.querySelector('parsererror')) {
     throw new Error('SVG_PARSE_ERROR');
   }
