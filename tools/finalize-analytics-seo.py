@@ -5,6 +5,33 @@ from pathlib import Path
 path = Path('src/server/analytics.js')
 text = path.read_text(encoding='utf-8')
 
+old_hydrate = """function hydrateDay(value, day) {
+  const fresh = emptyDay(day);
+  if (!value || typeof value !== 'object') return fresh;
+  const merged = {
+    ...fresh,
+    ...value,
+    totals: { ...fresh.totals, ...(value.totals || {}) },
+    unique: { ...fresh.unique, ...(value.unique || {}) },
+    vitals: { ...fresh.vitals, ...(value.vitals || {}) },
+  };
+"""
+new_hydrate = """function hydrateDay(value, day) {
+  const fresh = emptyDay(day);
+  const persisted = value && typeof value === 'object' ? value : {};
+  const merged = {
+    ...fresh,
+    ...persisted,
+    totals: { ...fresh.totals, ...(persisted.totals || {}) },
+    unique: { ...fresh.unique, ...(persisted.unique || {}) },
+    vitals: { ...fresh.vitals, ...(persisted.vitals || {}) },
+  };
+"""
+if old_hydrate in text:
+    text = text.replace(old_hydrate, new_hydrate, 1)
+elif 'const persisted = value && typeof value' not in text:
+    raise SystemExit('analytics hydration anchor not found')
+
 anchor = """  async init() {
 """
 enqueue = """  enqueue(task) {
@@ -50,6 +77,8 @@ if plain_count:
 
 if 'this.operation = this.operation.then(async () =>' in text:
     raise SystemExit('unsafe promise chain remains')
+if 'if (!value || typeof value !== \'object\') return fresh;' in text:
+    raise SystemExit('unhydrated transient sets remain')
 
 path.write_text(text, encoding='utf-8')
-print('analytics queue finalization applied')
+print('analytics hydration and queue finalization applied')
