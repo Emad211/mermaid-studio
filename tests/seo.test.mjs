@@ -42,7 +42,7 @@ test('sitemap and robots expose canonical content cluster', () => {
   assert.match(robots, /Sitemap: https:\/\/diagram\.example\.com\/sitemap\.xml/);
 });
 
-test('all learning articles have substantial unique content and valid internal links', () => {
+test('all learning articles have substantial unique content and useful internal links', () => {
   assert.ok(LEARN_ARTICLES.length >= 8);
   const titles = new Set();
   for (const article of LEARN_ARTICLES) {
@@ -53,8 +53,12 @@ test('all learning articles have substantial unique content and valid internal l
     assert.ok(!titles.has(article.title), `duplicate title: ${article.title}`);
     titles.add(article.title);
     const html = renderLearnArticle(article.slug);
-    assert.match(html, new RegExp(`/learn/${article.slug.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
+    assert.match(html, /href="\/learn"/);
     assert.match(html, /data-open-target/);
+    assert.ok(article.related.length >= 1, `${article.slug} needs related content`);
+    for (const related of article.related) {
+      assert.match(html, new RegExp(`/learn/${related.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
+    }
     assert.ok(html.length > 5000, `${article.slug} is too thin`);
   }
 });
