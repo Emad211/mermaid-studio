@@ -4,6 +4,11 @@ build/
 public/vendor-build/
 .playwright-mcp/
 graphify-out/
+.data/
+coverage/
+.env
+.env.local
+.env.*.local
 *.log
 .DS_Store
 Thumbs.db

@@ -18,7 +18,7 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v6
@@ -35,22 +35,36 @@ jobs:
         shell: bash
         run: |
           cp .env.example .env
+          sed -i 's|^DOMAIN=.*|DOMAIN=diagram.example.com|' .env
+          sed -i 's|^SITE_URL=.*|SITE_URL=https://diagram.example.com|' .env
+          sed -i 's|^ANALYTICS_ADMIN_PASSWORD=.*|ANALYTICS_ADMIN_PASSWORD=ci-only-long-random-password|' .env
+          sed -i 's|^ANALYTICS_HASH_SECRET=.*|ANALYTICS_HASH_SECRET=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef|' .env
           docker compose config --quiet
 
   container:
     needs: test
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v7
       - name: Build production image
         run: docker build --pull --tag mermaid-studio:ci .
-      - name: Smoke-test production container
+      - name: Smoke-test production container with persistent analytics volume
         shell: bash
         run: |
           set -euo pipefail
-          docker run -d --name mermaid-studio-ci -p 127.0.0.1:4321:4321 mermaid-studio:ci
-          trap 'docker logs mermaid-studio-ci || true; docker rm -f mermaid-studio-ci >/dev/null 2>&1 || true' EXIT
+          docker volume create mermaid-studio-ci-analytics >/dev/null
+          docker run -d --name mermaid-studio-ci \
+            -p 127.0.0.1:4321:4321 \
+            -e SITE_URL=https://diagram.example.com \
+            -e ANALYTICS_ENABLED=true \
+            -e ANALYTICS_DATA_DIR=/data/analytics \
+            -e ANALYTICS_ADMIN_USER=admin \
+            -e ANALYTICS_ADMIN_PASSWORD=ci-only-long-random-password \
+            -e ANALYTICS_HASH_SECRET=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef \
+            -v mermaid-studio-ci-analytics:/data/analytics \
+            mermaid-studio:ci
+          trap 'docker logs mermaid-studio-ci || true; docker rm -f mermaid-studio-ci >/dev/null 2>&1 || true; docker volume rm mermaid-studio-ci-analytics >/dev/null 2>&1 || true' EXIT
           for attempt in $(seq 1 90); do
             if curl -fsS http://127.0.0.1:4321/api/health >/dev/null; then break; fi
             sleep 1
@@ -60,6 +74,13 @@ jobs:
           curl -fsS http://127.0.0.1:4321/editor >/dev/null
           curl -fsS http://127.0.0.1:4321/templates >/dev/null
           curl -fsS http://127.0.0.1:4321/learn >/dev/null
+          curl -fsS http://127.0.0.1:4321/learn/sequence-diagram-mermaid >/dev/null
+          curl -fsS http://127.0.0.1:4321/sitemap.xml | grep -q '/learn/flowchart-mermaid'
+          curl -fsS -X POST http://127.0.0.1:4321/api/analytics/event \
+            -H 'content-type: application/json' \
+            --data '{"event":"page_view","path":"/","session":"ci-session"}' \
+            -o /dev/null
+          curl -fsS -u 'admin:ci-only-long-random-password' 'http://127.0.0.1:4321/api/admin/analytics/summary?days=1' | grep -q 'pageviews'
           curl -fsS -X POST http://127.0.0.1:4321/api/render \
             -H 'content-type: application/json' \
             --data '{"code":"flowchart TD; A-->B","format":"svg"}' \

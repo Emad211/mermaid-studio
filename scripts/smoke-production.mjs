@@ -5,7 +5,14 @@ const port = 4876;
 const base = `http://127.0.0.1:${port}`;
 const child = spawn(process.execPath, ['bin/cli.js', 'serve', '--host', '127.0.0.1', '--port', String(port), '--no-open'], {
   cwd: new URL('..', import.meta.url),
-  env: { ...process.env, NODE_ENV: 'production', NO_OPEN: '1', ADS_ENABLED: 'false' },
+  env: {
+    ...process.env,
+    NODE_ENV: 'production',
+    NO_OPEN: '1',
+    ADS_ENABLED: 'false',
+    ANALYTICS_ENABLED: 'false',
+    SITE_URL: 'https://diagram.example.com',
+  },
   stdio: ['ignore', 'pipe', 'pipe'],
 });
 
@@ -28,11 +35,22 @@ async function waitForHealth() {
 
 try {
   await waitForHealth();
-  for (const route of ['/', '/editor', '/templates', '/learn', '/privacy', '/terms']) {
+  for (const route of ['/', '/editor', '/templates', '/learn', '/learn/flowchart-mermaid', '/privacy', '/terms']) {
     const response = await fetch(base + route, { redirect: 'manual' });
     assert.equal(response.status, 200, `${route} must return 200`);
     assert.match(response.headers.get('content-type') || '', /text\/html/);
   }
+
+  const root = await (await fetch(`${base}/`)).text();
+  assert.match(root, /rel="canonical" href="https:\/\/diagram\.example\.com\/"/);
+  assert.match(root, /SoftwareApplication/);
+
+  const sitemap = await fetch(`${base}/sitemap.xml`);
+  assert.equal(sitemap.status, 200);
+  assert.match(await sitemap.text(), /\/learn\/mermaid-errors/);
+
+  const analytics = await (await fetch(`${base}/api/analytics/config`)).json();
+  assert.equal(analytics.enabled, false);
 
   const ads = await (await fetch(`${base}/api/ads`)).json();
   assert.equal(ads.enabled, false, 'ads must be disabled without publisher credentials');

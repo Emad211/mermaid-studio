@@ -1,21 +1,9 @@
-/**
- * Express application for the hosted/local Mermaid Studio product.
- *
- * Routes:
- *   /             Persian product landing page
- *   /editor       bilingual editor
- *   /templates    searchable Persian template gallery
- *   /headless     isolated page used by Puppeteer
- *   /api/render   bounded render API
- *   /api/meta     editor metadata and optional sponsor configuration
- */
-
 import express from 'express';
 import fs from 'node:fs';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
-import crypto from 'node:crypto';
 import { EXAMPLES } from '../shared/examples.js';
 import {
   THEMES,
@@ -35,6 +23,18 @@ import {
   positiveInteger,
 } from './guards.js';
 import { advertisingConfig, advertisingCspSources } from './ads.js';
+import { AnalyticsError, createAnalyticsService } from './analytics.js';
+import { getLearnArticle, renderLearnArticle } from './learn-content.js';
+import {
+  canonicalRedirect,
+  enhanceHtml,
+  llmsTxt,
+  ogImageSvg,
+  pageSeo,
+  robotsTxt,
+  seoConfig,
+  sitemapXml,
+} from './seo.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..', '..');
@@ -48,34 +48,16 @@ const LANDING_HTML = path.join(PUBLIC_DIR, 'landing.html');
 const EDITOR_HTML = path.join(PUBLIC_DIR, 'index.html');
 const TEMPLATES_HTML = path.join(PUBLIC_DIR, 'templates.html');
 const LEARN_HTML = path.join(PUBLIC_DIR, 'learn.html');
+const ANALYTICS_HTML = path.join(PUBLIC_DIR, 'analytics.html');
 const HEADLESS_HTML = path.join(PUBLIC_DIR, 'headless.html');
 const PRIVACY_HTML = path.join(PUBLIC_DIR, 'privacy.html');
 const TERMS_HTML = path.join(PUBLIC_DIR, 'terms.html');
 
 const ICON_PACKS = ['logos', 'mdi', 'fa6-solid', 'fa6-brands'];
 const DIAGRAM_TYPES = [
-  'flowchart',
-  'sequence',
-  'class',
-  'state',
-  'entity-relationship',
-  'user journey',
-  'gantt',
-  'pie',
-  'quadrant',
-  'requirement',
-  'gitgraph',
-  'C4',
-  'mindmap',
-  'timeline',
-  'sankey',
-  'xychart',
-  'block',
-  'packet',
-  'kanban',
-  'architecture',
-  'radar',
-  'zenuml',
+  'flowchart', 'sequence', 'class', 'state', 'entity-relationship', 'user journey',
+  'gantt', 'pie', 'quadrant', 'requirement', 'gitgraph', 'C4', 'mindmap', 'timeline',
+  'sankey', 'xychart', 'block', 'packet', 'kanban', 'architecture', 'radar', 'zenuml',
 ];
 
 const FORMAT_SET = new Set(FORMATS);
@@ -83,9 +65,11 @@ const THEME_SET = new Set(THEMES);
 const LAYOUT_SET = new Set(LAYOUTS);
 const PAPER_SET = new Set(PDF_PAPERS);
 const BACKGROUND_SET = new Set(Object.keys(BACKGROUNDS));
+const ADVERTISING_PATHS = new Set(['/', '/templates', '/learn']);
+const TRACKED_PATHS = new Set(['/', '/editor', '/templates', '/learn', '/privacy', '/terms']);
 
-function envBoolean(name, fallback = false) {
-  const value = process.env[name];
+function envBoolean(environment, name, fallback = false) {
+  const value = environment[name];
   if (value === undefined) return fallback;
   return ['1', 'true', 'yes', 'on'].includes(String(value).toLowerCase());
 }
@@ -98,13 +82,17 @@ function javascriptType(res, filePath) {
 
 function vendorHeaders(res, filePath) {
   javascriptType(res, filePath);
-  res.setHeader('Cache-Control', 'public, max-age=86400');
+  res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
   res.setHeader('X-Content-Type-Options', 'nosniff');
 }
 
 function appAssetHeaders(res, filePath) {
   javascriptType(res, filePath);
-  res.setHeader('Cache-Control', 'no-store');
+  const extension = path.extname(filePath).toLowerCase();
+  const immutable = new Set(['.js', '.css', '.svg', '.png', '.jpg', '.jpeg', '.webp', '.woff', '.woff2']);
+  res.setHeader('Cache-Control', immutable.has(extension)
+    ? 'public, max-age=31536000, immutable'
+    : 'public, max-age=3600');
   res.setHeader('X-Content-Type-Options', 'nosniff');
 }
 
@@ -120,34 +108,12 @@ function inlineScriptHashes(html) {
   return hashes;
 }
 
-function sendHtml(res, filePath) {
-  const html = fs.readFileSync(filePath, 'utf8').split('%V%').join(BUILD);
-  const hashes = inlineScriptHashes(html);
-  if (hashes.length) {
-    res.setHeader('Content-Security-Policy', contentSecurityPolicy(res.req, hashes));
-  }
-  res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.setHeader('Cache-Control', 'no-store');
-  res.send(html);
+function advertisingAllowed(pathname) {
+  return ADVERTISING_PATHS.has(pathname) || pathname.startsWith('/learn/');
 }
 
-const ADVERTISING_PATHS = new Set([
-  '/',
-  '/fa',
-  '/fa/',
-  '/templates',
-  '/templates/',
-  '/examples',
-  '/examples/',
-  '/learn',
-  '/learn/',
-]);
-
-function contentSecurityPolicy(req, inlineHashes = []) {
-  // Publisher scripts are admitted only on content pages. The editor and
-  // headless renderer retain a first-party-only policy, so ad code cannot read
-  // Mermaid source, localStorage state or rendered diagrams.
-  const adSources = ADVERTISING_PATHS.has(req.path) ? advertisingCspSources() : [];
+function contentSecurityPolicy(req, environment, inlineHashes = []) {
+  const adSources = advertisingAllowed(req.path) ? advertisingCspSources(environment) : [];
   const external = adSources.length ? ` ${adSources.join(' ')}` : '';
   return [
     "default-src 'self'",
@@ -167,20 +133,60 @@ function contentSecurityPolicy(req, inlineHashes = []) {
   ].join('; ');
 }
 
-function securityHeaders(req, res, next) {
-  res.setHeader('Content-Security-Policy', contentSecurityPolicy(req));
-  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
-  res.setHeader(
-    'Permissions-Policy',
-    'accelerometer=(), camera=(), geolocation=(), gyroscope=(), microphone=(), payment=(), usb=()'
-  );
-  if (req.secure || envBoolean('FORCE_HSTS')) {
-    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+function securityHeaders(environment) {
+  return function applySecurityHeaders(req, res, next) {
+    res.setHeader('Content-Security-Policy', contentSecurityPolicy(req, environment));
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+    res.setHeader('Permissions-Policy', 'accelerometer=(), camera=(), geolocation=(), gyroscope=(), microphone=(), payment=(), usb=()');
+    if (req.path.startsWith('/admin/') || req.path === '/headless' || req.path === '/editor') {
+      res.setHeader('X-Robots-Tag', 'noindex, nofollow, noarchive');
+    }
+    if (req.secure || envBoolean(environment, 'FORCE_HSTS')) {
+      res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    }
+    next();
+  };
+}
+
+function analyticsTracked(pathname) {
+  return TRACKED_PATHS.has(pathname) || pathname.startsWith('/learn/');
+}
+
+function injectAnalyticsScript(html, pathname, analytics) {
+  if (!analytics.publicConfig().enabled || !analyticsTracked(pathname) || html.includes('/js/analytics.js')) return html;
+  return html.replace('</body>', `  <script type="module" src="/js/analytics.js?v=${BUILD}"></script>\n</body>`);
+}
+
+function prepareHtml(req, source, { pathname = req.path, seo = true, track = true } = {}, state) {
+  let html = String(source).split('%V%').join(BUILD);
+  let meta = null;
+  if (seo) {
+    const enhanced = enhanceHtml(html, pathname, state.seo);
+    html = enhanced.html;
+    meta = enhanced.meta;
   }
-  next();
+  if (track) html = injectAnalyticsScript(html, pathname, state.analytics);
+  const hashes = inlineScriptHashes(html);
+  return { html, meta, hashes };
+}
+
+function sendHtml(req, res, filePath, options, state) {
+  const source = fs.readFileSync(filePath, 'utf8');
+  return sendHtmlSource(req, res, source, options, state);
+}
+
+function sendHtmlSource(req, res, source, options, state) {
+  const prepared = prepareHtml(req, source, options, state);
+  res.setHeader('Content-Security-Policy', contentSecurityPolicy(req, state.environment, prepared.hashes));
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.setHeader('Content-Language', 'fa-IR');
+  res.setHeader('Cache-Control', 'no-store, max-age=0');
+  if (prepared.meta?.canonical) res.setHeader('Link', `<${prepared.meta.canonical}>; rel="canonical"`);
+  if (prepared.meta?.robots?.startsWith('noindex')) res.setHeader('X-Robots-Tag', prepared.meta.robots);
+  res.send(prepared.html);
 }
 
 function internalServerUrl(req) {
@@ -197,16 +203,13 @@ function sendRenderResult(res, result, format, download) {
   if (format === 'svg') {
     res.setHeader('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'; img-src data:");
   }
-  if (download) {
-    res.setHeader('Content-Disposition', `attachment; filename="diagram.${normalizedFormat}"`);
-  }
+  if (download) res.setHeader('Content-Disposition', `attachment; filename="diagram.${normalizedFormat}"`);
   res.end(bytes);
 }
 
 function decodeQueryCode(query) {
   const raw = query.code || '';
   if (query.encoding !== 'base64') return String(raw);
-
   const encoded = String(raw).replace(/\s+/g, '');
   if (!encoded || encoded.length % 4 === 1 || !/^[A-Za-z0-9+/]*={0,2}$/.test(encoded)) {
     throw new HttpError(400, 'INVALID_ENCODING', 'The base64 diagram code is invalid.');
@@ -215,46 +218,127 @@ function decodeQueryCode(query) {
 }
 
 function publicError(error) {
-  if (error instanceof HttpError) return error;
-  if (error?.type === 'entity.too.large') {
-    return new HttpError(413, 'REQUEST_TOO_LARGE', 'The request body is too large.');
-  }
+  if (error instanceof HttpError || error instanceof AnalyticsError) return error;
+  if (error?.type === 'entity.too.large') return new HttpError(413, 'REQUEST_TOO_LARGE', 'The request body is too large.');
   if (error instanceof SyntaxError && Object.prototype.hasOwnProperty.call(error, 'body')) {
     return new HttpError(400, 'INVALID_JSON', 'The request body must be valid JSON.');
   }
-  if (error?.name === 'MermaidParseError') {
-    return new HttpError(422, 'MERMAID_PARSE_ERROR', error.message || 'The Mermaid diagram is invalid.');
-  }
-  if (error?.name === 'ChromeUnavailableError') {
-    return new HttpError(503, 'RENDERER_UNAVAILABLE', 'The server-side renderer is unavailable.');
-  }
-  if (error?.name === 'RenderTimeoutError') {
-    return new HttpError(504, 'RENDER_TIMEOUT', 'The render operation exceeded its time limit.');
-  }
-  if (error?.name === 'RenderSizeError') {
-    return new HttpError(413, 'OUTPUT_TOO_LARGE', error.message || 'The rendered diagram is too large.');
-  }
-  return new HttpError(500, 'INTERNAL_ERROR', 'The render request could not be completed.');
+  if (error?.name === 'MermaidParseError') return new HttpError(422, 'MERMAID_PARSE_ERROR', error.message || 'The Mermaid diagram is invalid.');
+  if (error?.name === 'ChromeUnavailableError') return new HttpError(503, 'RENDERER_UNAVAILABLE', 'The server-side renderer is unavailable.');
+  if (error?.name === 'RenderTimeoutError') return new HttpError(504, 'RENDER_TIMEOUT', 'The render operation exceeded its time limit.');
+  if (error?.name === 'RenderSizeError') return new HttpError(413, 'OUTPUT_TOO_LARGE', error.message || 'The rendered diagram is too large.');
+  return new HttpError(500, 'INTERNAL_ERROR', 'The request could not be completed.');
 }
 
-export function createApp() {
+function noTrackRequest(req, analytics) {
+  if (!analytics.config.respectDnt) return false;
+  return req.get('DNT') === '1' || req.get('Sec-GPC') === '1';
+}
+
+function notFoundHtml(state) {
+  const meta = pageSeo('/404', state.seo);
+  return `<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${meta.title}</title><meta name="description" content="${meta.description}"><meta name="robots" content="noindex,follow"><link rel="stylesheet" href="/css/landing.css?v=%V%"></head><body><main class="legal-page"><a class="legal-back" href="/">→ بازگشت به صفحه اصلی</a><h1>صفحه پیدا نشد</h1><p>آدرس واردشده وجود ندارد یا جابه‌جا شده است.</p><p><a class="button button-primary" href="/learn">مشاهده آموزش‌ها</a> <a class="button button-secondary" href="/editor">ورود به ادیتور</a></p></main></body></html>`;
+}
+
+export function createApp({ environment = process.env, logger = console } = {}) {
   const app = express();
   app.disable('x-powered-by');
 
-  if (envBoolean('TRUST_PROXY')) app.set('trust proxy', 1);
-  app.use(securityHeaders);
-  app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || '256kb', strict: true }));
+  const state = {
+    environment,
+    seo: seoConfig(environment),
+    analytics: createAnalyticsService({ env: environment, logger }),
+  };
+  app.locals.analytics = state.analytics;
+  app.locals.seo = state.seo;
+
+  if (envBoolean(environment, 'TRUST_PROXY')) app.set('trust proxy', 1);
+  app.use(securityHeaders(environment));
+
+  app.use((req, res, next) => {
+    if (!['GET', 'HEAD'].includes(req.method)) return next();
+    const target = canonicalRedirect(req.path);
+    if (!target) return next();
+    const query = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
+    res.redirect(301, `${target}${query}`);
+  });
+
+  const analyticsEventLimit = createRateLimiter({
+    windowMs: positiveInteger(environment.ANALYTICS_RATE_WINDOW_MS, 60_000, 1_000, 3_600_000),
+    max: positiveInteger(environment.ANALYTICS_RATE_MAX, 240, 10, 20_000),
+  });
+  const adminLimit = createRateLimiter({ windowMs: 60_000, max: 180 });
+  const adminAuth = state.analytics.adminAuth.bind(state.analytics);
+
+  app.get('/api/analytics/config', (_req, res) => {
+    res.setHeader('Cache-Control', 'no-store');
+    res.json(state.analytics.publicConfig());
+  });
+  app.post('/api/analytics/event', analyticsEventLimit, express.json({ limit: '8kb', strict: true }), async (req, res, next) => {
+    try {
+      if (!state.analytics.publicConfig().enabled || noTrackRequest(req, state.analytics)) return res.status(204).end();
+      await state.analytics.record(req.body, req);
+      return res.status(204).end();
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  app.get('/admin/analytics', adminAuth, (req, res) => sendHtml(req, res, ANALYTICS_HTML, { pathname: '/admin/analytics', seo: false, track: false }, state));
+  app.get('/analytics.html', (_req, res) => res.redirect(302, '/admin/analytics'));
+  app.get('/api/admin/analytics/summary', adminLimit, adminAuth, async (req, res, next) => {
+    try {
+      res.json(await state.analytics.summary(req.query));
+    } catch (error) {
+      next(error);
+    }
+  });
+  app.get('/api/admin/analytics/export.csv', adminLimit, adminAuth, async (req, res, next) => {
+    try {
+      const csv = await state.analytics.csv(req.query);
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="mermaid-studio-analytics-${Date.now()}.csv"`);
+      res.send(`\ufeff${csv}`);
+    } catch (error) {
+      next(error);
+    }
+  });
+  app.post('/api/admin/analytics/revenue', adminLimit, adminAuth, express.json({ limit: '256kb', strict: true }), async (req, res, next) => {
+    try {
+      const entries = await state.analytics.addRevenue(req.body?.entries ?? req.body);
+      res.status(201).json({ ok: true, entries });
+    } catch (error) {
+      next(error);
+    }
+  });
+  app.delete('/api/admin/analytics/revenue/:id', adminLimit, adminAuth, async (req, res, next) => {
+    try {
+      await state.analytics.deleteRevenue(req.params.id);
+      res.status(204).end();
+    } catch (error) {
+      next(error);
+    }
+  });
+  app.post('/api/admin/analytics/search', adminLimit, adminAuth, express.json({ limit: '2mb', strict: true }), async (req, res, next) => {
+    try {
+      const imported = await state.analytics.importSearch(req.body?.rows, req.body?.defaultDate);
+      res.status(201).json({ ok: true, imported });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.use(express.json({ limit: environment.JSON_BODY_LIMIT || '256kb', strict: true }));
 
   const renderRateLimit = createRateLimiter({
-    windowMs: positiveInteger(process.env.RENDER_RATE_WINDOW_MS, 60_000, 1_000, 3_600_000),
-    max: positiveInteger(process.env.RENDER_RATE_MAX, 30, 1, 10_000),
+    windowMs: positiveInteger(environment.RENDER_RATE_WINDOW_MS, 60_000, 1_000, 3_600_000),
+    max: positiveInteger(environment.RENDER_RATE_MAX, 30, 1, 10_000),
   });
   const renderGate = createRenderGate({
-    concurrency: positiveInteger(process.env.RENDER_CONCURRENCY, 2, 1, 16),
-    maxQueue: positiveInteger(process.env.RENDER_QUEUE_MAX, 20, 0, 1_000),
+    concurrency: positiveInteger(environment.RENDER_CONCURRENCY, 2, 1, 16),
+    maxQueue: positiveInteger(environment.RENDER_QUEUE_MAX, 20, 0, 1_000),
   });
 
-  // Locally vendored dependencies: no CDN is required for the editor.
   app.use('/vendor/mermaid', express.static(path.join(NODE_MODULES, 'mermaid', 'dist'), { setHeaders: vendorHeaders }));
   app.use('/vendor/codemirror', express.static(path.join(NODE_MODULES, 'codemirror'), { setHeaders: vendorHeaders }));
   app.use('/vendor/katex', express.static(path.join(NODE_MODULES, 'katex', 'dist'), { setHeaders: vendorHeaders }));
@@ -262,26 +346,44 @@ export function createApp() {
   app.use('/vendor/iconify', express.static(path.join(NODE_MODULES, '@iconify-json'), { setHeaders: vendorHeaders }));
   app.use('/vendor-build', express.static(path.join(PUBLIC_DIR, 'vendor-build'), { setHeaders: vendorHeaders }));
 
-  // Product pages are served explicitly so HTML always receives the build token.
-  app.get(['/', '/fa', '/fa/'], (_req, res) => sendHtml(res, LANDING_HTML));
-  app.get(['/editor', '/editor/', '/index.html'], (_req, res) => sendHtml(res, EDITOR_HTML));
-  app.get(['/templates', '/templates/', '/examples', '/examples/'], (_req, res) => sendHtml(res, TEMPLATES_HTML));
-  app.get(['/learn', '/learn/'], (_req, res) => sendHtml(res, LEARN_HTML));
-  app.get('/headless', (_req, res) => sendHtml(res, HEADLESS_HTML));
-  app.get(['/privacy', '/privacy/'], (_req, res) => sendHtml(res, PRIVACY_HTML));
-  app.get(['/terms', '/terms/'], (_req, res) => sendHtml(res, TERMS_HTML));
+  app.get('/', (req, res) => sendHtml(req, res, LANDING_HTML, { pathname: '/' }, state));
+  app.get('/editor', (req, res) => sendHtml(req, res, EDITOR_HTML, { pathname: '/editor' }, state));
+  app.get('/templates', (req, res) => sendHtml(req, res, TEMPLATES_HTML, { pathname: '/templates' }, state));
+  app.get('/learn', (req, res) => sendHtml(req, res, LEARN_HTML, { pathname: '/learn' }, state));
+  app.get('/learn/:slug', (req, res, next) => {
+    if (!getLearnArticle(req.params.slug)) return next();
+    return sendHtmlSource(req, res, renderLearnArticle(req.params.slug), { pathname: `/learn/${req.params.slug}` }, state);
+  });
+  app.get('/headless', (req, res) => sendHtml(req, res, HEADLESS_HTML, { pathname: '/headless', seo: false, track: false }, state));
+  app.get('/privacy', (req, res) => sendHtml(req, res, PRIVACY_HTML, { pathname: '/privacy' }, state));
+  app.get('/terms', (req, res) => sendHtml(req, res, TERMS_HTML, { pathname: '/terms' }, state));
 
-  app.use(express.static(PUBLIC_DIR, { setHeaders: appAssetHeaders, index: false }));
+  app.get('/sitemap.xml', (_req, res) => {
+    const xml = sitemapXml(state.seo);
+    if (!xml) return res.status(404).type('text/plain').send('SITE_URL is not configured.');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    return res.type('application/xml').send(xml);
+  });
+  app.get('/robots.txt', (_req, res) => res.type('text/plain').send(robotsTxt(state.seo)));
+  app.get('/llms.txt', (_req, res) => res.type('text/plain').send(llmsTxt(state.seo)));
+  app.get('/og-image.svg', (_req, res) => {
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.type('image/svg+xml').send(ogImageSvg(state.seo));
+  });
+  app.get('/.well-known/security.txt', (_req, res) => {
+    res.type('text/plain').send(`Contact: ${state.seo.githubUrl}/security/advisories/new\nCanonical: ${state.seo.siteUrl || ''}/.well-known/security.txt\nPreferred-Languages: fa, en\nExpires: 2027-07-13T00:00:00.000Z\n`);
+  });
+
+  for (const legacy of ['/landing.html', '/templates.html', '/learn.html', '/editor.html']) {
+    app.get(legacy, (_req, res) => res.redirect(301, legacy === '/landing.html' ? '/' : legacy.replace('.html', '')));
+  }
+
+  app.use(express.static(PUBLIC_DIR, { setHeaders: appAssetHeaders, index: false, redirect: false }));
 
   const metadata = () => ({
     version: pkg.version,
     businessModel: 'advertising',
-    product: {
-      defaultLanguage: 'fa',
-      languages: ['fa', 'en'],
-      safeMode: true,
-      localPreview: true,
-    },
+    product: { defaultLanguage: 'fa', languages: ['fa'], safeMode: true, localPreview: true },
     examples: EXAMPLES,
     themes: THEMES,
     formats: FORMATS,
@@ -295,58 +397,52 @@ export function createApp() {
 
   app.get('/api/health', (_req, res) => {
     res.setHeader('Cache-Control', 'no-store');
-    res.json({ ok: true, version: pkg.version, render: renderGate.stats() });
+    res.json({ ok: true, version: pkg.version, render: renderGate.stats(), analytics: state.analytics.health() });
   });
   app.get('/api/version', (_req, res) => res.json({ name: pkg.name, version: pkg.version }));
   app.get('/api/meta', (_req, res) => res.json(metadata()));
   app.get('/api/examples', (_req, res) => res.json(metadata()));
   app.get('/api/ads', (_req, res) => {
     res.setHeader('Cache-Control', 'no-store');
-    res.json(advertisingConfig());
+    res.json(advertisingConfig(environment));
   });
 
-  const normalize = (source) =>
-    normalizeRenderRequest(source, {
-      formats: FORMAT_SET,
-      themes: THEME_SET,
-      layouts: LAYOUT_SET,
-      papers: PAPER_SET,
-      backgrounds: BACKGROUND_SET,
-    });
+  const normalize = (source) => normalizeRenderRequest(source, {
+    formats: FORMAT_SET,
+    themes: THEME_SET,
+    layouts: LAYOUT_SET,
+    papers: PAPER_SET,
+    backgrounds: BACKGROUND_SET,
+  });
 
   app.post('/api/render', renderRateLimit, async (req, res, next) => {
     try {
       const options = normalize(req.body);
-      const result = await renderGate.run(() =>
-        renderDiagram({ serverUrl: internalServerUrl(req), ...options })
-      );
+      const result = await renderGate.run(() => renderDiagram({ serverUrl: internalServerUrl(req), ...options }));
       sendRenderResult(res, result, options.format, options.download);
     } catch (error) {
       next(error);
     }
   });
-
   app.get('/api/render', renderRateLimit, async (req, res, next) => {
     try {
       const options = normalize({ ...req.query, code: decodeQueryCode(req.query) });
-      const result = await renderGate.run(() =>
-        renderDiagram({ serverUrl: internalServerUrl(req), ...options })
-      );
+      const result = await renderGate.run(() => renderDiagram({ serverUrl: internalServerUrl(req), ...options }));
       sendRenderResult(res, result, options.format, options.download);
     } catch (error) {
       next(error);
     }
   });
 
-  app.use('/api', (_req, _res, next) => {
-    next(new HttpError(404, 'API_NOT_FOUND', 'API route not found.'));
+  app.use('/api', (_req, _res, next) => next(new HttpError(404, 'API_NOT_FOUND', 'API route not found.')));
+  app.use((req, res, next) => {
+    if (!['GET', 'HEAD'].includes(req.method) || !req.accepts('html')) return next();
+    res.status(404);
+    return sendHtmlSource(req, res, notFoundHtml(state), { pathname: '/404' }, state);
   });
-
   app.use((error, _req, res, _next) => {
     const safe = publicError(error);
-    if (safe.status >= 500) {
-      console.error(`[${safe.code}]`, error?.message || error);
-    }
+    if (safe.status >= 500) logger.error(`[${safe.code}]`, error?.message || error);
     if (res.headersSent) return;
     res.status(safe.status).json({ error: safe.message, code: safe.code });
   });
@@ -354,8 +450,8 @@ export function createApp() {
   return app;
 }
 
-export function startServer({ port = 0, host = '127.0.0.1' } = {}) {
-  const app = createApp();
+export function startServer({ port = 0, host = '127.0.0.1', environment = process.env, logger = console } = {}) {
+  const app = createApp({ environment, logger });
   return new Promise((resolve, reject) => {
     const server = app.listen(port, host, () => {
       const address = server.address();
@@ -363,9 +459,13 @@ export function startServer({ port = 0, host = '127.0.0.1' } = {}) {
       const displayHost = host === '0.0.0.0' ? 'localhost' : host;
       resolve({
         server,
+        app,
         port: actualPort,
         url: `http://${displayHost}:${actualPort}`,
-        close: () => new Promise((done) => server.close(done)),
+        close: () => new Promise((done) => server.close(async () => {
+          await app.locals.analytics?.close?.();
+          done();
+        })),
       });
     });
     server.on('error', reject);

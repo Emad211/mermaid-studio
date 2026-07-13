@@ -51,7 +51,8 @@ try {
 
   const learn = await fetch(server.url + '/learn');
   const learnHtml = await learn.text();
-  assert('Persian learning hub', learn.ok && learnHtml.includes('Mermaid را با مثال‌های فارسی یاد بگیر'));
+  assert('Persian learning hub', learn.ok && learnHtml.includes('Mermaid را با مسئله‌های واقعی یاد بگیر'));
+  assert('learning hub has deep article links', learnHtml.includes('/learn/flowchart-mermaid') && learnHtml.includes('/learn/mermaid-errors'));
   assert('learning hub has ad surfaces', learnHtml.includes('data-ad-slot="learnInline"'));
 
   const privacy = await fetch(server.url + '/privacy.html');
@@ -66,6 +67,9 @@ try {
   const adsResponse = await fetch(server.url + '/api/ads');
   const ads = await adsResponse.json();
   assert('ads are opt-in and disabled by default', adsResponse.ok && ads.enabled === false && ads.slots?.homeTop === '');
+
+  const analyticsConfig = await (await fetch(server.url + '/api/analytics/config')).json();
+  assert('first-party analytics config is explicit', typeof analyticsConfig.enabled === 'boolean' && analyticsConfig.respectDnt === true);
 
   const tooLarge = await fetch(server.url + '/api/render', {
     method: 'POST',
