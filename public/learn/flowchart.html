@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="fa" dir="rtl" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0d1020" />
+    <meta name="description" content="آموزش فارسی رسم فلوچارت در Mermaid؛ گره، جهت، اتصال، شرط، برچسب و مثال کامل قابل ویرایش." />
+    <meta name="robots" content="index,follow" />
+    <title>آموزش فلوچارت در Mermaid با مثال فارسی | Mermaid Studio</title>
+    <link rel="icon" href="/logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/css/landing.css?v=%V%" />
+    <link rel="stylesheet" href="/css/docs.css?v=%V%" />
+    <script type="application/ld+json">
+      {"@context":"https://schema.org","@type":"TechArticle","headline":"آموزش فلوچارت در Mermaid","inLanguage":"fa","proficiencyLevel":"Beginner"}
+    </script>
+  </head>
+  <body class="docs-body">
+    <header class="docs-header">
+      <a class="brand" href="/"><img src="/logo.svg" alt="" width="36" height="36" /><span class="brand-copy"><strong>Mermaid Studio</strong><small>مرجع فارسی نمودار با کد</small></span></a>
+      <nav><a href="/editor">ادیتور</a><a href="/learn">آموزش‌ها</a><a href="/privacy.html">حریم خصوصی</a></nav>
+      <button id="theme-toggle" class="icon-button" type="button">☾</button>
+    </header>
+
+    <main class="docs-shell">
+      <div class="docs-main">
+        <div class="breadcrumbs"><a href="/">خانه</a><span>/</span><a href="/learn">آموزش</a><span>/</span><span>فلوچارت</span></div>
+        <section class="doc-hero">
+          <div class="eyebrow"><span></span> آموزش گام‌به‌گام</div>
+          <h1>رسم فلوچارت با Mermaid</h1>
+          <p>فلوچارت برای نمایش ترتیب مراحل، تصمیم‌ها و مسیرهای یک فرایند مناسب است. در Mermaid هر گره با یک شناسه تعریف می‌شود و پیکان‌ها ارتباط میان گره‌ها را نشان می‌دهند.</p>
+          <div class="doc-meta"><span>زمان مطالعه: ۸ دقیقه</span><span>سطح: مقدماتی</span><span>مثال‌های قابل ویرایش</span></div>
+        </section>
+
+        <article class="doc-article">
+          <h2 id="first">اولین فلوچارت</h2>
+          <p>خط اول نوع نمودار و جهت آن را مشخص می‌کند. در نمونهٔ زیر، <code>TD</code> یعنی نمودار از بالا به پایین رسم شود.</p>
+          <div class="code-example">
+            <div class="code-example-head"><span>نمونهٔ پایه</span><button data-copy-target="flow-basic" type="button">کپی کد</button><a data-open-target="flow-basic" href="/editor">ویرایش در ادیتور</a></div>
+            <pre><code id="flow-basic">flowchart TD
+    A[شروع] --> B[دریافت اطلاعات]
+    B --> C[پردازش]
+    C --> D[پایان]</code></pre>
+          </div>
+
+          <h2 id="direction">انتخاب جهت نمودار</h2>
+          <p>بعد از واژهٔ <code>flowchart</code> یکی از جهت‌های زیر را بنویس:</p>
+          <ul><li><code>TD</code> یا <code>TB</code>: بالا به پایین</li><li><code>LR</code>: چپ به راست</li><li><code>RL</code>: راست به چپ</li><li><code>BT</code>: پایین به بالا</li></ul>
+          <div class="note"><strong>نکته:</strong> برای نمودارهای عریض معماری، معمولاً <code>LR</code> خواناتر است؛ برای فرایندهای مرحله‌ای، <code>TD</code> انتخاب خوبی است.</div>
+
+          <h2 id="shapes">شکل گره‌ها</h2>
+          <p>نوع براکت ظاهر گره را تغییر می‌دهد. مستطیل برای فعالیت، لوزی برای تصمیم و گوشه‌گرد برای شروع یا پایان رایج است.</p>
+          <div class="code-example">
+            <div class="code-example-head"><span>گره‌ها و شرط</span><button data-copy-target="flow-shapes" type="button">کپی کد</button><a data-open-target="flow-shapes" href="/editor">ویرایش در ادیتور</a></div>
+            <pre><code id="flow-shapes">flowchart TD
+    A([شروع]) --> B[ثبت سفارش]
+    B --> C{پرداخت موفق بود؟}
+    C -- بله --> D[ارسال سفارش]
+    C -- خیر --> E[تلاش دوباره]
+    E --> C
+    D --> F([پایان])</code></pre>
+          </div>
+
+          <h2 id="links">پیکان و برچسب اتصال</h2>
+          <p><code>--&gt;</code> پیکان معمولی می‌سازد. برای نوشتن توضیح روی مسیر، متن را میان دو خط تیره یا داخل <code>| |</code> قرار بده.</p>
+          <div class="code-example">
+            <div class="code-example-head"><span>برچسب مسیر</span><button data-copy-target="flow-links" type="button">کپی کد</button><a data-open-target="flow-links" href="/editor">ویرایش در ادیتور</a></div>
+            <pre><code id="flow-links">flowchart LR
+    A[ورود کاربر] --> B{حساب فعال است؟}
+    B -- بله --> C[داشبورد]
+    B -- خیر --> D[بازیابی حساب]
+    D -. ایمیل تأیید .-> C</code></pre>
+          </div>
+
+          <h2 id="subgraph">گروه‌بندی با subgraph</h2>
+          <p>برای دسته‌بندی اجزای مرتبط از <code>subgraph</code> استفاده کن. این قابلیت در نمودارهای معماری و فرایندهای بزرگ بسیار مفید است.</p>
+          <div class="code-example">
+            <div class="code-example-head"><span>گروه‌بندی سرویس‌ها</span><button data-copy-target="flow-group" type="button">کپی کد</button><a data-open-target="flow-group" href="/editor">ویرایش در ادیتور</a></div>
+            <pre><code id="flow-group">flowchart LR
+    subgraph Client[کلاینت]
+      U[کاربر] --> W[وب‌اپ]
+    end
+    subgraph Server[سرور]
+      A[API] --> D[(دیتابیس)]
+    end
+    W --> A</code></pre>
+          </div>
+
+          <h2 id="errors">خطاهای رایج</h2>
+          <ol><li><strong>شناسهٔ تکراری:</strong> هر گره بهتر است شناسهٔ یکتا مثل <code>A</code> یا <code>payment</code> داشته باشد.</li><li><strong>متن پیچیده بدون کوتیشن:</strong> متن‌های دارای پرانتز یا علامت‌های خاص را داخل کوتیشن بنویس.</li><li><strong>استفاده از نیم‌فاصله در شناسه:</strong> نیم‌فاصله و متن فارسی را برای برچسب نگه دار، نه شناسهٔ گره.</li><li><strong>نمودار بیش از حد شلوغ:</strong> بخش‌ها را با <code>subgraph</code> جدا کن یا جهت را به <code>LR</code> تغییر بده.</li></ol>
+          <div class="warning"><strong>پیشنهاد:</strong> شناسه‌ها را انگلیسی و کوتاه انتخاب کن، اما متن قابل مشاهدهٔ گره‌ها را کاملاً فارسی بنویس.</div>
+
+          <div class="doc-next"><a href="/learn"><small>بازگشت</small>فهرست آموزش‌ها</a><a href="/learn/sequence"><small>آموزش بعدی</small>نمودار توالی ←</a></div>
+        </article>
+        <div id="docs-sponsor" class="docs-sponsor"><span>با حمایت</span><a href="#" target="_blank" rel="sponsored noreferrer"></a></div>
+      </div>
+
+      <aside class="docs-sidebar">
+        <h2>در این صفحه</h2>
+        <nav><a href="#first">اولین فلوچارت</a><a href="#direction">جهت نمودار</a><a href="#shapes">شکل گره‌ها</a><a href="#links">پیکان‌ها</a><a href="#subgraph">گروه‌بندی</a><a href="#errors">خطاهای رایج</a></nav>
+        <a class="sidebar-cta" href="/editor">تمرین در ادیتور</a>
+      </aside>
+    </main>
+    <script type="module" src="/js/docs.js?v=%V%"></script>
+  </body>
+</html>
