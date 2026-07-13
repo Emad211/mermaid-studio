@@ -1,0 +1,52 @@
+name: mermaid-studio-local
+
+services:
+  app:
+    build:
+      context: .
+    image: ${LOCAL_IMAGE:-mermaid-studio:local}
+    restart: unless-stopped
+    env_file:
+      - .env.local
+    environment:
+      NODE_ENV: development
+      HOST: 0.0.0.0
+      PORT: 4321
+      NO_OPEN: 1
+      TRUST_PROXY: "false"
+      FORCE_HSTS: "false"
+      PUPPETEER_NO_SANDBOX: "true"
+      SITE_URL: http://${LOCAL_SITE_HOST:-localhost}:${LOCAL_PORT:-4321}
+      SITE_NAME: ${SITE_NAME:-Mermaid Studio Local}
+      ANALYTICS_ENABLED: "true"
+      ANALYTICS_DATA_DIR: /data/analytics
+      ANALYTICS_ADMIN_USER: ${ANALYTICS_ADMIN_USER:-admin}
+      ANALYTICS_ADMIN_PASSWORD: ${ANALYTICS_ADMIN_PASSWORD:?Run the local setup script to generate ANALYTICS_ADMIN_PASSWORD}
+      ANALYTICS_HASH_SECRET: ${ANALYTICS_HASH_SECRET:?Run the local setup script to generate ANALYTICS_HASH_SECRET}
+      ADS_ENABLED: "false"
+      GSC_ENABLED: "false"
+      INDEXNOW_ENABLED: "false"
+    ports:
+      - "${LOCAL_BIND_ADDRESS:-127.0.0.1}:${LOCAL_PORT:-4321}:4321"
+    volumes:
+      - local_analytics:/data/analytics
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4321/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      start_period: 25s
+      retries: 12
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=1073741824,mode=1777
+    shm_size: 1gb
+    pids_limit: 256
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+volumes:
+  local_analytics:
+    name: mermaid-studio-local-analytics

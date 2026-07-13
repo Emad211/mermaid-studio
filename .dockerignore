@@ -5,7 +5,13 @@ out
 build
 graphify-out
 .playwright-mcp
+.data
+coverage
+backups
 *.log
 .env
+.env.*
+!.env.example
+!.env.local.example
 .DS_Store
 Thumbs.db

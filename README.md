@@ -29,6 +29,43 @@ node bin/cli.js render diagram.mmd -o out.png
 
 ---
 
+## Local Docker — one command
+
+The recommended way to test the full web product, admin analytics, Chromium export and
+live SEO audit is the isolated local Compose stack. It does not require a domain, Caddy,
+HTTPS, advertising credentials or Search Console.
+
+macOS, Linux, WSL or Git Bash:
+
+```bash
+chmod +x scripts/docker-local.sh
+./scripts/docker-local.sh up
+./scripts/docker-local.sh test-full
+```
+
+Windows PowerShell:
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+.\scripts\docker-local.ps1 up
+.\scripts\docker-local.ps1 test-full
+```
+
+The scripts create `.env.local`, generate random admin credentials, build the image,
+wait for the health check and print the local URLs. The service is bound to
+`127.0.0.1` only.
+
+```text
+Home       http://localhost:4321/
+Editor     http://localhost:4321/editor
+Admin      http://localhost:4321/admin/analytics
+Health     http://localhost:4321/api/health
+```
+
+See the complete Persian guide: [`docs/LOCAL_DOCKER_FA.md`](docs/LOCAL_DOCKER_FA.md).
+
+---
+
 ## Requirements
 
 - **Node.js ≥ 18** (tested on Node 20)
@@ -225,7 +262,8 @@ $env:PUPPETEER_EXECUTABLE_PATH = "C:\Program Files\Google\Chrome\Application\chr
 The **GUI live preview works without Chromium** (it renders in your browser); only
 raster/PDF export and the CLI need it.
 
-**Port already in use** — `node bin/cli.js serve -p 4322`.
+**Port already in use** — `node bin/cli.js serve -p 4322` or change `LOCAL_PORT` in
+`.env.local` for the Docker stack.
 
 ## License
 
