@@ -50,6 +50,7 @@ jobs:
           bash scripts/docker-local.sh doctor
           docker compose --env-file .env.local -f compose.local.yaml config --quiet
           pwsh -NoProfile -Command '$tokens=$null; $errors=$null; [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path "scripts/docker-local.ps1"), [ref]$tokens, [ref]$errors) | Out-Null; if ($errors.Count) { $errors | ForEach-Object { Write-Error $_.Message }; exit 1 }'
+          pwsh -NoProfile -File scripts/docker-local.ps1 doctor
 
   container:
     needs: test
