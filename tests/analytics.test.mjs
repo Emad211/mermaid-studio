@@ -90,6 +90,24 @@ test('analytics aggregates product, revenue, SEO and Web Vitals without raw pers
   assert.doesNotMatch(content, /flowchart|sequenceDiagram/);
 });
 
+test('analytics operation queue recovers after a rejected admin mutation', async (t) => {
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'mstudio-analytics-recovery-'));
+  const service = createAnalyticsService({ env: environment(directory), logger: { error() {} } });
+  t.after(async () => {
+    await service.close();
+    await fs.rm(directory, { recursive: true, force: true });
+  });
+
+  await assert.rejects(service.deleteRevenue('missing-entry'), /not found/i);
+  const today = new Date().toISOString().slice(0, 10);
+  await service.addRevenue({
+    id: 'after-error', date: today, provider: 'tapsell', slot: 'learnInline',
+    impressions: 200, clicks: 3, revenueRial: 90000,
+  });
+  const summary = await service.summary({ from: today, to: today });
+  assert.equal(summary.totals.actualRevenueRial, 90000);
+});
+
 test('analytics HTTP routes are protected and respect DNT', async (t) => {
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'mstudio-analytics-http-'));
   const env = environment(directory);
