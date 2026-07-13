@@ -89,22 +89,24 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          docker build --pull --tag mermaid-studio:final . 2>&1 | tee /tmp/container-test.log
-          docker run -d --name mermaid-studio-final -p 127.0.0.1:4321:4321 mermaid-studio:final
-          trap 'docker logs mermaid-studio-final || true; docker rm -f mermaid-studio-final >/dev/null 2>&1 || true' EXIT
-          for attempt in $(seq 1 90); do
-            if curl -fsS http://127.0.0.1:4321/api/health >/dev/null; then break; fi
-            sleep 1
-          done
-          curl -fsS http://127.0.0.1:4321/api/health
-          curl -fsS http://127.0.0.1:4321/ >/dev/null
-          curl -fsS http://127.0.0.1:4321/editor >/dev/null
-          curl -fsS http://127.0.0.1:4321/learn >/dev/null
-          curl -fsS -X POST http://127.0.0.1:4321/api/render \
-            -H 'content-type: application/json' \
-            --data '{"code":"flowchart TD; A-->B","format":"svg"}' \
-            --output /tmp/final.svg
-          grep -q '<svg' /tmp/final.svg
+          {
+            docker build --pull --tag mermaid-studio:final .
+            docker run -d --name mermaid-studio-final -p 127.0.0.1:4321:4321 mermaid-studio:final
+            trap 'docker logs mermaid-studio-final || true; docker rm -f mermaid-studio-final >/dev/null 2>&1 || true' EXIT
+            for attempt in $(seq 1 90); do
+              if curl -fsS http://127.0.0.1:4321/api/health >/dev/null; then break; fi
+              sleep 1
+            done
+            curl -fsS http://127.0.0.1:4321/api/health
+            curl -fsS http://127.0.0.1:4321/ >/dev/null
+            curl -fsS http://127.0.0.1:4321/editor >/dev/null
+            curl -fsS http://127.0.0.1:4321/learn >/dev/null
+            curl -fsS -X POST http://127.0.0.1:4321/api/render \
+              -H 'content-type: application/json' \
+              --data '{"code":"flowchart TD; A-->B","format":"svg"}' \
+              --output /tmp/final.svg
+            grep -q '<svg' /tmp/final.svg
+          } 2>&1 | tee /tmp/container-test.log
 
       - name: Upload container diagnostics
         if: always()
