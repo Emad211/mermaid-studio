@@ -7,16 +7,20 @@ on:
     paths:
       - tools/finalize-admin-growth.py
       - .github/workflows/finalize-admin-growth.yml
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: write
 
 concurrency:
   group: finalize-admin-growth-control-center
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   finalize:
+    if: github.event_name == 'push' || github.event.pull_request.head.ref == 'agent/admin-growth-control-center'
     runs-on: ubuntu-latest
     timeout-minutes: 55
     steps:
