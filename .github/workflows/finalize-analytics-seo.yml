@@ -7,6 +7,9 @@ on:
     paths:
       - tools/finalize-analytics-seo.py
       - .github/workflows/finalize-analytics-seo.yml
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -17,6 +20,7 @@ concurrency:
 
 jobs:
   finalize:
+    if: github.event_name == 'push' || github.event.pull_request.head.ref == 'agent/analytics-seo-deep-research'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
