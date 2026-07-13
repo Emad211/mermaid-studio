@@ -3,7 +3,7 @@ from pathlib import Path
 
 path = Path('src/server/analytics.js')
 text = path.read_text(encoding='utf-8')
-old = """      const collection = await this.loadCollection(this.searchPath(), { version: 1, rows: [] });
+old = r"""      const collection = await this.loadCollection(this.searchPath(), { version: 1, rows: [] });
       const map = new Map();
       for (const row of [...(collection.rows || []), ...normalized]) {
         const key = `${row.date}\u0000${row.query}\u0000${row.page}`;
@@ -16,7 +16,7 @@ old = """      const collection = await this.loadCollection(this.searchPath(), {
       }
       collection.rows = [...map.values()].map(({ weightedPosition, ...row }) => row);
 """
-new = """      const collection = await this.loadCollection(this.searchPath(), { version: 1, rows: [] });
+new = r"""      const collection = await this.loadCollection(this.searchPath(), { version: 1, rows: [] });
       const keyFor = (row) => `${row.date}\u0000${row.query}\u0000${row.page}`;
       const map = new Map((collection.rows || []).map((row) => [keyFor(row), row]));
       const incoming = new Map();
