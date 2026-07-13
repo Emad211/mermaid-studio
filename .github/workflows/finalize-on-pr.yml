@@ -7,6 +7,7 @@ on:
     paths:
       - tools/ads-phase.part*
       - tools/finalize-deploy.py
+      - tools/fix-csp.py
       - .github/workflows/finalize-on-pr.yml
   pull_request:
     branches:
@@ -50,6 +51,7 @@ jobs:
           unzip -q /tmp/ads-phase.zip -d /tmp/ads-phase
           python /tmp/ads-phase/mermaid-ads-patch/apply_ads_phase.py .
           python tools/finalize-deploy.py
+          python tools/fix-csp.py
 
       - name: Upload finalizer diagnostics
         if: always()
