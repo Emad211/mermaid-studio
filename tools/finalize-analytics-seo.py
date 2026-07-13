@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# One-shot source finalizer. The workflow deletes this file after validation.
 from pathlib import Path
 
 path = Path('src/server/analytics.js')
