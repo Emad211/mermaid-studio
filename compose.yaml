@@ -14,10 +14,16 @@ services:
       PORT: 4321
       NO_OPEN: 1
       PUPPETEER_NO_SANDBOX: "true"
+      SITE_URL: ${SITE_URL:?Set SITE_URL in .env, for example https://diagram.example.com}
+      ANALYTICS_DATA_DIR: /data/analytics
+      ANALYTICS_ADMIN_PASSWORD: ${ANALYTICS_ADMIN_PASSWORD:?Generate ANALYTICS_ADMIN_PASSWORD in .env}
+      ANALYTICS_HASH_SECRET: ${ANALYTICS_HASH_SECRET:?Generate ANALYTICS_HASH_SECRET in .env}
     expose:
       - "4321"
     networks:
       - backend
+    volumes:
+      - analytics_data:/data/analytics
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4321/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
       interval: 30s
@@ -70,5 +76,6 @@ networks:
     internal: true
 
 volumes:
+  analytics_data:
   caddy_data:
   caddy_config:
