@@ -62,6 +62,10 @@ export function createEditor(textarea, { onChange, value = '' } = {}) {
         kind: 'codemirror',
         getValue: () => cm.getValue(),
         setValue: (v) => cm.setValue(v),
+        replaceSelection: (v) => cm.replaceSelection(String(v)),
+        setCursor: (line, col = 1) => { cm.setCursor({ line: Math.max(0, Number(line) - 1), ch: Math.max(0, Number(col) - 1) }); cm.focus(); },
+        getLine: (line) => cm.getLine(Math.max(0, Number(line) - 1)) || '',
+        lineCount: () => cm.lineCount(),
         focus: () => cm.focus(),
         cursor: () => {
           const p = cm.getCursor();
@@ -104,6 +108,21 @@ export function createEditor(textarea, { onChange, value = '' } = {}) {
     setValue: (v) => {
       textarea.value = v;
     },
+    replaceSelection: (v) => {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      textarea.setRangeText(String(v), start, end, 'end');
+      textarea.dispatchEvent(new Event('input', { bubbles: true }));
+    },
+    setCursor: (line, col = 1) => {
+      const lines = textarea.value.split('\n');
+      const targetLine = Math.min(lines.length, Math.max(1, Number(line) || 1));
+      const offset = lines.slice(0, targetLine - 1).reduce((sum, item) => sum + item.length + 1, 0) + Math.max(0, Number(col) - 1);
+      textarea.selectionStart = textarea.selectionEnd = Math.min(offset, textarea.value.length);
+      textarea.focus();
+    },
+    getLine: (line) => textarea.value.split('\n')[Math.max(0, Number(line) - 1)] || '',
+    lineCount: () => textarea.value.split('\n').length,
     focus: () => textarea.focus(),
     cursor: () => {
       const upto = textarea.value.slice(0, textarea.selectionStart);

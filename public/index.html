@@ -4,33 +4,25 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#0e0f15" />
-    <meta name="description" content="ادیتور فارسی Mermaid Studio با پیش‌نمایش زنده و خروجی SVG، PNG، JPG، WebP و PDF" />
+    <meta name="description" content="ادیتور حرفه‌ای نمودارا برای Mermaid؛ فرمان سریع، تشخیص خطا، پیش‌نمایش زنده و خروجی SVG، PNG، WebP و PDF." />
     <meta name="robots" content="noindex,follow" />
-    <title>ادیتور Mermaid Studio</title>
+    <title>نمودارا | ادیتور حرفه‌ای Mermaid</title>
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/logo.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/vendor/codemirror/lib/codemirror.css" />
     <link rel="stylesheet" href="/vendor/katex/katex.min.css" />
     <link rel="stylesheet" href="/css/styles.css?v=%V%" />
     <link rel="stylesheet" href="/css/persian.css?v=%V%" />
+    <link rel="stylesheet" href="/css/editor-experience.css?v=%V%" />
   </head>
   <body>
     <header class="toolbar">
       <div class="brand brand-home">
-        <a class="logo" href="/" title="بازگشت به صفحه اصلی" aria-label="صفحه اصلی">
-          <svg viewBox="0 0 32 32" width="26" height="26">
-            <defs>
-              <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0" stop-color="#b16cea" />
-                <stop offset="1" stop-color="#ff5e92" />
-              </linearGradient>
-            </defs>
-            <rect width="32" height="32" rx="9" fill="url(#g)" />
-            <path d="M7 22V11l5 6 5-6v11M22 11c3 0 4 2 4 4 0 4-5 4-5 7" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-        </a>
-        <div class="brand-text"><strong>Mermaid Studio</strong><small>ادیتور محلی و خصوصی نمودار</small></div>
+        <a class="logo" href="/" title="بازگشت به نمودارا" aria-label="صفحهٔ اصلی نمودارا"><img src="/logo.svg" width="30" height="30" alt="" /></a>
+        <div class="brand-text"><strong>نمودارا</strong><small>ادیتور Mermaid برای کار واقعی</small></div>
       </div>
+
+      <button id="btn-command" class="icon-btn command-trigger" type="button" title="فرمان‌ها و درج سریع"><span>فرمان‌ها</span><kbd>Ctrl K</kbd></button>
 
       <div class="toolbar-group file-actions">
         <button id="btn-new" class="icon-btn wide" title="ساخت نمودار جدید">جدید</button>
@@ -63,10 +55,16 @@
       </div>
     </header>
 
+    <nav class="mobile-pane-switch" aria-label="انتخاب نمای موبایل">
+      <button type="button" class="active" data-mobile-pane="editor" aria-pressed="true">کد</button>
+      <button type="button" data-mobile-pane="preview" aria-pressed="false">پیش‌نمایش</button>
+    </nav>
+
     <main class="workspace" id="workspace">
       <section class="pane editor-pane">
         <div class="editor-header">
           <span class="eh-label">کد Mermaid</span>
+          <div class="document-state"><strong id="document-name">untitled.mmd</strong><span id="save-state">ذخیرهٔ محلی</span></div>
           <span class="spacer"></span>
           <span id="type-chip" class="chip" title="نوع نمودار تشخیص‌داده‌شده">—</span>
           <button id="btn-wrap" class="icon-btn sm" title="شکستن خطوط بلند">⤶</button>
@@ -74,6 +72,10 @@
           <button id="btn-font-inc" class="icon-btn sm" title="بزرگ کردن قلم">A+</button>
         </div>
         <textarea id="editor" spellcheck="false" aria-label="کد Mermaid"></textarea>
+        <section id="diagnostics-panel" class="diagnostics-panel is-clean" aria-label="تشخیص خطا">
+          <div class="diagnostics-head"><button id="diagnostics-toggle" type="button" aria-expanded="false"><span id="diagnostics-status">بدون خطا</span><strong id="diagnostics-title">نمودار آماده است</strong><span class="diagnostics-chevron">⌄</span></button></div>
+          <div class="diagnostics-content"><div id="diagnostics-body"></div><div id="diagnostics-actions"></div></div>
+        </section>
         <footer class="status-bar">
           <span id="status-msg" class="status-msg muted">آماده</span>
           <span class="spacer"></span>
@@ -184,7 +186,8 @@
           <div><kbd>Ctrl/⌘</kbd>+<kbd>S</kbd><span>دانلود SVG</span></div>
           <div><kbd>Ctrl/⌘</kbd>+<kbd>E</kbd><span>باز کردن پنجره خروجی</span></div>
           <div><kbd>Ctrl/⌘</kbd>+<kbd>O</kbd><span>باز کردن فایل</span></div>
-          <div><kbd>Ctrl/⌘</kbd>+<kbd>K</kbd><span>کپی لینک اشتراک‌گذاری</span></div>
+          <div><kbd>Ctrl/⌘</kbd>+<kbd>K</kbd><span>فرمان‌ها و درج سریع</span></div>
+          <div><kbd>Ctrl/⌘</kbd>+<kbd>Shift</kbd>+<kbd>K</kbd><span>کپی لینک اشتراک‌گذاری</span></div>
           <div><kbd>Ctrl/⌘</kbd>+<kbd>0</kbd><span>تنظیم اندازه نمودار</span></div>
           <div><kbd>F</kbd><span>پیش‌نمایش تمام‌صفحه</span></div>
           <div><kbd>?</kbd><span>نمایش این راهنما</span></div>
@@ -193,6 +196,14 @@
           <div><kbd>Tab</kbd><span>تورفتگی در ادیتور</span></div>
         </div>
       </div>
+    </div>
+
+    <div id="command-modal" class="command-modal" aria-hidden="true">
+      <section class="command-card" role="dialog" aria-modal="true" aria-labelledby="command-title">
+        <div class="command-search"><span aria-hidden="true">⌕</span><input id="command-input" type="search" autocomplete="off" placeholder="فرمان، نوع نمودار یا قطعه‌کد…" aria-label="جست‌وجوی فرمان" /><button id="command-close" type="button" aria-label="بستن">✕</button></div>
+        <h2 id="command-title" class="sr-only">فرمان‌های ادیتور</h2>
+        <div id="command-list" class="command-list"></div>
+      </section>
     </div>
 
     <input id="file-input" type="file" accept=".mmd,.mermaid,.md,.markdown,.txt" hidden />
@@ -243,5 +254,6 @@
       }
     </script>
     <script type="module" src="/js/app.js?v=%V%"></script>
+    <script type="module" src="/js/editor-experience.js?v=%V%"></script>
   </body>
 </html>

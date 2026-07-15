@@ -4,6 +4,9 @@ import crypto from 'node:crypto';
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const ANNOTATION_TYPES = new Set(['release', 'campaign', 'content', 'technical', 'advertising', 'other']);
+const BRIEF_STATUSES = new Set(['idea', 'research', 'writing', 'review', 'scheduled', 'published', 'archived']);
+const BRIEF_TYPES = new Set(['tutorial', 'article', 'landing', 'update']);
+const SEARCH_INTENTS = new Set(['informational', 'problem-solving', 'comparison', 'navigational', 'transactional']);
 
 function safeText(value, max = 240) {
   return String(value ?? '')
@@ -76,6 +79,46 @@ function normalizeAnnotation(input = {}) {
   };
 }
 
+function normalizeContentBrief(input = {}, existing = {}) {
+  const title = safeText(input.title, 180);
+  if (!title) {
+    const error = new Error('Content brief title is required.');
+    error.status = 400;
+    error.code = 'INVALID_CONTENT_BRIEF';
+    throw error;
+  }
+  const status = safeText(input.status, 30).toLowerCase();
+  const contentType = safeText(input.contentType, 30).toLowerCase();
+  const searchIntent = safeText(input.searchIntent, 40).toLowerCase();
+  const dueDate = input.dueDate ? safeDate(input.dueDate) : '';
+  if (input.dueDate && !dueDate) {
+    const error = new Error('Content brief dueDate must use YYYY-MM-DD.');
+    error.status = 400;
+    error.code = 'INVALID_CONTENT_BRIEF_DATE';
+    throw error;
+  }
+  const now = new Date().toISOString();
+  return {
+    id: safeText(existing.id || input.id, 80) || crypto.randomUUID(),
+    title,
+    contentType: BRIEF_TYPES.has(contentType) ? contentType : 'article',
+    status: BRIEF_STATUSES.has(status) ? status : 'idea',
+    priority: Math.round(safeNumber(input.priority, 1, 5, 3)),
+    owner: safeText(input.owner, 100),
+    dueDate,
+    cluster: safeText(input.cluster, 120),
+    targetQuery: safeText(input.targetQuery, 220),
+    searchIntent: SEARCH_INTENTS.has(searchIntent) ? searchIntent : 'informational',
+    targetUrl: safeText(input.targetUrl, 300),
+    angle: safeText(input.angle, 1_200),
+    outline: safeText(input.outline, 4_000),
+    successMetric: safeText(input.successMetric, 1_000),
+    notes: safeText(input.notes, 2_000),
+    createdAt: safeText(existing.createdAt || input.createdAt, 60) || now,
+    updatedAt: now,
+  };
+}
+
 export class AdminStore {
   constructor({ dataDir, logger = console }) {
     this.dataDir = path.resolve(dataDir);
@@ -140,6 +183,44 @@ export class AdminStore {
         throw error;
       }
       await atomicWrite(this.file('annotations.json'), collection);
+    });
+  }
+
+  async listContentBriefs() {
+    const collection = await readJson(this.file('content-briefs.json'), { version: 1, entries: [] });
+    return (collection.entries || []).slice().sort((a, b) => a.priority - b.priority || (a.dueDate || '9999').localeCompare(b.dueDate || '9999') || b.updatedAt.localeCompare(a.updatedAt));
+  }
+
+  saveContentBrief(input, id = '') {
+    return this.enqueue(async () => {
+      const collection = await readJson(this.file('content-briefs.json'), { version: 1, entries: [] });
+      const existing = id ? (collection.entries || []).find((entry) => entry.id === safeText(id, 80)) : null;
+      if (id && !existing) {
+        const error = new Error('Content brief not found.');
+        error.status = 404;
+        error.code = 'CONTENT_BRIEF_NOT_FOUND';
+        throw error;
+      }
+      const brief = normalizeContentBrief({ ...input, id: existing?.id || input.id }, existing || {});
+      collection.entries = [...(collection.entries || []).filter((entry) => entry.id !== brief.id), brief].slice(-5_000);
+      await atomicWrite(this.file('content-briefs.json'), collection);
+      return brief;
+    });
+  }
+
+  deleteContentBrief(id) {
+    return this.enqueue(async () => {
+      const safeId = safeText(id, 80);
+      const collection = await readJson(this.file('content-briefs.json'), { version: 1, entries: [] });
+      const before = (collection.entries || []).length;
+      collection.entries = (collection.entries || []).filter((entry) => entry.id !== safeId);
+      if (collection.entries.length === before) {
+        const error = new Error('Content brief not found.');
+        error.status = 404;
+        error.code = 'CONTENT_BRIEF_NOT_FOUND';
+        throw error;
+      }
+      await atomicWrite(this.file('content-briefs.json'), collection);
     });
   }
 

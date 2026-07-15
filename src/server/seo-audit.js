@@ -1,10 +1,15 @@
 import { LEARN_ARTICLES } from './learn-content.js';
+import { EDITORIAL_ARTICLES } from './article-content.js';
 
 const INDEXABLE_ROUTES = [
   '/',
   '/templates',
   '/learn',
   ...LEARN_ARTICLES.map((article) => `/learn/${article.slug}`),
+  '/articles',
+  ...EDITORIAL_ARTICLES.map((article) => `/articles/${article.slug}`),
+  '/about',
+  '/editorial-policy',
   '/privacy',
   '/terms',
 ];

@@ -1,107 +1,51 @@
-/* Clearly labelled, non-overlay advertising surfaces. */
-
+/* Reserved, labelled and non-overlay publisher placements. */
 .ad-slot {
+  --ad-min-desktop: 132px;
+  --ad-min-mobile: 112px;
   position: relative;
   z-index: 1;
-  width: min(calc(100% - 32px), 1180px);
-  min-height: 112px;
+  width: min(calc(100% - 32px), 1160px);
+  min-height: var(--ad-min-desktop);
   margin: 34px auto;
-  padding: 22px 18px 14px;
+  padding: 26px 14px 12px;
   overflow: hidden;
-  border: 1px solid var(--border, rgba(148, 163, 184, 0.22));
-  border-radius: 18px;
-  background: color-mix(in srgb, var(--panel, #151827) 92%, transparent);
-  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.12);
+  border: 1px solid var(--border, #d7d8d2);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--panel, #fff) 94%, transparent);
+  contain: layout paint;
 }
-
-.ad-slot[hidden] {
-  display: none !important;
-}
-
-.ad-slot__label {
-  position: absolute;
-  inset-block-start: 7px;
-  inset-inline-start: 12px;
-  color: var(--muted, #8f97ac);
-  font-size: 10px;
-  line-height: 1;
-  letter-spacing: 0.02em;
-}
-
-.ad-slot__privacy {
-  position: absolute;
-  inset-block-start: 6px;
-  inset-inline-end: 12px;
-  color: var(--muted, #8f97ac);
-  font-size: 10px;
-  text-decoration: none;
-}
-
-.ad-slot__privacy:hover {
-  color: var(--text, #eef0f7);
-}
-
-.ad-slot__mount,
-.ad-network-placement {
-  width: 100%;
-  min-height: 76px;
-}
-
-.ad-slot__mount {
-  display: grid;
-  place-items: center;
-}
-
+.ad-slot[hidden] { display: none !important; }
+.ad-slot__label, .ad-slot__privacy { position: absolute; inset-block-start: 8px; color: var(--muted, #71766e); font-size: 9px; line-height: 1; }
+.ad-slot__label { inset-inline-start: 12px; }
+.ad-slot__privacy { inset-inline-end: 12px; text-decoration: none; }
+.ad-slot__privacy:hover { color: var(--text, #1b221d); }
+.ad-slot__mount, .ad-network-placement { width: 100%; min-height: calc(var(--ad-min-desktop) - 38px); }
+.ad-slot__mount { display: grid; place-items: center; }
+.ad-network-placement { grid-area: 1 / 1; max-width: 100%; }
+.ad-slot[data-ad-state='reserved'] .ad-slot__mount::before,
 .ad-slot[data-ad-state='mounted'] .ad-slot__mount::before {
-  content: 'در حال بارگذاری تبلیغ…';
+  content: '';
   grid-area: 1 / 1;
-  color: var(--muted, #8f97ac);
-  font-size: 12px;
-}
-
-.ad-slot[data-ad-state='loaded'] .ad-slot__mount::before {
-  content: none;
-}
-
-.ad-network-placement {
-  grid-area: 1 / 1;
-  max-width: 100%;
-}
-
-.ad-slot--compact {
-  min-height: 92px;
-  margin-block: 22px;
-  padding-block: 20px 10px;
-}
-
-.ad-slot--editor {
-  flex: 0 0 auto;
   width: 100%;
-  min-height: 76px;
-  max-height: 108px;
-  margin: 0;
-  padding: 19px 12px 8px;
-  border-inline: 0;
-  border-radius: 0;
-  box-shadow: none;
+  height: 100%;
+  min-height: 68px;
+  border-radius: 9px;
+  background: linear-gradient(100deg, transparent 20%, color-mix(in srgb, var(--border, #ddd) 45%, transparent) 42%, transparent 64%);
+  background-size: 240% 100%;
+  animation: ad-shimmer 1.5s linear infinite;
 }
-
-.ad-slot--editor .ad-slot__mount,
-.ad-slot--editor .ad-network-placement {
-  min-height: 52px;
-  max-height: 80px;
-}
-
+.ad-slot[data-ad-state='loaded'] .ad-slot__mount::before { content: none; animation: none; }
+.ad-slot[data-ad-state='blocked'] .ad-slot__mount::before,
+.ad-slot[data-ad-state='error'] .ad-slot__mount::before { content: 'تبلیغ در این مرورگر بارگذاری نشد'; width: auto; height: auto; min-height: 0; background: none; animation: none; color: var(--muted, #71766e); font-size: 10px; }
+.ad-slot[data-ad-format='leaderboard'] { max-width: 970px; }
+.ad-slot[data-ad-format='native'] { max-width: 1040px; }
+.ad-slot[data-ad-format='article'] { width: min(calc(100% - 20px), 760px); }
+.ad-slot--in-article { margin-block: 42px; }
+.ad-slot--article-lead { margin-block: 22px 34px; }
+.ad-slot--compact { --ad-min-desktop: 112px; --ad-min-mobile: 104px; margin-block: 24px; }
+@keyframes ad-shimmer { to { background-position: -140% 0; } }
 @media (max-width: 720px) {
-  .ad-slot {
-    width: min(calc(100% - 20px), 1180px);
-    min-height: 98px;
-    margin-block: 24px;
-    padding-inline: 10px;
-  }
-
-  .ad-slot--editor {
-    width: 100%;
-    margin: 0;
-  }
+  .ad-slot { width: calc(100% - 20px); min-height: var(--ad-min-mobile); margin-block: 24px; padding-inline: 10px; border-radius: 11px; }
+  .ad-slot__mount, .ad-network-placement { min-height: calc(var(--ad-min-mobile) - 38px); }
 }
+@media (prefers-reduced-motion: reduce) { .ad-slot__mount::before { animation: none !important; } }

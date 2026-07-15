@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { startServer } from '../src/server/app.js';
+import { closeBrowser } from '../src/core/renderer.js';
 import { EDITORIAL_ARTICLES } from '../src/server/article-content.js';
 
 const basic = (user, password) => `Basic ${Buffer.from(`${user}:${password}`).toString('base64')}`;
@@ -55,6 +56,7 @@ test('Nemodara magazine, editorial trust, ad surfaces and content operations wor
   const authorization = basic(env.ANALYTICS_ADMIN_USER, env.ANALYTICS_ADMIN_PASSWORD);
   const server = await startServer({ port: 0, host: '127.0.0.1', environment: env, logger: { error() {} } });
   t.after(async () => {
+    await closeBrowser();
     await server.close();
     await fs.rm(directory, { recursive: true, force: true });
   });

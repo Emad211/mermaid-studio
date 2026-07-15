@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { startServer } from '../src/server/app.js';
+import { articleSitemapEntries } from '../src/server/article-content.js';
 import { LEARN_ARTICLES, renderLearnArticle } from '../src/server/learn-content.js';
 import { enhanceHtml, robotsTxt, seoConfig, sitemapXml } from '../src/server/seo.js';
 
@@ -34,8 +35,11 @@ test('sitemap and robots expose canonical content cluster', () => {
   const sitemap = sitemapXml(config);
   assert.match(sitemap, /https:\/\/diagram\.example\.com\/learn\/flowchart-mermaid/);
   assert.match(sitemap, /https:\/\/diagram\.example\.com\/templates/);
+  assert.match(sitemap, /https:\/\/diagram\.example\.com\/articles/);
   assert.doesNotMatch(sitemap, /\/editor<\/loc>/);
-  assert.equal((sitemap.match(/<url>/g) || []).length, 3 + 2 + LEARN_ARTICLES.length);
+  const locations = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
+  assert.equal(locations.length, new Set(locations).size, 'sitemap URLs must be unique');
+  assert.equal(locations.length, 3 + 2 + LEARN_ARTICLES.length + 2 + articleSitemapEntries().length);
 
   const robots = robotsTxt(config);
   assert.match(robots, /Disallow: \/admin\//);

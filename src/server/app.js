@@ -22,7 +22,7 @@ import {
   normalizeRenderRequest,
   positiveInteger,
 } from './guards.js';
-import { advertisingConfig, advertisingCspSources } from './ads.js';
+import { advertisingConfig, advertisingCspSources, prepareAdvertisingHtml } from './ads.js';
 import { AnalyticsError, createAnalyticsService } from './analytics.js';
 import { createAdminStore } from './admin-store.js';
 import { buildGrowthReport, previousRange } from './growth-insights.js';
@@ -30,6 +30,9 @@ import { runSeoAudit } from './seo-audit.js';
 import { searchConsoleConfig, syncSearchConsole } from './search-console.js';
 import { indexNowConfig, submitIndexNow } from './indexnow.js';
 import { getLearnArticle, renderLearnArticle } from './learn-content.js';
+import { getEditorialArticle, renderArticlesIndex, renderEditorialArticle } from './article-content.js';
+import { contentInventory } from './content-registry.js';
+import { buildContentOperations } from './content-operations.js';
 import {
   canonicalRedirect,
   enhanceHtml,
@@ -54,6 +57,9 @@ const EDITOR_HTML = path.join(PUBLIC_DIR, 'index.html');
 const TEMPLATES_HTML = path.join(PUBLIC_DIR, 'templates.html');
 const LEARN_HTML = path.join(PUBLIC_DIR, 'learn.html');
 const ANALYTICS_HTML = path.join(PUBLIC_DIR, 'analytics.html');
+const CONTENT_ADMIN_HTML = path.join(PUBLIC_DIR, 'content-admin.html');
+const ABOUT_HTML = path.join(PUBLIC_DIR, 'about.html');
+const EDITORIAL_POLICY_HTML = path.join(PUBLIC_DIR, 'editorial-policy.html');
 const HEADLESS_HTML = path.join(PUBLIC_DIR, 'headless.html');
 const PRIVACY_HTML = path.join(PUBLIC_DIR, 'privacy.html');
 const TERMS_HTML = path.join(PUBLIC_DIR, 'terms.html');
@@ -70,8 +76,8 @@ const THEME_SET = new Set(THEMES);
 const LAYOUT_SET = new Set(LAYOUTS);
 const PAPER_SET = new Set(PDF_PAPERS);
 const BACKGROUND_SET = new Set(Object.keys(BACKGROUNDS));
-const ADVERTISING_PATHS = new Set(['/', '/templates', '/learn']);
-const TRACKED_PATHS = new Set(['/', '/editor', '/templates', '/learn', '/privacy', '/terms']);
+const ADVERTISING_PATHS = new Set(['/', '/templates', '/learn', '/articles']);
+const TRACKED_PATHS = new Set(['/', '/editor', '/templates', '/learn', '/articles', '/about', '/editorial-policy', '/privacy', '/terms']);
 
 function envBoolean(environment, name, fallback = false) {
   const value = environment[name];
@@ -115,7 +121,7 @@ function inlineScriptHashes(html) {
 }
 
 function advertisingAllowed(pathname) {
-  return ADVERTISING_PATHS.has(pathname) || pathname.startsWith('/learn/');
+  return ADVERTISING_PATHS.has(pathname) || pathname.startsWith('/learn/') || pathname.startsWith('/articles/');
 }
 
 function contentSecurityPolicy(req, environment, inlineHashes = []) {
@@ -158,7 +164,7 @@ function securityHeaders(environment) {
 }
 
 function analyticsTracked(pathname) {
-  return TRACKED_PATHS.has(pathname) || pathname.startsWith('/learn/');
+  return TRACKED_PATHS.has(pathname) || pathname.startsWith('/learn/') || pathname.startsWith('/articles/');
 }
 
 function injectAnalyticsScript(html, pathname, analytics) {
@@ -174,6 +180,7 @@ function prepareHtml(req, source, { pathname = req.path, seo = true, track = tru
     html = enhanced.html;
     meta = enhanced.meta;
   }
+  if (advertisingAllowed(pathname)) html = prepareAdvertisingHtml(html, state.environment);
   if (track) html = injectAnalyticsScript(html, pathname, state.analytics);
   const hashes = inlineScriptHashes(html);
   return { html, meta, hashes };
@@ -312,6 +319,7 @@ export function createApp({ environment = process.env, logger = console } = {}) 
 
   app.get('/admin', (_req, res) => res.redirect(302, '/admin/analytics'));
   app.get('/admin/analytics', adminAuth, (req, res) => sendHtml(req, res, ANALYTICS_HTML, { pathname: '/admin/analytics', seo: false, track: false }, state));
+  app.get('/admin/content', adminAuth, (req, res) => sendHtml(req, res, CONTENT_ADMIN_HTML, { pathname: '/admin/content', seo: false, track: false }, state));
   app.get('/analytics.html', (_req, res) => res.redirect(302, '/admin/analytics'));
   app.get('/api/admin/analytics/summary', adminLimit, adminAuth, async (req, res, next) => {
     try {
@@ -381,6 +389,38 @@ export function createApp({ environment = process.env, logger = console } = {}) 
     } catch (error) {
       next(error);
     }
+  });
+
+  app.get('/api/admin/content/overview', adminLimit, adminAuth, async (req, res, next) => {
+    try {
+      const current = await state.analytics.summary(req.query);
+      if (!current.enabled) throw new HttpError(503, 'ANALYTICS_DISABLED', 'Analytics is disabled.');
+      const previous = await state.analytics.summary(previousRange(current));
+      const growth = buildGrowthReport({
+        current,
+        previous,
+        audit: (await state.adminStore.auditHistory(1))[0] || null,
+        goals: await state.adminStore.getGoals(),
+        annotations: await state.adminStore.listAnnotations({ from: current.from, to: current.to }),
+        configuration: { siteUrl: state.seo.siteUrl, googleVerification: state.seo.googleVerification, bingVerification: state.seo.bingVerification },
+      });
+      const briefs = await state.adminStore.listContentBriefs();
+      res.json(buildContentOperations({ inventory: contentInventory(), growth, briefs }));
+    } catch (error) {
+      next(error);
+    }
+  });
+  app.get('/api/admin/content/briefs', adminLimit, adminAuth, async (_req, res, next) => {
+    try { res.json({ entries: await state.adminStore.listContentBriefs() }); } catch (error) { next(error); }
+  });
+  app.post('/api/admin/content/briefs', adminLimit, adminAuth, requireSameOrigin, express.json({ limit: '64kb', strict: true }), async (req, res, next) => {
+    try { res.status(201).json(await state.adminStore.saveContentBrief(req.body)); } catch (error) { next(error); }
+  });
+  app.put('/api/admin/content/briefs/:id', adminLimit, adminAuth, requireSameOrigin, express.json({ limit: '64kb', strict: true }), async (req, res, next) => {
+    try { res.json(await state.adminStore.saveContentBrief(req.body, req.params.id)); } catch (error) { next(error); }
+  });
+  app.delete('/api/admin/content/briefs/:id', adminLimit, adminAuth, requireSameOrigin, async (req, res, next) => {
+    try { await state.adminStore.deleteContentBrief(req.params.id); res.status(204).end(); } catch (error) { next(error); }
   });
 
   app.get('/api/admin/goals', adminLimit, adminAuth, async (_req, res, next) => {
@@ -520,6 +560,13 @@ export function createApp({ environment = process.env, logger = console } = {}) 
     if (!getLearnArticle(req.params.slug)) return next();
     return sendHtmlSource(req, res, renderLearnArticle(req.params.slug), { pathname: `/learn/${req.params.slug}` }, state);
   });
+  app.get('/articles', (req, res) => sendHtmlSource(req, res, renderArticlesIndex(), { pathname: '/articles' }, state));
+  app.get('/articles/:slug', (req, res, next) => {
+    if (!getEditorialArticle(req.params.slug)) return next();
+    return sendHtmlSource(req, res, renderEditorialArticle(req.params.slug), { pathname: `/articles/${req.params.slug}` }, state);
+  });
+  app.get('/about', (req, res) => sendHtml(req, res, ABOUT_HTML, { pathname: '/about' }, state));
+  app.get('/editorial-policy', (req, res) => sendHtml(req, res, EDITORIAL_POLICY_HTML, { pathname: '/editorial-policy' }, state));
   app.get('/headless', (req, res) => sendHtml(req, res, HEADLESS_HTML, { pathname: '/headless', seo: false, track: false }, state));
   app.get('/privacy', (req, res) => sendHtml(req, res, PRIVACY_HTML, { pathname: '/privacy' }, state));
   app.get('/terms', (req, res) => sendHtml(req, res, TERMS_HTML, { pathname: '/terms' }, state));
@@ -549,7 +596,7 @@ export function createApp({ environment = process.env, logger = console } = {}) 
   const metadata = () => ({
     version: pkg.version,
     businessModel: 'advertising',
-    product: { defaultLanguage: 'fa', languages: ['fa'], safeMode: true, localPreview: true },
+    product: { defaultLanguage: 'fa', languages: ['fa'], safeMode: true, localPreview: true, magazine: true, contentOperations: true },
     examples: EXAMPLES,
     themes: THEMES,
     formats: FORMATS,

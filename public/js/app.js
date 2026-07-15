@@ -12,11 +12,11 @@ const STORE_KEY = 'mstudio:v2';
 const MAX_STORED_CODE_LENGTH = 100_000;
 const MAX_STORED_SETTINGS_LENGTH = 50_000;
 const FALLBACK_DIAGRAM = `flowchart TD
-    A[شروع] --> B{همه‌چیز درست است؟}
-    B -- بله --> C[انتشار نمودار 🚀]
-    B -- خیر --> D[بررسی و رفع خطا]
+    A[دریافت درخواست] --> B{اطلاعات کامل است؟}
+    B -- بله --> C[بررسی کارشناس]
+    B -- خیر --> D[تکمیل اطلاعات]
     D --> B
-    C --> E[تمام 🎉]`;
+    C --> E[اعلام نتیجه]`;
 
 const BG_COLORS = { transparent: 'transparent', white: '#ffffff', dark: '#1e1e2e' };
 const RASTER = ['png', 'jpg', 'webp'];
@@ -123,6 +123,7 @@ function saveState() {
   } catch {
     /* Local storage can be unavailable or full. Editing must still work. */
   }
+  window.dispatchEvent(new CustomEvent('nemodara:autosaved', { detail: { at: Date.now() } }));
 }
 
 function toast(message, kind = 'info') {
@@ -177,8 +178,12 @@ function friendlyError(error) {
 }
 
 function showError(error) {
-  $('#preview-error-text').textContent = friendlyError(error);
+  const raw = error?.message || String(error || '');
+  const line = Number(/line\s+(\d+)/i.exec(raw)?.[1] || /line:\s*(\d+)/i.exec(raw)?.[1] || 0);
+  const message = friendlyError(error);
+  $('#preview-error-text').textContent = message;
   $('#preview-error').classList.add('show');
+  window.dispatchEvent(new CustomEvent('nemodara:diagnostic', { detail: { ok: false, line, raw, message, summary: line ? `خط ${faNumber(line)} و خط قبل را بررسی کن.` : 'ساختار این بخش با سینتکس Mermaid هماهنگ نیست.' } }));
 }
 
 function hideError() {
@@ -207,6 +212,7 @@ async function render() {
     $('#dims').textContent = '';
     setStatus('کد نمودار خالی است', 'muted');
     hideError();
+    window.dispatchEvent(new CustomEvent('nemodara:diagnostic', { detail: { ok: true, type: '', elapsed: 0 } }));
     enableExports(false);
     return;
   }
@@ -239,6 +245,7 @@ async function render() {
     const rect = currentSvgEl.getBoundingClientRect();
     setStatus(`آماده در ${faNumber(elapsed)} میلی‌ثانیه`, 'ok');
     $('#dims').textContent = `${faNumber(Math.round(rect.width))} × ${faNumber(Math.round(rect.height))} پیکسل`;
+    window.dispatchEvent(new CustomEvent('nemodara:diagnostic', { detail: { ok: true, type: TYPE_LABELS[detected] || detected || 'نمودار', elapsed } }));
     enableExports(true);
     if (state.autofit) fit();
   } catch (error) {
@@ -431,6 +438,8 @@ function openFile() {
 
 function loadFileText(text, name) {
   editor.setValue(text);
+  const safeName = String(name || 'untitled.mmd').replace(/[^A-Za-z0-9._-]/g, '-').slice(0, 100) || 'untitled.mmd';
+  $('#document-name').textContent = safeName;
   render();
   toast(`فایل «${name}» باز شد.`, 'ok');
 }
@@ -439,7 +448,7 @@ function saveFile() {
   const blob = new Blob([editor.getValue()], { type: 'text/plain;charset=utf-8' });
   const anchor = document.createElement('a');
   anchor.href = URL.createObjectURL(blob);
-  anchor.download = 'diagram.mmd';
+  anchor.download = $('#document-name')?.textContent || 'diagram.mmd';
   anchor.click();
   setTimeout(() => URL.revokeObjectURL(anchor.href), 1000);
   toast('فایل diagram.mmd ذخیره شد.', 'ok');
@@ -509,22 +518,6 @@ function populateExamples(examples) {
   });
 }
 
-function configureSponsor(meta) {
-  const sponsor = meta?.sponsor;
-  const slot = $('#sponsor-slot');
-  if (!slot || !sponsor?.name || !sponsor?.url) return;
-  try {
-    const url = new URL(sponsor.url, location.origin);
-    if (!['http:', 'https:'].includes(url.protocol)) return;
-    slot.href = url.href;
-    $('#sponsor-slot-name').textContent = sponsor.name;
-    slot.title = sponsor.note || `با حمایت ${sponsor.name}`;
-    slot.hidden = false;
-  } catch {
-    /* Invalid sponsor configuration should not break the editor. */
-  }
-}
-
 function closeModal(selector) {
   $(selector)?.classList.remove('show');
 }
@@ -567,7 +560,6 @@ async function init() {
   populateSelect($('#theme-select'), meta.themes || [], state.theme, THEME_LABELS);
   populateSelect($('#layout-select'), meta.layouts || ['dagre', 'elk'], state.layout, LAYOUT_LABELS);
   populateExamples(meta.examples || []);
-  configureSponsor(meta);
 
   $('#theme-select').addEventListener('change', (event) => {
     state.theme = event.target.value;
@@ -605,6 +597,7 @@ async function init() {
   $('#btn-new').addEventListener('click', () => {
     if (editor.getValue().trim() && !confirm('کد فعلی پاک شود و یک نمودار جدید بسازیم؟')) return;
     editor.setValue('');
+    $('#document-name').textContent = 'untitled.mmd';
     render();
     editor.focus();
   });
@@ -771,7 +764,7 @@ async function init() {
     } else if (modifier && key === 'o') {
       event.preventDefault();
       openFile();
-    } else if (modifier && key === 'k') {
+    } else if (modifier && key === 'k' && event.shiftKey) {
       event.preventDefault();
       $('#btn-share').click();
     } else if (modifier && event.key === '0') {
@@ -788,6 +781,28 @@ async function init() {
       toggleFullscreen();
     }
   });
+
+  function insertCode(code) {
+    const current = editor.getValue();
+    const prefix = current && !current.endsWith('\n') ? '\n' : '';
+    editor.replaceSelection(`${prefix}${String(code || '')}\n`);
+    render();
+    editor.focus();
+  }
+  window.nemodaraEditor = Object.freeze({
+    getCode: () => editor.getValue(),
+    setCode: (code) => { editor.setValue(String(code || '')); render(); },
+    insert: insertCode,
+    focus: () => editor.focus(),
+    refresh: () => editor.refresh?.(),
+    fit,
+    render,
+    share,
+    saveFile,
+    openExportDialog,
+    goToLine: (line) => editor.setCursor?.(line, 1),
+  });
+  window.dispatchEvent(new CustomEvent('nemodara:editor-ready'));
 
   enableExports(false);
   editor.refresh?.();

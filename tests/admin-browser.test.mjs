@@ -55,7 +55,8 @@ test('admin growth control center works in desktop and mobile browsers', { timeo
 
   await page.goto(`${server.url}/admin/analytics`, { waitUntil: 'networkidle0' });
   await page.waitForFunction(() => document.querySelector('#dashboard-status')?.classList.contains('ok'), { timeout: 30_000 });
-  assert.equal(await page.$$eval('.admin-nav-item', (nodes) => nodes.length), 6);
+  assert.equal(await page.$$eval('.admin-nav-item', (nodes) => nodes.length), 7);
+  assert.ok(await page.$('.admin-nav-item[href="/admin/content"]'));
   assert.match(await page.$eval('h1', (node) => node.textContent), /مرکز کنترل درآمد/);
   assert.equal(await page.$eval('[data-view-panel="overview"]', (node) => node.classList.contains('is-active')), true);
 

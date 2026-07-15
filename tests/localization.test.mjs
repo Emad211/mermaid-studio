@@ -16,7 +16,7 @@ test('editor shell is Persian, keeps source code left-to-right and has no ad loa
 
 test('editor controller uses a Persian starter diagram and Persian feedback', async () => {
   const source = await read('public/js/app.js');
-  assert.match(source, /A\[شروع\]/);
+  assert.match(source, /A\[دریافت درخواست\]/);
   assert.match(source, /در حال ساخت نمودار/);
   assert.match(source, /لینک اشتراک‌گذاری کپی شد/);
   assert.doesNotMatch(source, /Rendered in \$\{/);

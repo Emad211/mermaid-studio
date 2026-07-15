@@ -709,10 +709,10 @@ replace_once(
 )
 replace_once(
     'src/server/seo.js',
-    """  const articles = LEARN_ARTICLES.map((article) => `- [${article.title}](${origin}/learn/${article.slug}): ${article.description}`).join('\n');
+    r"""  const articles = LEARN_ARTICLES.map((article) => `- [${article.title}](${origin}/learn/${article.slug}): ${article.description}`).join('\n');
   return `# ${config.siteName}\n\n> ابزار رایگان و فارسی برای نوشتن، پیش‌نمایش و خروجی گرفتن از نمودارهای Mermaid. این پروژه مستقل و متن‌باز است و وابستگی رسمی به پروژه Mermaid ندارد.\n\n## صفحات اصلی\n\n- [ادیتور](${origin}/editor): پیش‌نمایش زنده و خروجی SVG، PNG، JPG، WebP و PDF.\n- [قالب‌ها](${origin}/templates): نمونه‌های قابل ویرایش فلوچارت، Sequence، ERD، UML و Gantt.\n- [مرکز آموزش](${origin}/learn): راهنماهای فارسی و مثال‌های عملی.\n\n## راهنماها\n\n${articles}\n\n## سیاست داده\n\nآنالیز محصول first-party و تجمیعی است؛ کد Mermaid، متن نمودار و IP خام ذخیره نمی‌شوند.\n`;
 """,
-    """  const guides = LEARN_ARTICLES.map((article) => `- [${article.title}](${origin}/learn/${article.slug}): ${article.description}`).join('\n');
+    r"""  const guides = LEARN_ARTICLES.map((article) => `- [${article.title}](${origin}/learn/${article.slug}): ${article.description}`).join('\n');
   const magazine = EDITORIAL_ARTICLES.map((article) => `- [${article.title}](${origin}/articles/${article.slug}): ${article.description}`).join('\n');
   return `# ${config.siteName}\n\n> ابزار رایگان و فارسی برای نوشتن، پیش‌نمایش و خروجی گرفتن از نمودارهای Mermaid؛ همراه با آموزش مثال‌محور و مقاله‌های تحلیلی دربارهٔ مستندسازی.\n\n## صفحات اصلی\n\n- [ادیتور](${origin}/editor): پیش‌نمایش زنده و خروجی SVG، PNG، JPG، WebP و PDF.\n- [قالب‌ها](${origin}/templates): نمونه‌های قابل ویرایش.\n- [مرکز آموزش](${origin}/learn): راهنماهای عملی Mermaid.\n- [مقاله‌ها](${origin}/articles): Diagram as Code، معماری و نگهداری مستندات.\n- [سیاست تحریریه](${origin}/editorial-policy): روش نویسندگی، تست و به‌روزرسانی.\n\n## راهنماها\n\n${guides}\n\n## مقاله‌های تحلیلی\n\n${magazine}\n\n## سیاست داده\n\nآنالیز محصول first-party و تجمیعی است؛ کد Mermaid، متن نمودار و IP خام ذخیره نمی‌شوند.\n`;
 """,
@@ -865,7 +865,7 @@ replace_once(
 )
 replace_once(
     'public/js/editor.js',
-    """    setValue: (v) => {
+    r"""    setValue: (v) => {
       textarea.value = v;
     },
     focus: () => textarea.focus(),
@@ -1028,7 +1028,7 @@ insert_before(
     """  enableExports(false);
   editor.refresh?.();
 """,
-    """  function insertCode(code) {
+    r"""  function insertCode(code) {
     const current = editor.getValue();
     const prefix = current && !current.endsWith('\n') ? '\n' : '';
     editor.replaceSelection(`${prefix}${String(code || '')}\n`);

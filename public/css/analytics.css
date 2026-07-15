@@ -324,3 +324,13 @@ tr:last-child td { border-bottom: 0; }
   .chart-wrap { min-height: 250px; }
   .dashboard-footer { flex-direction: column; }
 }
+
+
+.revenue-planner .form-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.scenario-grid { margin-top: 14px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
+.scenario-grid > div { padding: 14px; border: 1px solid var(--a-border); border-radius: 12px; background: var(--a-panel-2); }
+.scenario-grid > div.is-primary { border-color: rgba(67,216,164,.4); background: rgba(67,216,164,.06); }
+.scenario-grid span { color: var(--a-muted); font-size: 9px; }
+.scenario-grid strong { display: block; margin-top: 7px; direction: ltr; text-align: right; font-size: 18px; }
+@media (max-width: 1180px) { .revenue-planner .form-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 620px) { .revenue-planner .form-grid, .scenario-grid { grid-template-columns: 1fr; } }

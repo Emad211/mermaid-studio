@@ -1,4 +1,5 @@
 import { LEARN_ARTICLES, getLearnArticle, learnSitemapEntries } from './learn-content.js';
+import { EDITORIAL_ARTICLES, getEditorialArticle, articleSitemapEntries } from './article-content.js';
 
 const DEFAULT_UPDATED = '2026-07-15';
 
@@ -20,6 +21,24 @@ const STATIC_PAGE_META = {
     description: 'مرجع رایگان آموزش Mermaid به فارسی با مثال‌های قابل ویرایش برای فلوچارت، Sequence Diagram، ERD، Gantt، UML، معماری و رفع خطا.',
     type: 'website',
     priority: 0.95,
+  },
+  '/articles': {
+    title: 'مقاله‌های نمودارا؛ Diagram as Code و مستندسازی فنی',
+    description: 'مقاله‌های تحلیلی و تجربه‌محور دربارهٔ Diagram as Code، انتخاب نوع نمودار، مستندسازی معماری و خروجی حرفه‌ای Mermaid.',
+    type: 'website',
+    priority: 0.88,
+  },
+  '/about': {
+    title: 'دربارهٔ نمودارا و روش ساخت این پروژه',
+    description: 'نمودارا چرا ساخته شد، چه داده‌ای ثبت نمی‌کند و آموزش‌ها و مثال‌های فنی آن چگونه نوشته و آزمایش می‌شوند.',
+    type: 'website',
+    priority: 0.45,
+  },
+  '/editorial-policy': {
+    title: 'سیاست تحریریهٔ نمودارا؛ نویسندگی، تست و به‌روزرسانی محتوا',
+    description: 'روش انتخاب موضوع، تست مثال‌های Mermaid، بازبینی، اصلاح خطا و به‌روزرسانی مقاله‌ها و آموزش‌های نمودارا.',
+    type: 'website',
+    priority: 0.35,
   },
   '/privacy': {
     title: 'سیاست حریم خصوصی | نمودارا',
@@ -169,7 +188,7 @@ function softwareApplication(config) {
   };
 }
 
-function pageStructuredData(pathname, meta, config, article) {
+function pageStructuredData(pathname, meta, config, article, editorialArticle) {
   if (!config.siteUrl) return null;
   const graph = baseGraph(config);
   const canonical = absolute(config, pathname);
@@ -224,6 +243,43 @@ function pageStructuredData(pathname, meta, config, article) {
         })),
       },
     });
+  } else if (pathname === '/articles') {
+    graph.push({
+      '@type': 'CollectionPage',
+      '@id': `${canonical}#webpage`,
+      url: canonical,
+      name: meta.title,
+      description: meta.description,
+      inLanguage: config.language,
+      isPartOf: { '@id': `${config.siteUrl}/#website` },
+      breadcrumb: breadcrumb(config, [{ name: 'خانه', path: '/' }, { name: 'مقاله‌ها', path: '/articles' }]),
+      mainEntity: {
+        '@type': 'ItemList',
+        itemListElement: EDITORIAL_ARTICLES.map((item, index) => ({ '@type': 'ListItem', position: index + 1, name: item.title, url: absolute(config, `/articles/${item.slug}`) })),
+      },
+    });
+  } else if (editorialArticle) {
+    graph.push({
+      '@type': 'Article',
+      '@id': `${canonical}#article`,
+      mainEntityOfPage: canonical,
+      url: canonical,
+      headline: editorialArticle.title,
+      description: editorialArticle.description,
+      inLanguage: config.language,
+      datePublished: editorialArticle.published || DEFAULT_UPDATED,
+      dateModified: editorialArticle.updated || DEFAULT_UPDATED,
+      author: { '@type': 'Organization', name: editorialArticle.author?.name || config.authorName, url: absolute(config, '/about#editorial') },
+      publisher: { '@id': `${config.siteUrl}/#organization` },
+      image: absolute(config, '/og-image.svg'),
+      keywords: editorialArticle.keywords.join(', '),
+      about: { '@type': 'Thing', name: editorialArticle.category || 'Diagram as Code' },
+      breadcrumb: breadcrumb(config, [
+        { name: 'خانه', path: '/' },
+        { name: 'مقاله‌ها', path: '/articles' },
+        { name: editorialArticle.title, path: `/articles/${editorialArticle.slug}` },
+      ]),
+    });
   } else if (article) {
     const articleId = `${canonical}#article`;
     graph.push({
@@ -276,6 +332,19 @@ export function pageSeo(pathname, config = seoConfig()) {
   const normalized = normalizePathname(pathname);
   const articleSlug = normalized.startsWith('/learn/') ? normalized.slice('/learn/'.length) : '';
   const article = articleSlug ? getLearnArticle(articleSlug) : null;
+  const editorialSlug = normalized.startsWith('/articles/') ? normalized.slice('/articles/'.length) : '';
+  const editorialArticle = editorialSlug ? getEditorialArticle(editorialSlug) : null;
+  if (editorialArticle) {
+    return {
+      pathname: normalized,
+      title: `${editorialArticle.title} | نمودارا`,
+      description: editorialArticle.description,
+      type: 'article',
+      robots: 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1',
+      editorialArticle,
+      canonical: absolute(config, normalized),
+    };
+  }
   if (article) {
     return {
       pathname: normalized,
@@ -341,7 +410,7 @@ export function enhanceHtml(input, pathname, config = seoConfig()) {
   if (config.googleVerification) tags.push(`<meta name="google-site-verification" content="${escapeHtml(config.googleVerification)}" />`);
   if (config.bingVerification) tags.push(`<meta name="msvalidate.01" content="${escapeHtml(config.bingVerification)}" />`);
 
-  const structured = pageStructuredData(meta.pathname, meta, config, meta.article);
+  const structured = pageStructuredData(meta.pathname, meta, config, meta.article, meta.editorialArticle);
   if (structured) tags.push(`<script type="application/ld+json">${jsonLd(structured)}</script>`);
   html = html.replace('</head>', `  ${tags.join('\n  ')}\n</head>`);
   return { html, meta };
@@ -354,8 +423,10 @@ export function sitemapXml(config = seoConfig()) {
       .filter(([pathname, meta]) => meta.priority > 0 && !meta.robots?.startsWith('noindex'))
       .map(([pathname, meta]) => ({ path: pathname, updated: config.updated, priority: meta.priority })),
     ...learnSitemapEntries(),
+    ...articleSitemapEntries(),
   ];
-  const urls = entries.map((entry) => `<url><loc>${escapeXml(absolute(config, entry.path))}</loc><lastmod>${escapeXml(entry.updated || config.updated)}</lastmod><changefreq>${entry.path.startsWith('/learn/') ? 'monthly' : 'weekly'}</changefreq><priority>${Number(entry.priority || 0.5).toFixed(2)}</priority></url>`).join('');
+  const uniqueEntries = [...new Map(entries.map((entry) => [entry.path, entry])).values()];
+  const urls = uniqueEntries.map((entry) => `<url><loc>${escapeXml(absolute(config, entry.path))}</loc><lastmod>${escapeXml(entry.updated || config.updated)}</lastmod><changefreq>${entry.path.startsWith('/learn/') ? 'monthly' : 'weekly'}</changefreq><priority>${Number(entry.priority || 0.5).toFixed(2)}</priority></url>`).join('');
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls}</urlset>\n`;
 }
 
@@ -366,13 +437,14 @@ export function robotsTxt(config = seoConfig()) {
 
 export function llmsTxt(config = seoConfig()) {
   const origin = config.siteUrl || 'https://example.invalid';
-  const articles = LEARN_ARTICLES.map((article) => `- [${article.title}](${origin}/learn/${article.slug}): ${article.description}`).join('\n');
-  return `# ${config.siteName}\n\n> ابزار رایگان و فارسی برای نوشتن، پیش‌نمایش و خروجی گرفتن از نمودارهای Mermaid. این پروژه مستقل و متن‌باز است و وابستگی رسمی به پروژه Mermaid ندارد.\n\n## صفحات اصلی\n\n- [ادیتور](${origin}/editor): پیش‌نمایش زنده و خروجی SVG، PNG، JPG، WebP و PDF.\n- [قالب‌ها](${origin}/templates): نمونه‌های قابل ویرایش فلوچارت، Sequence، ERD، UML و Gantt.\n- [مرکز آموزش](${origin}/learn): راهنماهای فارسی و مثال‌های عملی.\n\n## راهنماها\n\n${articles}\n\n## سیاست داده\n\nآنالیز محصول first-party و تجمیعی است؛ کد Mermaid، متن نمودار و IP خام ذخیره نمی‌شوند.\n`;
+  const guides = LEARN_ARTICLES.map((article) => `- [${article.title}](${origin}/learn/${article.slug}): ${article.description}`).join('\n');
+  const magazine = EDITORIAL_ARTICLES.map((article) => `- [${article.title}](${origin}/articles/${article.slug}): ${article.description}`).join('\n');
+  return `# ${config.siteName}\n\n> ابزار رایگان و فارسی برای نوشتن، پیش‌نمایش و خروجی گرفتن از نمودارهای Mermaid؛ همراه با آموزش مثال‌محور و مقاله‌های تحلیلی دربارهٔ مستندسازی.\n\n## صفحات اصلی\n\n- [ادیتور](${origin}/editor): پیش‌نمایش زنده و خروجی SVG، PNG، JPG، WebP و PDF.\n- [قالب‌ها](${origin}/templates): نمونه‌های قابل ویرایش.\n- [مرکز آموزش](${origin}/learn): راهنماهای عملی Mermaid.\n- [مقاله‌ها](${origin}/articles): Diagram as Code، معماری و نگهداری مستندات.\n- [سیاست تحریریه](${origin}/editorial-policy): روش نویسندگی، تست و به‌روزرسانی.\n\n## راهنماها\n\n${guides}\n\n## مقاله‌های تحلیلی\n\n${magazine}\n\n## سیاست داده\n\nآنالیز محصول first-party و تجمیعی است؛ کد Mermaid، متن نمودار و IP خام ذخیره نمی‌شوند.\n`;
 }
 
 export function ogImageSvg(config = seoConfig()) {
   const title = escapeXml(config.siteName);
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="${title}"><defs><linearGradient id="bg" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#0b0d15"/><stop offset="1" stop-color="#211633"/></linearGradient><linearGradient id="mark" x1="0" x2="1"><stop stop-color="#8b5cf6"/><stop offset="1" stop-color="#ec4899"/></linearGradient></defs><rect width="1200" height="630" fill="url(#bg)"/><circle cx="1080" cy="80" r="260" fill="#8b5cf6" opacity=".12"/><circle cx="150" cy="580" r="260" fill="#ec4899" opacity=".1"/><rect x="92" y="92" width="120" height="120" rx="34" fill="url(#mark)"/><path d="M122 174V125l24 29 22-29v49M182 126c18 0 28 10 28 25 0 22-28 23-28 42" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/><text x="1100" y="300" text-anchor="end" fill="#fff" font-family="Tahoma,Arial,sans-serif" font-size="72" font-weight="700">Mermaid Studio</text><text x="1100" y="385" text-anchor="end" fill="#d9dcec" font-family="Tahoma,Arial,sans-serif" font-size="43">نمودار حرفه‌ای، فقط با چند خط کد</text><text x="1100" y="470" text-anchor="end" fill="#9ca5b8" font-family="Tahoma,Arial,sans-serif" font-size="29">رایگان · فارسی · پیش‌نمایش زنده · خروجی SVG و PDF</text></svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="${title}"><defs><linearGradient id="bg" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#0b0d15"/><stop offset="1" stop-color="#211633"/></linearGradient><linearGradient id="mark" x1="0" x2="1"><stop stop-color="#1f5b43"/><stop offset="1" stop-color="#d55f39"/></linearGradient></defs><rect width="1200" height="630" fill="url(#bg)"/><circle cx="1080" cy="80" r="260" fill="#1f5b43" opacity=".12"/><circle cx="150" cy="580" r="260" fill="#d55f39" opacity=".1"/><rect x="92" y="92" width="120" height="120" rx="34" fill="url(#mark)"/><path d="M122 174V125l24 29 22-29v49M182 126c18 0 28 10 28 25 0 22-28 23-28 42" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/><text x="1100" y="300" text-anchor="end" fill="#fff" font-family="Tahoma,Arial,sans-serif" font-size="72" font-weight="700">نمودارا</text><text x="1100" y="385" text-anchor="end" fill="#d9dcec" font-family="Tahoma,Arial,sans-serif" font-size="43">نمودار به‌صورت کد؛ روشن و قابل نگهداری</text><text x="1100" y="470" text-anchor="end" fill="#9ca5b8" font-family="Tahoma,Arial,sans-serif" font-size="29">رایگان · فارسی · پیش‌نمایش زنده · خروجی SVG و PDF</text></svg>`;
 }
 
 export function canonicalRedirect(pathname) {
@@ -380,7 +452,8 @@ export function canonicalRedirect(pathname) {
   const redirects = {
     '/fa': '/', '/fa/': '/',
     '/templates/': '/templates', '/examples': '/templates', '/examples/': '/templates',
-    '/learn/': '/learn', '/editor/': '/editor', '/index.html': '/editor',
+    '/learn/': '/learn', '/articles/': '/articles', '/about/': '/about', '/editorial-policy/': '/editorial-policy',
+    '/editor/': '/editor', '/index.html': '/editor',
     '/privacy/': '/privacy', '/privacy.html': '/privacy',
     '/terms/': '/terms', '/terms.html': '/terms',
   };

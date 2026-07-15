@@ -37,7 +37,7 @@ assert.equal(health.analytics?.adminConfigured, true);
 assert.equal(health.analytics?.persistentHashSecret, true);
 log(`health endpoint is ready (version ${health.version || 'unknown'})`);
 
-for (const route of ['/', '/editor', '/templates', '/learn', '/privacy', '/terms']) {
+for (const route of ['/', '/editor', '/templates', '/learn', '/articles', '/privacy', '/terms']) {
   const response = await expectStatus(route);
   assert.match(response.headers.get('content-type') || '', /text\/html/);
   log(`${route} returns HTML`);
@@ -52,6 +52,13 @@ const adminResponse = await expectStatus('/admin/analytics', 200, {
 });
 assert.match(await adminResponse.text(), /مرکز کنترل درآمد، محصول و SEO/);
 log('admin panel accepts generated local credentials');
+
+await expectStatus('/admin/content', 401, { redirect: 'manual' });
+const contentAdminResponse = await expectStatus('/admin/content', 200, {
+  headers: { Authorization: authorization },
+});
+assert.match(await contentAdminResponse.text(), /اتاق عملیات محتوا/);
+log('content operations panel is protected and operational');
 
 const ads = await (await expectStatus('/api/ads')).json();
 assert.equal(ads.enabled, false);
@@ -77,7 +84,8 @@ const sitemapResponse = await expectStatus('/sitemap.xml');
 const sitemap = await sitemapResponse.text();
 assert.match(sitemap, /<urlset\b/);
 assert.match(sitemap, /\/learn\/flowchart-mermaid/);
-log('dynamic sitemap contains the Persian learning cluster');
+assert.match(sitemap, /\/articles\/diagram-as-code-for-teams/);
+log('dynamic sitemap contains the Persian learning and magazine clusters');
 
 const svgResponse = await expectStatus('/api/render', 200, {
   method: 'POST',
