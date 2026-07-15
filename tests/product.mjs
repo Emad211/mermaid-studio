@@ -26,9 +26,7 @@ const adEnvironmentKeys = [
   'ADS_SLOT_LEARN_TOP',
   'ADS_SLOT_LEARN_INLINE',
 ];
-const previousAdEnvironment = Object.fromEntries(
-  adEnvironmentKeys.map((key) => [key, process.env[key]]),
-);
+const previousAdEnvironment = Object.fromEntries(adEnvironmentKeys.map((key) => [key, process.env[key]]));
 adEnvironmentKeys.forEach((key) => delete process.env[key]);
 
 const server = await startServer({ port: 0 });
@@ -36,7 +34,7 @@ const server = await startServer({ port: 0 });
 try {
   const landing = await fetch(server.url + '/');
   const landingHtml = await landing.text();
-  assert('Persian landing page', landing.ok && /lang="fa"/.test(landingHtml) && landingHtml.includes('شروع ساخت نمودار'));
+  assert('Nemodara Persian landing page', landing.ok && /lang="fa"/.test(landingHtml) && landingHtml.includes('نمودار خوب') && landingHtml.includes('نمودارا'));
   assert('landing has labelled ad surfaces', landingHtml.includes('data-ad-slot="homeTop"') && landingHtml.includes('data-ad-slot="homeInline"'));
   assert('security headers', landing.headers.get('x-content-type-options') === 'nosniff' && !!landing.headers.get('content-security-policy'));
 
@@ -47,11 +45,11 @@ try {
 
   const templates = await fetch(server.url + '/templates');
   const templatesHtml = await templates.text();
-  assert('template library has ad surfaces', templates.ok && templatesHtml.includes('data-ad-slot="templatesTop"'));
+  assert('template library uses Nemodara and has ad surfaces', templates.ok && templatesHtml.includes('نمودارا') && templatesHtml.includes('data-ad-slot="templatesTop"'));
 
   const learn = await fetch(server.url + '/learn');
   const learnHtml = await learn.text();
-  assert('Persian learning hub', learn.ok && learnHtml.includes('Mermaid را با مسئله‌های واقعی یاد بگیر'));
+  assert('Nemodara Persian learning hub', learn.ok && learnHtml.includes('Mermaid را برای حل مسئله'));
   assert('learning hub has deep article links', learnHtml.includes('/learn/flowchart-mermaid') && learnHtml.includes('/learn/mermaid-errors'));
   assert('learning hub has ad surfaces', learnHtml.includes('data-ad-slot="learnInline"'));
 

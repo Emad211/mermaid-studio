@@ -1,14 +1,14 @@
 {
-  "name": "Mermaid Studio — استودیوی فارسی نمودار",
-  "short_name": "Mermaid Studio",
-  "description": "ادیتور فارسی و متن‌باز برای ساخت و خروجی گرفتن از نمودارهای Mermaid.",
+  "name": "نمودارا — ادیتور فارسی Mermaid",
+  "short_name": "نمودارا",
+  "description": "ابزار فارسی و متن‌باز برای ساخت، ویرایش و خروجی گرفتن از نمودارهای Mermaid.",
   "lang": "fa",
   "dir": "rtl",
   "start_url": "/editor",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#0e0f15",
-  "theme_color": "#0e0f15",
+  "background_color": "#f5f3ed",
+  "theme_color": "#225744",
   "icons": [
     {
       "src": "/logo.svg",

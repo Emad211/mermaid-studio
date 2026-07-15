@@ -1,24 +1,24 @@
 <!doctype html>
-<html lang="fa" dir="rtl" data-theme="dark">
+<html lang="fa" dir="rtl" data-theme="light">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#0d1020" />
-    <link rel="icon" href="/logo.svg" type="image/svg+xml" />
-    <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" content="#f5f3ed" />
+    <meta name="color-scheme" content="light dark" />
     <meta
       name="description"
-      content="Mermaid Studio؛ ادیتور رایگان و فارسی برای ساخت، پیش‌نمایش و خروجی گرفتن از نمودارهای Mermaid به فرمت SVG، PNG، PDF و بیشتر."
+      content="نمودارا؛ ادیتور رایگان و فارسی Mermaid برای ساخت فلوچارت، نمودار توالی، ERD، گانت و UML با پیش‌نمایش زنده و خروجی حرفه‌ای."
     />
     <meta name="robots" content="index,follow" />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="fa_IR" />
-    <meta property="og:title" content="Mermaid Studio | ساخت نمودار با کد، سریع و رایگان" />
+    <meta property="og:title" content="نمودارا | ساخت نمودار با متن، ساده و رایگان" />
     <meta
       property="og:description"
-      content="کد Mermaid را بنویسید، نمودار را زنده ببینید و با کیفیت بالا خروجی بگیرید؛ بدون نیاز به ثبت‌نام."
+      content="کد Mermaid را بنویسید، نمودار را همان لحظه ببینید و در قالب SVG، PNG یا PDF خروجی بگیرید؛ بدون ثبت‌نام."
     />
-    <title>Mermaid Studio | ادیتور فارسی ساخت نمودار با کد</title>
+    <title>نمودارا | ادیتور فارسی Mermaid و ساخت نمودار با کد</title>
+    <link rel="icon" href="/logo.svg" type="image/svg+xml" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="stylesheet" href="/css/landing.css?v=%V%" />
     <link rel="stylesheet" href="/css/landing-demo.css?v=%V%" />
@@ -28,120 +28,104 @@
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "WebApplication",
-        "name": "Mermaid Studio",
+        "@type": "SoftwareApplication",
+        "name": "نمودارا",
+        "alternateName": "Nemodara",
         "applicationCategory": "DeveloperApplication",
         "operatingSystem": "Any",
         "inLanguage": "fa",
         "isAccessibleForFree": true,
-        "description": "ویرایشگر فارسی و رایگان Mermaid با پیش‌نمایش زنده و خروجی SVG، PNG و PDF"
+        "description": "ادیتور فارسی و رایگان Mermaid با پیش‌نمایش زنده و خروجی SVG، PNG و PDF"
       }
     </script>
   </head>
   <body>
-    <div class="page-glow glow-one" aria-hidden="true"></div>
-    <div class="page-glow glow-two" aria-hidden="true"></div>
+    <a class="skip-link" href="#main-content">رفتن به محتوای اصلی</a>
 
     <header class="site-header">
-      <a class="brand" href="/" aria-label="Mermaid Studio">
-        <span class="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 40 40" width="34" height="34">
-            <defs>
-              <linearGradient id="brand-gradient" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0" stop-color="#8b5cf6" />
-                <stop offset="1" stop-color="#ec4899" />
-              </linearGradient>
-            </defs>
-            <rect width="40" height="40" rx="12" fill="url(#brand-gradient)" />
-            <path d="M9 28V13l6.5 8 6.5-8v15M28 13c3.5 0 5 2.3 5 5 0 4.8-6 5-6 10" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-        </span>
+      <a class="brand" href="/" aria-label="نمودارا، صفحهٔ اصلی">
+        <img class="brand-mark" src="/logo.svg" width="38" height="38" alt="" />
         <span class="brand-copy">
-          <strong>Mermaid Studio</strong>
-          <small>نمودار حرفه‌ای، فقط با چند خط کد</small>
+          <strong>نمودارا</strong>
+          <small>نمودارهایی که با متن زنده می‌شوند</small>
         </span>
       </a>
 
       <nav class="main-nav" aria-label="ناوبری اصلی">
-        <a href="#features">امکانات</a>
-        <a href="/learn">آموزش فارسی</a>
+        <a href="/learn">آموزش</a>
+        <a href="/templates">قالب‌ها</a>
+        <a href="#how-it-works">روش کار</a>
         <a href="#privacy">حریم خصوصی</a>
-        <a href="#faq">سوالات رایج</a>
-        <a href="https://github.com/Emad211/mermaid-studio" target="_blank" rel="noreferrer">گیت‌هاب</a>
       </nav>
 
       <div class="header-actions">
-        <button id="theme-toggle" class="icon-button" type="button" aria-label="تغییر پوسته">☾</button>
-        <a class="button button-small" href="/editor">ورود به ادیتور</a>
+        <button id="theme-toggle" class="icon-button" type="button" aria-label="تغییر پوسته">◐</button>
+        <a class="button button-small" href="/editor">بازکردن ادیتور</a>
+        <details class="mobile-menu">
+          <summary aria-label="نمایش منو">منو</summary>
+          <nav aria-label="منوی موبایل">
+            <a href="/learn">آموزش فارسی</a>
+            <a href="/templates">قالب‌های آماده</a>
+            <a href="#how-it-works">روش کار</a>
+            <a href="#privacy">حریم خصوصی</a>
+            <a href="https://github.com/Emad211/mermaid-studio" target="_blank" rel="noreferrer">کد منبع</a>
+          </nav>
+        </details>
       </div>
     </header>
 
-    <main>
+    <main id="main-content">
       <section class="hero section-shell">
         <div class="hero-copy">
-          <div class="eyebrow"><span></span> رایگان، فارسی و بدون ثبت‌نام</div>
-          <h1>
-            ایده‌ات را با کد بنویس؛
-            <em>نمودارش را همان لحظه ببین.</em>
-          </h1>
+          <p class="eyebrow">ادیتور فارسی Mermaid · رایگان و بدون ثبت‌نام</p>
+          <h1>نمودار خوب، از یک فکر روشن شروع می‌شود.</h1>
           <p class="hero-lead">
-            Mermaid Studio یک محیط کامل برای ساخت فلوچارت، نمودار توالی، ERD، گانت، کلاس و ده‌ها نمودار دیگر است. کد را بنویس، نتیجه را زنده ببین و با کیفیت بالا خروجی بگیر.
+            در نمودارا به‌جای جابه‌جاکردن شکل‌ها، ساختار را می‌نویسی. چند خط متن کافی است تا فرایند، معماری، دیتابیس یا برنامهٔ پروژه‌ات به یک نمودار خوانا تبدیل شود.
           </p>
           <div class="hero-actions">
-            <a class="button button-primary" href="/editor">
-              شروع ساخت نمودار
-              <span aria-hidden="true">←</span>
-            </a>
-            <button id="copy-demo" class="button button-secondary" type="button">
-              کپی نمونه کد
-            </button>
+            <a class="button button-primary" href="/editor">ساخت اولین نمودار <span aria-hidden="true">←</span></a>
+            <a class="text-link" href="/learn/flowchart-mermaid">اول یک آموزش کوتاه بخوان</a>
           </div>
-          <div class="trust-row" aria-label="مزیت‌های اصلی">
-            <span>✓ پیش‌نمایش زنده</span>
-            <span>✓ خروجی SVG، PNG و PDF</span>
-            <span>✓ پردازش محلی و خصوصی</span>
-          </div>
+          <ul class="trust-row" aria-label="ویژگی‌های اصلی">
+            <li>پیش‌نمایش زنده</li>
+            <li>خروجی SVG، PNG و PDF</li>
+            <li>پردازش محلی و متن‌باز</li>
+          </ul>
         </div>
 
-        <div class="hero-demo" aria-label="نمونه محیط Mermaid Studio">
+        <div class="hero-demo" aria-label="نمونهٔ ساخت نمودار در نمودارا">
           <div class="demo-window">
             <div class="window-bar">
-              <div class="window-dots" aria-hidden="true"><i></i><i></i><i></i></div>
-              <span>نمودار فرایند سفارش</span>
-              <span class="live-pill"><b></b> زنده</span>
+              <span class="window-title">فرایند بررسی درخواست</span>
+              <span class="live-pill"><i></i> پیش‌نمایش زنده</span>
             </div>
             <div class="demo-content">
-              <pre id="demo-code" class="demo-code" dir="ltr"><code><span class="token-keyword">flowchart</span> TD
-  A[ورود کاربر] --> B{حساب دارد؟}
-  B -- بله --> C[ورود به داشبورد]
-  B -- خیر --> D[ساخت حساب]
-  D --> C
-  C --> E[ایجاد نمودار]</code></pre>
+              <div class="demo-editor">
+                <div class="demo-editor-head"><span>process.mmd</span><button id="copy-demo" type="button">کپی</button></div>
+                <pre id="demo-code" class="demo-code" dir="ltr"><code><span class="token-keyword">flowchart</span> TD
+  A[دریافت درخواست] --> B{کامل است؟}
+  B -- بله --> C[بررسی کارشناس]
+  B -- خیر --> D[تکمیل اطلاعات]
+  D --> B
+  C --> E[اعلام نتیجه]</code></pre>
+              </div>
               <div class="demo-diagram" aria-hidden="true">
-                <div class="diagram-node node-a">ورود کاربر</div>
-                <div class="diagram-line line-a"></div>
-                <div class="diagram-node decision">حساب دارد؟</div>
-                <div class="diagram-branch branch-right"><span>بله</span></div>
-                <div class="diagram-branch branch-left"><span>خیر</span></div>
-                <div class="diagram-node node-c">داشبورد</div>
-                <div class="diagram-node node-d">ساخت حساب</div>
-                <div class="diagram-line line-c"></div>
-                <div class="diagram-node node-e">ایجاد نمودار</div>
+                <div class="diagram-node node-a">دریافت درخواست</div>
+                <span class="connector vertical connector-a"></span>
+                <div class="diagram-node decision">کامل است؟</div>
+                <span class="branch-label yes">بله</span>
+                <span class="branch-label no">خیر</span>
+                <span class="connector branch-right"></span>
+                <span class="connector branch-left"></span>
+                <div class="diagram-node node-c">بررسی کارشناس</div>
+                <div class="diagram-node node-d">تکمیل اطلاعات</div>
+                <span class="connector vertical connector-c"></span>
+                <div class="diagram-node node-e">اعلام نتیجه</div>
               </div>
             </div>
-            <div class="demo-footer">
-              <span>رندر در کمتر از یک ثانیه</span>
-              <span>SVG · PNG · PDF</span>
-            </div>
+            <div class="demo-footer"><span>همان کد، همیشه قابل ویرایش</span><span>SVG · PNG · PDF</span></div>
           </div>
         </div>
-      </section>
-
-      <section class="metric-strip section-shell" aria-label="ویژگی‌های کلیدی">
-        <div><strong>۲۰+</strong><span>نوع نمودار</span></div>
-        <div><strong>۵</strong><span>فرمت خروجی</span></div>
-        <div><strong>۰</strong><span>نیاز به ثبت‌نام</span></div>
-        <div><strong>۱۰۰٪</strong><span>قابل اجرا روی سیستم خودت</span></div>
       </section>
 
       <aside class="ad-slot" data-ad-slot="homeTop" hidden aria-label="تبلیغات">
@@ -150,48 +134,45 @@
         <div class="ad-slot__mount" data-ad-mount></div>
       </aside>
 
-      <section id="features" class="features section-shell section-block">
-        <div class="section-heading">
-          <span class="section-kicker">همه‌چیز در یک محیط</span>
-          <h2>از اولین خط کد تا خروجی نهایی</h2>
-          <p>ابزارهایی که برای ساخت، اصلاح، اشتراک‌گذاری و خروجی گرفتن از نمودار لازم داری، کنار هم قرار گرفته‌اند.</p>
+      <section class="use-cases section-shell section-block" aria-labelledby="use-cases-title">
+        <div class="section-intro">
+          <p class="section-kicker">برای کار واقعی</p>
+          <h2 id="use-cases-title">یک ابزار ساده برای مسئله‌های پیچیده.</h2>
+          <p>نمودارا قرار نیست جای فکرکردن را بگیرد؛ کمک می‌کند فکر، تصمیم و ساختار پروژه‌ات را واضح‌تر ببینی و بهتر توضیح بدهی.</p>
         </div>
+        <div class="use-case-grid">
+          <article>
+            <span class="case-number">۰۱</span>
+            <h3>مستندات نرم‌افزار</h3>
+            <p>تعامل APIها، مدل داده، کلاس‌ها و معماری سرویس را کنار کد نگه دار؛ بدون فایل‌های طراحی سنگین و قدیمی‌شونده.</p>
+            <a href="/learn/sequence-diagram-mermaid">آموزش نمودار توالی</a>
+          </article>
+          <article>
+            <span class="case-number">۰۲</span>
+            <h3>فرایند و تصمیم</h3>
+            <p>گردش کار، الگوریتم، مسیر تأیید و تصمیم‌های چندشاخه را با متنی بساز که همکارانت هم بتوانند اصلاحش کنند.</p>
+            <a href="/learn/flowchart-mermaid">آموزش فلوچارت</a>
+          </article>
+          <article>
+            <span class="case-number">۰۳</span>
+            <h3>برنامه‌ریزی و آموزش</h3>
+            <p>از نقشهٔ ذهنی و گانت تا نمودار مناسب ارائه و درس؛ خروجی شفاف برای تیم، کلاس یا مقاله آماده کن.</p>
+            <a href="/learn">دیدن مسیرهای آموزشی</a>
+          </article>
+        </div>
+      </section>
 
-        <div class="feature-grid">
-          <article class="feature-card featured">
-            <div class="feature-icon">⌁</div>
-            <h3>پیش‌نمایش زنده</h3>
-            <p>هم‌زمان با تایپ، نمودار بازسازی می‌شود تا نتیجهٔ هر تغییر را بلافاصله ببینی.</p>
-            <div class="mini-preview" aria-hidden="true">
-              <span></span><i></i><span></span><i></i><span></span>
-            </div>
-          </article>
-          <article class="feature-card">
-            <div class="feature-icon">⇩</div>
-            <h3>خروجی حرفه‌ای</h3>
-            <p>خروجی برداری SVG و PDF یا تصاویر PNG، JPG و WebP با اندازه و کیفیت دلخواه.</p>
-          </article>
-          <article class="feature-card">
-            <div class="feature-icon">⌘</div>
-            <h3>ادیتور مناسب توسعه‌دهنده</h3>
-            <p>هایلایت سینتکس، شماره خط، میانبرهای صفحه‌کلید، ذخیره فایل و Drag & Drop.</p>
-          </article>
-          <article class="feature-card">
-            <div class="feature-icon">◫</div>
-            <h3>قالب‌های آماده</h3>
-            <p>نمونه‌های آماده برای Flowchart، Sequence، ER، Class، Gantt، C4، Mindmap و بیشتر.</p>
-          </article>
-          <article class="feature-card">
-            <div class="feature-icon">◈</div>
-            <h3>تم و چیدمان دلخواه</h3>
-            <p>تم‌های متنوع، رنگ پس‌زمینه، CSS اختصاصی و موتورهای چیدمان Dagre و ELK.</p>
-          </article>
-          <article class="feature-card">
-            <div class="feature-icon">↗</div>
-            <h3>اشتراک‌گذاری با لینک</h3>
-            <p>کد و تنظیمات نمودار داخل لینک فشرده می‌شود؛ بدون اینکه پروژه در دیتابیس ذخیره شود.</p>
-          </article>
+      <section id="how-it-works" class="process section-shell section-block" aria-labelledby="process-title">
+        <div class="process-copy">
+          <p class="section-kicker">روش کار</p>
+          <h2 id="process-title">از متن خام تا نمودار آماده، در سه حرکت.</h2>
+          <p>همه‌چیز قابل بازگشت و قابل نسخه‌بندی است. نمودار نهایی وابسته به یک فایل بسته و اختصاصی نیست.</p>
         </div>
+        <ol class="process-list">
+          <li><span>۱</span><div><h3>ساختار را بنویس</h3><p>از یک قالب شروع کن یا کد Mermaid خودت را وارد کن.</p></div></li>
+          <li><span>۲</span><div><h3>نتیجه را همان لحظه ببین</h3><p>هر تغییر در ادیتور، پیش‌نمایش را بدون بارگذاری دوباره اصلاح می‌کند.</p></div></li>
+          <li><span>۳</span><div><h3>برای مقصد درست خروجی بگیر</h3><p>SVG برای وب و مستندات، PNG برای اشتراک سریع و PDF برای چاپ و ارائه.</p></div></li>
+        </ol>
       </section>
 
       <aside class="ad-slot" data-ad-slot="homeInline" hidden aria-label="تبلیغات">
@@ -200,97 +181,78 @@
         <div class="ad-slot__mount" data-ad-mount></div>
       </aside>
 
-      <section class="workflow section-shell section-block">
-        <div class="section-heading align-right">
-          <span class="section-kicker">ساده و سریع</span>
-          <h2>سه قدم تا یک نمودار آماده</h2>
+      <section class="learning-preview section-shell section-block" aria-labelledby="learning-title">
+        <div class="section-intro section-intro--split">
+          <div>
+            <p class="section-kicker">آموزش فارسی</p>
+            <h2 id="learning-title">سینتکس را حفظ نکن؛ با یک مسئلهٔ واقعی یاد بگیر.</h2>
+          </div>
+          <p>راهنماهای نمودارا با مثال شروع می‌شوند، خطاهای متداول را نشان می‌دهند و هر نمونه را مستقیم در ادیتور باز می‌کنند.</p>
         </div>
-        <div class="steps">
-          <article><span>۱</span><div><h3>کد را بنویس</h3><p>از یک نمونه شروع کن یا کد Mermaid خودت را وارد کن.</p></div></article>
-          <article><span>۲</span><div><h3>ظاهر را تنظیم کن</h3><p>تم، چیدمان، پس‌زمینه، اندازه و تنظیمات پیشرفته را انتخاب کن.</p></div></article>
-          <article><span>۳</span><div><h3>خروجی بگیر</h3><p>فایل نهایی را در فرمت مناسب پروژه، ارائه یا مستنداتت دریافت کن.</p></div></article>
+        <div class="lesson-row">
+          <a class="lesson-card" href="/learn/flowchart-mermaid">
+            <span>شروع از اینجا</span>
+            <h3>فلوچارت؛ فرایند و تصمیم</h3>
+            <p>گره، فلش، شرط، subgraph و استایل را در یک گردش کار واقعی یاد بگیر.</p>
+            <small>۱۸ دقیقه · مقدماتی تا متوسط</small>
+          </a>
+          <a class="lesson-card" href="/learn/sequence-diagram-mermaid">
+            <span>برای توسعه‌دهنده‌ها</span>
+            <h3>Sequence Diagram برای API</h3>
+            <p>تعامل کاربر، وب‌اپ، API و دیتابیس را با مسیر موفق و خطا مستند کن.</p>
+            <small>۲۰ دقیقه · مقدماتی تا پیشرفته</small>
+          </a>
+          <a class="lesson-card" href="/learn/mermaid-errors">
+            <span>وقتی رندر نمی‌شود</span>
+            <h3>رفع خطاهای Mermaid</h3>
+            <p>Parser، کوتیشن، براکت و تنظیمات خراب را مرحله‌به‌مرحله پیدا کن.</p>
+            <small>۱۶ دقیقه · همهٔ سطوح</small>
+          </a>
         </div>
+        <div class="section-footer-link"><a href="/learn">مشاهدهٔ همهٔ راهنماها <span aria-hidden="true">←</span></a></div>
       </section>
 
       <section id="privacy" class="privacy-section section-shell section-block">
-        <div class="privacy-panel">
-          <div class="privacy-copy">
-            <span class="section-kicker">حریم خصوصی از ابتدا</span>
-            <h2>کد نمودارت، مال خودت می‌ماند.</h2>
-            <p>
-              پیش‌نمایش اصلی در مرورگر انجام می‌شود و لینک اشتراک‌گذاری نیز اطلاعات را داخل خود URL نگه می‌دارد. نسخهٔ محلی و CLI می‌توانند کاملاً آفلاین اجرا شوند.
-            </p>
-            <ul>
-              <li>بدون ثبت‌نام اجباری</li>
-              <li>بدون ذخیرهٔ خودکار کد نمودار روی سرور</li>
-              <li>نسخهٔ متن‌باز و قابل اجرا روی سیستم شخصی</li>
-            </ul>
-          </div>
-          <div class="privacy-visual" aria-hidden="true">
-            <div class="shield">✓</div>
-            <div class="privacy-line"><span>کد Mermaid</span><b>مرورگر شما</b></div>
-            <div class="privacy-line"><span>پیش‌نمایش</span><b>پردازش محلی</b></div>
-            <div class="privacy-line"><span>اشتراک‌گذاری</span><b>لینک فشرده</b></div>
-          </div>
+        <div class="privacy-copy">
+          <p class="section-kicker">حریم خصوصی، نه یک گزینهٔ فرعی</p>
+          <h2>متن نمودار تو، محتوای تبلیغاتی ما نیست.</h2>
+          <p>پیش‌نمایش و بیشتر خروجی‌ها داخل مرورگر ساخته می‌شوند. کد نمودار برای تحلیل رفتار ذخیره نمی‌شود و در محیط ادیتور هیچ اسکریپت تبلیغاتی شخص ثالثی بارگذاری نمی‌کنیم.</p>
+          <a class="text-link" href="/privacy">سیاست حریم خصوصی را بخوان</a>
         </div>
+        <dl class="privacy-facts">
+          <div><dt>ثبت‌نام</dt><dd>لازم نیست</dd></div>
+          <div><dt>ذخیرهٔ خودکار کد</dt><dd>انجام نمی‌شود</dd></div>
+          <div><dt>نسخهٔ محلی</dt><dd>متن‌باز و آفلاین</dd></div>
+          <div><dt>تبلیغ در ادیتور</dt><dd>وجود ندارد</dd></div>
+        </dl>
       </section>
 
-
-      <section id="faq" class="faq section-shell section-block">
-        <div class="section-heading">
-          <span class="section-kicker">سوالات رایج</span>
-          <h2>قبل از شروع شاید این‌ها را بپرسی</h2>
+      <section class="faq section-shell section-block" aria-labelledby="faq-title">
+        <div class="section-intro">
+          <p class="section-kicker">پرسش‌های کوتاه</p>
+          <h2 id="faq-title">آنچه پیش از شروع باید بدانی.</h2>
         </div>
         <div class="faq-grid">
-          <details open>
-            <summary>Mermaid چیست؟</summary>
-            <p>Mermaid یک زبان متنی برای ساخت نمودار است. به‌جای جابه‌جایی شکل‌ها با ماوس، ساختار نمودار را با چند خط کد تعریف می‌کنی.</p>
-          </details>
-          <details>
-            <summary>استفاده از Mermaid Studio رایگان است؟</summary>
-            <p>بله. همهٔ قابلیت‌های اصلی رایگان و بدون ثبت‌نام هستند. هزینهٔ نسخهٔ آنلاین از تبلیغات مشخص‌شده در صفحات محتوایی تأمین می‌شود و داخل محیط ادیتور اسکریپت تبلیغاتی بارگذاری نمی‌شود.</p>
-          </details>
-          <details>
-            <summary>آیا متن فارسی داخل نمودار پشتیبانی می‌شود؟</summary>
-            <p>بله. می‌توانی عنوان‌ها و متن گره‌ها را فارسی بنویسی. برای بهترین نتیجه، متن‌های طولانی را داخل کوتیشن قرار بده.</p>
-          </details>
-          <details>
-            <summary>چه فرمت‌هایی برای خروجی وجود دارد؟</summary>
-            <p>SVG، PNG، JPG، WebP و PDF پشتیبانی می‌شوند. SVG و PDF برای چاپ و بزرگ‌نمایی بهترین کیفیت را دارند.</p>
-          </details>
-          <details>
-            <summary>می‌توانم آن را روی سرور خودم اجرا کنم؟</summary>
-            <p>بله. پروژه متن‌باز است، CLI و وب‌اپ دارد و می‌تواند روی سیستم شخصی یا سرور خودت اجرا شود.</p>
-          </details>
-          <details>
-            <summary>کد نمودار من ذخیره می‌شود؟</summary>
-            <p>پیش‌فرض محصول بر پردازش محلی و حداقل‌سازی داده است. جزئیات دقیق هر نسخه در صفحهٔ حریم خصوصی توضیح داده می‌شود.</p>
-          </details>
+          <details open><summary>Mermaid چیست؟</summary><p>یک زبان متنی برای ساخت نمودار است. به‌جای کشیدن دستی شکل‌ها، رابطه‌ها و ساختار نمودار را با چند خط متن تعریف می‌کنی.</p></details>
+          <details><summary>نمودارا کاملاً رایگان است؟</summary><p>بله. قابلیت‌های اصلی بدون ثبت‌نام و پرداخت در دسترس‌اند. هزینهٔ نسخهٔ عمومی از تبلیغات مشخص و محدود در صفحات محتوایی تأمین می‌شود.</p></details>
+          <details><summary>متن فارسی داخل نمودار کار می‌کند؟</summary><p>بله. متن گره‌ها، عنوان‌ها و برچسب مسیرها می‌تواند فارسی باشد؛ فقط کلمات کلیدی خود Mermaid انگلیسی باقی می‌مانند.</p></details>
+          <details><summary>کدام فرمت خروجی بهتر است؟</summary><p>برای وب و مستندات SVG، برای اشتراک سریع PNG و برای چاپ یا ارائه PDF انتخاب‌های مناسب‌تری هستند.</p></details>
         </div>
       </section>
 
       <section class="final-cta section-shell">
         <div>
-          <span>آماده‌ای؟</span>
-          <h2>اولین نمودارت را همین حالا بساز.</h2>
-          <p>بدون ثبت‌نام، بدون نصب و بدون محدودیت برای شروع.</p>
+          <p class="section-kicker">یک نمودار واقعی بساز</p>
+          <h2>از یک قالب شروع کن؛ بعد آن را مال خودت کن.</h2>
         </div>
-        <a class="button button-primary" href="/editor">باز کردن ادیتور <span aria-hidden="true">←</span></a>
+        <div class="final-actions"><a class="button button-primary" href="/editor">بازکردن ادیتور</a><a class="text-link" href="/templates">دیدن قالب‌ها</a></div>
       </section>
     </main>
 
     <footer class="site-footer section-shell">
-      <div>
-        <strong>Mermaid Studio</strong>
-        <span>ساخته‌شده برای توسعه‌دهندگان، دانشجویان و تیم‌های فارسی‌زبان.</span>
-      </div>
-      <nav aria-label="پیوندهای پایین صفحه">
-        <a href="/learn">آموزش فارسی</a>
-        <a href="/privacy.html">حریم خصوصی</a>
-        <a href="/terms.html">شرایط استفاده</a>
-        <a href="https://github.com/Emad211/mermaid-studio" target="_blank" rel="noreferrer">کد منبع</a>
-      </nav>
-      <small>نسخه <span id="app-version">—</span> · انتشار با مجوز MIT</small>
+      <div class="footer-brand"><strong>نمودارا</strong><span>ابزار فارسی و رایگان ساخت نمودار با Mermaid</span><small>nemodara.ir</small></div>
+      <nav aria-label="پیوندهای پایین صفحه"><a href="/learn">آموزش</a><a href="/templates">قالب‌ها</a><a href="/privacy">حریم خصوصی</a><a href="/terms">شرایط استفاده</a></nav>
+      <div class="footer-meta"><a href="https://github.com/Emad211/mermaid-studio" target="_blank" rel="noreferrer">کد منبع در GitHub</a><small>نسخه <span id="app-version">—</span> · مجوز MIT</small></div>
     </footer>
 
     <div id="copy-toast" class="copy-toast" role="status" aria-live="polite">نمونه کد کپی شد</div>

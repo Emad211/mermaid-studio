@@ -1,18 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
-  <title id="title">Mermaid Studio</title>
-  <desc id="desc">نشان Mermaid Studio</desc>
-  <defs>
-    <linearGradient id="bg" x1="8" y1="6" x2="57" y2="60" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#9f6df3"/>
-      <stop offset="0.55" stop-color="#d763d4"/>
-      <stop offset="1" stop-color="#ff668e"/>
-    </linearGradient>
-    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
-      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#7d3fc0" flood-opacity="0.28"/>
-    </filter>
-  </defs>
-  <rect x="4" y="4" width="56" height="56" rx="17" fill="url(#bg)" filter="url(#shadow)"/>
-  <path d="M15 43V21.5l9 11 8-11v21.5" fill="none" stroke="#fff" stroke-width="4.7" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M40 22c5.8 0 9 3.2 9 8 0 7-9 7.2-9 13" fill="none" stroke="#fff" stroke-width="4.7" stroke-linecap="round"/>
-  <circle cx="40" cy="49" r="2.7" fill="#fff"/>
+  <title id="title">نمودارا</title>
+  <desc id="desc">نشان مینیمال نمودارا با گره‌های متصل</desc>
+  <rect x="3" y="3" width="58" height="58" rx="17" fill="#111411"/>
+  <path d="M18 43V21l14 22V21l14 22V21" fill="none" stroke="#F5F3ED" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="18" cy="21" r="4.5" fill="#8FC9AE"/>
+  <circle cx="32" cy="43" r="4.5" fill="#F5F3ED"/>
+  <circle cx="46" cy="21" r="4.5" fill="#D85938"/>
 </svg>
