@@ -121,12 +121,16 @@
     if (translated !== current) element.textContent = translated;
   }
 
+  function setText(element, value) {
+    if (element.textContent !== value) element.textContent = value;
+  }
+
   function translateSelect() {
     const select = document.getElementById('examples-select');
     if (!select) return;
     for (const option of select.options) {
-      if (!option.value) option.textContent = 'نمونه‌ها…';
-      else if (exampleLabels[option.value]) option.textContent = exampleLabels[option.value];
+      if (!option.value) setText(option, 'نمونه‌ها…');
+      else if (exampleLabels[option.value]) setText(option, exampleLabels[option.value]);
     }
   }
 
@@ -134,14 +138,14 @@
     const theme = document.getElementById('theme-select');
     if (theme) {
       for (const option of theme.options) {
-        if (themeLabels[option.value]) option.textContent = themeLabels[option.value];
+        if (themeLabels[option.value]) setText(option, themeLabels[option.value]);
       }
     }
 
     const layout = document.getElementById('layout-select');
     if (layout) {
       for (const option of layout.options) {
-        if (layoutLabels[option.value]) option.textContent = layoutLabels[option.value];
+        if (layoutLabels[option.value]) setText(option, layoutLabels[option.value]);
       }
     }
   }

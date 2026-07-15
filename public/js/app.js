@@ -9,6 +9,8 @@ const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
 
 const STORE_KEY = 'mstudio:v2';
+const MAX_STORED_CODE_LENGTH = 100_000;
+const MAX_STORED_SETTINGS_LENGTH = 50_000;
 const FALLBACK_DIAGRAM = `flowchart TD
     A[شروع] --> B{همه‌چیز درست است؟}
     B -- بله --> C[انتشار نمودار 🚀]
@@ -103,7 +105,12 @@ function faNumber(value) {
 
 function loadStoredState() {
   try {
-    return JSON.parse(localStorage.getItem(STORE_KEY)) || null;
+    const stored = JSON.parse(localStorage.getItem(STORE_KEY));
+    if (!stored || typeof stored !== 'object' || Array.isArray(stored)) return null;
+    if (typeof stored.code !== 'string' || stored.code.length > MAX_STORED_CODE_LENGTH) return null;
+    if (typeof stored.config === 'string' && stored.config.length > MAX_STORED_SETTINGS_LENGTH) return null;
+    if (typeof stored.css === 'string' && stored.css.length > MAX_STORED_SETTINGS_LENGTH) return null;
+    return stored;
   } catch {
     return null;
   }

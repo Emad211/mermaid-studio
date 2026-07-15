@@ -106,7 +106,8 @@ function inlineScriptHashes(html) {
   const pattern = /<script\b(?![^>]*\bsrc\s*=)[^>]*>([\s\S]*?)<\/script>/gi;
   let match;
   while ((match = pattern.exec(html))) {
-    const body = match[1];
+    // HTML parsing normalizes CRLF/CR line endings before CSP hash checks.
+    const body = match[1].replace(/\r\n?/g, '\n');
     if (!body.trim()) continue;
     hashes.push(`'sha256-${crypto.createHash('sha256').update(body).digest('base64')}'`);
   }
