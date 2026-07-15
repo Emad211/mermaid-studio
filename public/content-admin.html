@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="fa" dir="rtl" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow,noarchive" />
+    <meta name="theme-color" content="#080b13" />
+    <title>عملیات محتوا | نمودارا</title>
+    <link rel="icon" href="/logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/css/analytics.css?v=%V%" />
+    <link rel="stylesheet" href="/css/content-admin.css?v=%V%" />
+  </head>
+  <body>
+    <div class="admin-layout">
+      <aside class="admin-sidebar">
+        <a class="admin-brand" href="/" aria-label="صفحه اصلی نمودارا"><img src="/logo.svg" width="44" height="44" alt="" /><span><strong>نمودارا</strong><small>عملیات محتوا</small></span></a>
+        <nav class="admin-nav" aria-label="بخش‌های مدیریت">
+          <a class="admin-nav-item" href="/admin/analytics#overview"><span>⌁</span><b>مرکز رشد</b><small>ترافیک، محصول و هشدار</small></a>
+          <a class="admin-nav-item" href="/admin/analytics#revenue"><span>﷼</span><b>درآمد</b><small>RPM و جایگاه‌ها</small></a>
+          <a class="admin-nav-item is-active" href="/admin/content"><span>✎</span><b>محتوا</b><small>Brief، تقویم و عملکرد</small></a>
+          <a class="admin-nav-item" href="/admin/analytics#seo"><span>⌕</span><b>Search Console</b><small>Query و فرصت رتبه</small></a>
+          <a class="admin-nav-item" href="/admin/analytics#audit"><span>✓</span><b>ممیزی فنی</b><small>Canonical و Crawl</small></a>
+        </nav>
+        <div class="sidebar-health"><span class="health-dot" id="content-health-dot"></span><div><strong id="content-health-title">در حال دریافت داده…</strong><small id="content-health-note">موجودی و برنامهٔ تحریریه</small></div></div>
+        <div class="sidebar-links"><a href="/articles" target="_blank" rel="noopener">مقاله‌ها</a><a href="/learn" target="_blank" rel="noopener">آموزش‌ها</a></div>
+      </aside>
+
+      <main class="admin-main content-admin-main">
+        <header class="admin-topbar">
+          <button class="sidebar-toggle" id="sidebar-toggle" type="button" aria-label="نمایش منو">☰</button>
+          <div class="range-controls"><label>بازه<select id="content-range"><option value="30">۳۰ روز</option><option value="90" selected>۹۰ روز</option><option value="180">۱۸۰ روز</option><option value="365">یک سال</option></select></label></div>
+          <button id="refresh-content" class="a-button" type="button">به‌روزرسانی</button>
+          <button id="new-brief" class="a-button secondary" type="button">Brief جدید</button>
+        </header>
+
+        <section class="admin-hero content-admin-hero">
+          <div><span class="hero-kicker">Editorial Operations</span><h1>از دادهٔ جست‌وجو تا برنامهٔ انتشار</h1><p>این پنل به‌جای تولید انبوه عنوان، کمک می‌کند موضوع درست را انتخاب کنی، زاویه و هدف را روشن بنویسی، مسئولیت و موعد داشته باشی و بعد از انتشار نتیجه را ببینی.</p></div>
+          <div id="content-status" class="analytics-status">در حال تحلیل…</div>
+        </section>
+
+        <section class="kpi-grid kpi-grid--6">
+          <article class="kpi-card" data-tone="blue"><span>صفحهٔ محتوایی</span><strong id="content-total">—</strong><small>آموزش و مقالهٔ منتشرشده</small></article>
+          <article class="kpi-card" data-tone="yellow"><span>نیازمند بازبینی</span><strong id="content-stale">—</strong><small>قدیمی، کم‌تعامل یا کم‌عمق</small></article>
+          <article class="kpi-card" data-tone="violet"><span>Brief فعال</span><strong id="brief-active">—</strong><small>از تحقیق تا بازبینی</small></article>
+          <article class="kpi-card" data-tone="pink"><span>موعد نزدیک</span><strong id="brief-due">—</strong><small>۷ روز آینده یا عقب‌افتاده</small></article>
+          <article class="kpi-card" data-tone="cyan"><span>فرصت Search</span><strong id="content-opportunities">—</strong><small>CTR، رتبه یا شکاف محتوا</small></article>
+          <article class="kpi-card" data-tone="green"><span>کلیک بالقوه</span><strong id="content-potential-clicks">—</strong><small>برآورد محافظه‌کارانه از CTR</small></article>
+        </section>
+
+        <section class="dashboard-grid">
+          <article class="panel span-12">
+            <div class="panel-head"><div><h2>خط تولید محتوا</h2><p>هر کارت باید یک سؤال، مخاطب، زاویه و معیار موفقیت روشن داشته باشد.</p></div><div class="pipeline-filters"><select id="brief-type-filter"><option value="all">همهٔ نوع‌ها</option><option value="tutorial">آموزش</option><option value="article">مقاله</option><option value="landing">لندینگ</option><option value="update">به‌روزرسانی</option></select><select id="brief-owner-filter"><option value="all">همهٔ مسئول‌ها</option></select></div></div>
+            <div id="brief-board" class="brief-board" aria-label="برد محتوایی"></div>
+          </article>
+
+          <article class="panel span-5" id="brief-editor-panel">
+            <div class="panel-head"><div><h2 id="brief-form-title">Brief محتوا</h2><p>اطلاعاتی بنویس که نویسنده بدون حدس‌زدن بتواند کار را شروع کند.</p></div><button id="clear-brief" class="text-button" type="button">پاک‌کردن فرم</button></div>
+            <form id="brief-form">
+              <input type="hidden" name="id" />
+              <div class="form-grid content-form-grid">
+                <label class="wide">عنوان کاری<input name="title" maxlength="180" required placeholder="مثلاً: انتخاب نمودار مناسب برای مستند API" /></label>
+                <label>نوع<select name="contentType"><option value="tutorial">آموزش</option><option value="article">مقاله</option><option value="landing">لندینگ</option><option value="update">به‌روزرسانی</option></select></label>
+                <label>وضعیت<select name="status"><option value="idea">ایده</option><option value="research">تحقیق</option><option value="writing">نوشتن</option><option value="review">بازبینی</option><option value="scheduled">آمادهٔ انتشار</option><option value="published">منتشرشده</option><option value="archived">بایگانی</option></select></label>
+                <label>اولویت<select name="priority"><option value="1">۱ — فوری</option><option value="2">۲ — بالا</option><option value="3" selected>۳ — عادی</option><option value="4">۴ — پایین</option><option value="5">۵ — پارک‌شده</option></select></label>
+                <label>مسئول<input name="owner" maxlength="80" placeholder="تحریریه نمودارا" /></label>
+                <label>موعد<input name="dueDate" type="date" /></label>
+                <label>خوشه<input name="cluster" maxlength="100" placeholder="Mermaid / مستندسازی" /></label>
+                <label class="wide">Query اصلی<input name="targetQuery" maxlength="180" dir="auto" /></label>
+                <label>Intent<select name="searchIntent"><option value="informational">آموزشی</option><option value="problem-solving">رفع مسئله</option><option value="comparison">مقایسه</option><option value="tool">استفاده از ابزار</option><option value="navigational">ناوبری</option></select></label>
+                <label>URL هدف<input name="targetUrl" maxlength="240" dir="ltr" placeholder="/articles/..." /></label>
+                <label class="wide">مسئله و زاویه<textarea name="angle" maxlength="1200" required placeholder="خواننده دقیقاً چه تصمیم یا کاری را باید بعد از این محتوا انجام دهد؟"></textarea></label>
+                <label class="wide">ساختار پیشنهادی<textarea name="outline" maxlength="3000" placeholder="۱. مسئله\n۲. مثال واقعی\n۳. محدودیت‌ها\n۴. تمرین یا چک‌لیست"></textarea></label>
+                <label class="wide">معیار موفقیت<textarea name="successMetric" maxlength="800" placeholder="مثلاً CTR بهتر، ورود به ادیتور، تکمیل تمرین یا رتبه برای Query مشخص"></textarea></label>
+                <label class="wide">یادداشت<textarea name="notes" maxlength="2000"></textarea></label>
+              </div>
+              <div class="form-actions"><button class="a-button" type="submit">ذخیره Brief</button><button id="delete-brief" class="a-button danger" type="button" hidden>حذف</button><span id="brief-message" class="form-message"></span></div>
+            </form>
+          </article>
+
+          <article class="panel span-7">
+            <div class="panel-head"><div><h2>فرصت‌های قابل تبدیل به Brief</h2><p>از Impression و رفتار صفحه استفاده کن؛ نه فقط از یک فهرست کلمهٔ کلیدی.</p></div><select id="opportunity-filter"><option value="all">همهٔ فرصت‌ها</option><option value="ctr">CTR پایین</option><option value="striking">فاصله تا رتبهٔ بهتر</option><option value="gap">شکاف محتوا</option></select></div>
+            <div class="table-wrap table-wrap--large"><table><thead><tr><th>Query</th><th>نوع فرصت</th><th>نمایش</th><th>کلیک</th><th>CTR</th><th>جایگاه</th><th>پتانسیل</th><th></th></tr></thead><tbody id="opportunity-table"></tbody></table></div>
+          </article>
+
+          <article class="panel span-12">
+            <div class="panel-head"><div><h2>موجودی و سلامت محتوا</h2><p>محتوای قدیمی الزاماً بد نیست؛ اول عملکرد، تغییر محصول و قصد جست‌وجو را بررسی کن.</p></div><div class="pipeline-filters"><input id="inventory-search" type="search" placeholder="جست‌وجوی عنوان یا مسیر" /><select id="inventory-type"><option value="all">همه</option><option value="tutorial">آموزش</option><option value="article">مقاله</option></select></div></div>
+            <div class="table-wrap table-wrap--large"><table><thead><tr><th>صفحه</th><th>نوع</th><th>آخرین بازبینی</th><th>واژه</th><th>بازدید</th><th>تعامل</th><th>ورود به ادیتور</th><th>کلیک Search</th><th>جایگاه</th><th>وضعیت</th><th>اقدام</th></tr></thead><tbody id="inventory-table"></tbody></table></div>
+          </article>
+
+          <article class="panel span-6">
+            <div class="panel-head"><div><h2>تقویم نزدیک</h2><p>موعدها و کارهای عقب‌افتاده به ترتیب زمان</p></div></div>
+            <div id="editorial-calendar" class="editorial-calendar"></div>
+          </article>
+          <article class="panel span-6">
+            <div class="panel-head"><div><h2>کنترل کیفیت پیش از انتشار</h2><p>برای هر محتوا، این پرسش‌ها باید پاسخ روشن داشته باشند.</p></div></div>
+            <ol class="quality-list"><li><strong>مسئله:</strong> آیا عنوان و مقدمه یک نیاز واقعی را دقیق بیان می‌کنند؟</li><li><strong>تجربه:</strong> آیا مثال، تست یا مشاهده‌ای فراتر از بازنویسی منابع وجود دارد؟</li><li><strong>مرز:</strong> آیا مواردی که این روش جواب نمی‌دهد نوشته شده‌اند؟</li><li><strong>اجرا:</strong> آیا کدها رندر و لینک‌های داخلی بررسی شده‌اند؟</li><li><strong>مسئولیت:</strong> آیا نویسنده، تاریخ و دلیل به‌روزرسانی روشن‌اند؟</li><li><strong>نتیجه:</strong> آیا خواننده می‌داند قدم بعدی چیست؟</li></ol>
+          </article>
+        </section>
+      </main>
+    </div>
+    <div id="content-toast" class="admin-toast" role="status" aria-live="polite"></div>
+    <script type="module" src="/js/content-admin.js?v=%V%"></script>
+  </body>
+</html>
