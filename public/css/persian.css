@@ -52,7 +52,6 @@ select {
 #editor,
 .CodeMirror,
 .code-input,
-#preview-error-text,
 pre,
 code,
 kbd,
@@ -93,11 +92,6 @@ kbd,
 .dims {
   left: 14px;
   right: auto;
-}
-
-.preview-error-card {
-  border-left-width: 1px;
-  border-right-width: 4px;
 }
 
 .modal-head,

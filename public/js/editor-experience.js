@@ -4,33 +4,38 @@ const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 const SNIPPETS = [
   {
     id: 'flowchart',
-    title: 'درج فلوچارت پایه',
+    title: 'شروع فلوچارت پایه',
     keywords: 'flowchart فرایند شرط',
+    mode: 'replace',
     code: `flowchart TD\n  A[شروع] --> B{شرط؟}\n  B -- بله --> C[مرحله بعد]\n  B -- خیر --> D[بازبینی]`,
   },
   {
     id: 'sequence',
-    title: 'درج Sequence Diagram',
+    title: 'شروع Sequence Diagram',
     keywords: 'sequence api پیام',
+    mode: 'replace',
     code: `sequenceDiagram\n  actor U as کاربر\n  participant W as وب‌اپ\n  participant A as API\n  U->>W: ثبت درخواست\n  W->>A: POST /requests\n  A-->>W: 201 Created\n  W-->>U: نمایش نتیجه`,
   },
   {
     id: 'subgraph',
-    title: 'درج Subgraph',
+    title: 'شروع فلوچارت Subgraph',
     keywords: 'subgraph گروه مرز',
-    code: `subgraph Service[سرویس]\n  API[API] --> DB[(Database)]\nend`,
+    mode: 'replace',
+    code: `flowchart LR\n  Client[کاربر] --> API\n  subgraph Service[سرویس]\n    API[API] --> DB[(Database)]\n  end`,
   },
   {
     id: 'er',
-    title: 'درج ER Diagram',
+    title: 'شروع ER Diagram',
     keywords: 'erd database دیتابیس',
+    mode: 'replace',
     code: `erDiagram\n  USER ||--o{ ORDER : places\n  USER {\n    int id PK\n    string email\n  }\n  ORDER {\n    int id PK\n    int user_id FK\n  }`,
   },
   {
     id: 'classdef',
-    title: 'درج استایل classDef',
+    title: 'شروع فلوچارت استایل‌دار',
     keywords: 'style classdef رنگ',
-    code: `classDef accent fill:#e9f4ee,stroke:#1f5b43,color:#183d2f\nclass A accent`,
+    mode: 'replace',
+    code: `flowchart TD\n  A[مرحله مهم] --> B[ادامه]\n  classDef accent fill:#e9f4ee,stroke:#1f5b43,color:#183d2f\n  class A accent`,
   },
   {
     id: 'comment',
@@ -61,10 +66,10 @@ function commands() {
     ...SNIPPETS.map((snippet) => ({
       id: `snippet-${snippet.id}`,
       title: snippet.title,
-      hint: 'قطعه‌کد قابل ویرایش',
+      hint: snippet.mode === 'replace' ? 'ساخت یک نمودار کامل و قابل ویرایش' : 'درج در محل نشانگر',
       keys: '+',
       search: snippet.keywords,
-      run: () => api?.insert?.(snippet.code),
+      run: () => snippet.mode === 'replace' ? api?.setCode?.(snippet.code) : api?.insert?.(snippet.code),
     })),
   ];
 }

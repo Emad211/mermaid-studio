@@ -107,6 +107,7 @@ export function createEditor(textarea, { onChange, value = '' } = {}) {
     getValue: () => textarea.value,
     setValue: (v) => {
       textarea.value = v;
+      textarea.dispatchEvent(new Event('input', { bubbles: true }));
     },
     replaceSelection: (v) => {
       const start = textarea.selectionStart;

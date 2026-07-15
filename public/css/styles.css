@@ -487,45 +487,6 @@ input:focus {
   pointer-events: none;
 }
 
-.preview-error {
-  position: absolute;
-  inset: 0;
-  display: none;
-  align-items: flex-end;
-  justify-content: center;
-  padding: 18px;
-  pointer-events: none;
-}
-.preview-error.show {
-  display: flex;
-}
-.preview-error-card {
-  background: var(--panel);
-  border: 1px solid var(--error);
-  border-left-width: 4px;
-  border-radius: var(--radius);
-  padding: 12px 16px;
-  max-width: 90%;
-  box-shadow: var(--shadow);
-  pointer-events: auto;
-}
-.preview-error-title {
-  color: var(--error);
-  font-weight: 700;
-  margin-bottom: 6px;
-  font-size: 13px;
-}
-.preview-error pre {
-  margin: 0;
-  white-space: pre-wrap;
-  word-break: break-word;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--text);
-  max-height: 160px;
-  overflow: auto;
-}
-
 /* --------------------------------------------------------- toast */
 
 .toast {

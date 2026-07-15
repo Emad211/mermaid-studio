@@ -9,6 +9,7 @@ import { sanitizeCssText } from '/js/svg-safety.js';
 let counter = 0;
 let iconPacksRegistered = false;
 let elkRegistered = false;
+let operationQueue = Promise.resolve();
 
 export const ICON_PACKS = ['logos', 'mdi', 'fa6-solid', 'fa6-brands'];
 
@@ -85,38 +86,57 @@ function injectCss(svgText, css) {
   return new XMLSerializer().serializeToString(documentNode.documentElement);
 }
 
+function enqueueOperation(operation) {
+  const result = operationQueue.then(operation, operation);
+  operationQueue = result.catch(() => {});
+  return result;
+}
+
+function removeTemporaryRenderNodes(id) {
+  [id, `d${id}`, `i${id}`].forEach((candidate) => document.getElementById(candidate)?.remove());
+}
+
 export async function renderToSvg(code, { theme = 'default', config = {}, layout, css = '' } = {}) {
-  registerIconPacks();
+  return enqueueOperation(async () => {
+    registerIconPacks();
 
-  if (wantsElk(config, layout)) {
-    try {
-      await registerElk();
-    } catch (error) {
-      console.warn('ELK layout unavailable; falling back to the default layout:', error);
+    if (wantsElk(config, layout)) {
+      try {
+        await registerElk();
+      } catch (error) {
+        console.warn('ELK layout unavailable; falling back to the default layout:', error);
+      }
     }
-  }
 
-  const merged = safeConfig(config, theme, layout);
-  mermaid.initialize(merged);
-  const id = `mstudio-${Date.now().toString(36)}-${++counter}`;
-  const { svg } = await mermaid.render(id, String(code || ''));
-  return injectCss(svg, css);
+    const merged = safeConfig(config, theme, layout);
+    mermaid.initialize(merged);
+    const id = `mstudio-${Date.now().toString(36)}-${++counter}`;
+    try {
+      const { svg } = await mermaid.render(id, String(code || ''));
+      return injectCss(svg, css);
+    } finally {
+      // Mermaid leaves its error SVG under body when render() rejects.
+      removeTemporaryRenderNodes(id);
+    }
+  });
 }
 
 export async function validate(code, { theme = 'default' } = {}) {
-  try {
-    mermaid.initialize(safeConfig({}, theme));
-    await mermaid.parse(String(code || ''));
-    return { valid: true };
-  } catch (error) {
-    const message = error?.message || String(error);
-    const lineMatch = /line\s+(\d+)/i.exec(message);
-    return {
-      valid: false,
-      message,
-      line: lineMatch ? Number(lineMatch[1]) : null,
-    };
-  }
+  return enqueueOperation(async () => {
+    try {
+      mermaid.initialize(safeConfig({}, theme));
+      await mermaid.parse(String(code || ''));
+      return { valid: true };
+    } catch (error) {
+      const message = error?.message || String(error);
+      const lineMatch = /line\s+(\d+)/i.exec(message);
+      return {
+        valid: false,
+        message,
+        line: lineMatch ? Number(lineMatch[1]) : null,
+      };
+    }
+  });
 }
 
 export function detectType(code) {

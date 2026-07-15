@@ -181,13 +181,7 @@ function showError(error) {
   const raw = error?.message || String(error || '');
   const line = Number(/line\s+(\d+)/i.exec(raw)?.[1] || /line:\s*(\d+)/i.exec(raw)?.[1] || 0);
   const message = friendlyError(error);
-  $('#preview-error-text').textContent = message;
-  $('#preview-error').classList.add('show');
   window.dispatchEvent(new CustomEvent('nemodara:diagnostic', { detail: { ok: false, line, raw, message, summary: line ? `خط ${faNumber(line)} و خط قبل را بررسی کن.` : 'ساختار این بخش با سینتکس Mermaid هماهنگ نیست.' } }));
-}
-
-function hideError() {
-  $('#preview-error').classList.remove('show');
 }
 
 function enableExports(enabled) {
@@ -211,7 +205,6 @@ async function render() {
     currentSvgEl = null;
     $('#dims').textContent = '';
     setStatus('کد نمودار خالی است', 'muted');
-    hideError();
     window.dispatchEvent(new CustomEvent('nemodara:diagnostic', { detail: { ok: true, type: '', elapsed: 0 } }));
     enableExports(false);
     return;
@@ -240,7 +233,6 @@ async function render() {
     currentSvgEl.setAttribute('role', 'img');
     currentSvgEl.setAttribute('aria-label', `پیش‌نمایش ${TYPE_LABELS[detected] || 'نمودار'}`);
 
-    hideError();
     const elapsed = Math.round(performance.now() - startedAt);
     const rect = currentSvgEl.getBoundingClientRect();
     setStatus(`آماده در ${faNumber(elapsed)} میلی‌ثانیه`, 'ok');
@@ -316,7 +308,7 @@ function setupPanZoom() {
   let startY = 0;
 
   preview.addEventListener('pointerdown', (event) => {
-    if (event.target.closest('.zoom-controls, .preview-tools, .preview-error-card')) return;
+    if (event.target.closest('.zoom-controls, .preview-tools')) return;
     dragging = true;
     startX = event.clientX - view.tx;
     startY = event.clientY - view.ty;
@@ -440,7 +432,6 @@ function loadFileText(text, name) {
   editor.setValue(text);
   const safeName = String(name || 'untitled.mmd').replace(/[^A-Za-z0-9._-]/g, '-').slice(0, 100) || 'untitled.mmd';
   $('#document-name').textContent = safeName;
-  render();
   toast(`فایل «${name}» باز شد.`, 'ok');
 }
 
@@ -575,7 +566,6 @@ async function init() {
     const option = event.target.selectedOptions[0];
     if (option?.dataset.code) {
       editor.setValue(option.dataset.code);
-      render();
       toast(`نمونهٔ «${option.textContent}» بارگذاری شد.`, 'ok');
     }
     event.target.value = '';
@@ -598,7 +588,6 @@ async function init() {
     if (editor.getValue().trim() && !confirm('کد فعلی پاک شود و یک نمودار جدید بسازیم؟')) return;
     editor.setValue('');
     $('#document-name').textContent = 'untitled.mmd';
-    render();
     editor.focus();
   });
   $('#btn-open').addEventListener('click', openFile);
@@ -786,12 +775,11 @@ async function init() {
     const current = editor.getValue();
     const prefix = current && !current.endsWith('\n') ? '\n' : '';
     editor.replaceSelection(`${prefix}${String(code || '')}\n`);
-    render();
     editor.focus();
   }
   window.nemodaraEditor = Object.freeze({
     getCode: () => editor.getValue(),
-    setCode: (code) => { editor.setValue(String(code || '')); render(); },
+    setCode: (code) => editor.setValue(String(code || '')),
     insert: insertCode,
     focus: () => editor.focus(),
     refresh: () => editor.refresh?.(),

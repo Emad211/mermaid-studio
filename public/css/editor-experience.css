@@ -104,7 +104,6 @@ select, input[type="number"] { padding: 6px 9px; }
 .command-empty { padding: 30px; color: var(--muted); text-align: center; font-size: 11px; }
 
 .preview-tools, .zoom-controls, .dims { backdrop-filter: blur(12px); }
-.preview-error-card { border-inline-start-width: 4px; border-inline-start-color: var(--error); border-left-width: 1px; }
 
 @media (max-width: 1100px) {
   .toolbar-group.view-actions .field:nth-child(3),
