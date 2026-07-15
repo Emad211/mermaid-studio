@@ -735,7 +735,7 @@ async function init() {
     if (state.autofit) requestAnimationFrame(fit);
   });
 
-  $('#btn-help').addEventListener('click', () => $('#help-modal').classList.add('show'));
+  $('#btn-help')?.addEventListener('click', () => $('#help-modal').classList.add('show'));
   $('#help-cancel').addEventListener('click', () => closeModal('#help-modal'));
   $('#help-modal').addEventListener('click', (event) => {
     if (event.target.id === 'help-modal') closeModal('#help-modal');
@@ -764,8 +764,6 @@ async function init() {
       closeModal('#help-modal');
       $('#drawer').classList.remove('open');
       if (document.fullscreenElement) document.exitFullscreen?.();
-    } else if (!modifier && event.key === '?' && event.target === document.body) {
-      $('#help-modal').classList.add('show');
     } else if (!modifier && key === 'f' && event.target === document.body) {
       toggleFullscreen();
     }

@@ -34,14 +34,17 @@
   gap: 12px;
   padding: 8px 12px;
   border-color: color-mix(in srgb, var(--border) 90%, transparent);
+  flex-wrap: nowrap;
 }
 .brand .logo { filter: drop-shadow(0 3px 8px rgba(31,91,67,.22)); }
 .brand-text strong { font-size: 14px; }
 .brand-text small { font-size: 10px; }
-.toolbar-group { gap: 7px; }
+.toolbar-group { gap: 7px; flex-wrap: nowrap; }
 .toolbar-group.file-actions { padding-inline-start: 10px; border-inline-start: 1px solid var(--border); }
-.toolbar-group.view-actions { flex: 1; justify-content: center; }
+.toolbar-group.view-actions { min-width: 0; flex: 1 1 auto; justify-content: center; }
 .toolbar-group.right { gap: 6px; }
+.sample-picker { display: inline-flex; min-width: 0; }
+.sample-picker select { width: 120px; height: 34px; padding-block: 0; font-weight: 600; }
 .field > span { letter-spacing: 0; text-transform: none; font-size: 9px; }
 select, input[type="number"] { padding: 6px 9px; }
 .btn { padding: 8px 13px; }
@@ -106,9 +109,23 @@ select, input[type="number"] { padding: 6px 9px; }
 .preview-tools, .zoom-controls, .dims { backdrop-filter: blur(12px); }
 
 @media (max-width: 1100px) {
-  .toolbar-group.view-actions .field:nth-child(3),
-  .toolbar-group.view-actions .field:nth-child(4) { display: none; }
+  .toolbar-group.view-actions .field:nth-child(3) { display: none; }
   .brand-text small { display: none; }
+}
+
+@media (max-width: 1380px) {
+  .export-actions #btn-svg,
+  .export-actions #btn-png,
+  .export-actions #btn-copy { display: none; }
+}
+
+@media (max-width: 1080px) {
+  .file-actions #btn-share { display: none; }
+}
+
+@media (max-width: 940px) {
+  .file-actions #btn-open,
+  .file-actions #btn-save { display: none; }
 }
 
 @media (max-width: 820px) {
@@ -118,8 +135,9 @@ select, input[type="number"] { padding: 6px 9px; }
   .toolbar-group.view-actions { display: none; }
   .toolbar-group.file-actions { margin-inline-start: 0; padding-inline-start: 0; border: 0; }
   .toolbar-group.file-actions .icon-btn.wide:not(#btn-new) { display: none; }
+  .sample-picker { display: none; }
   .toolbar-group.right { margin-inline-start: auto; flex-wrap: nowrap; }
-  .toolbar-group.right .btn.ghost, #btn-help { display: none; }
+  .toolbar-group.right .btn.ghost { display: none; }
   .icon-btn.command-trigger { min-width: 42px; width: 42px; padding: 0; }
   .icon-btn.command-trigger span { display: none; }
   .icon-btn.command-trigger kbd { margin: 0; border: 0; background: transparent; }

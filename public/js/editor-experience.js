@@ -63,6 +63,7 @@ function commands() {
     { id: 'fit', title: 'جا دادن نمودار در قاب', hint: 'تنظیم Zoom و موقعیت', keys: 'Ctrl 0', run: () => api?.fit?.() },
     { id: 'settings', title: 'بازکردن تنظیمات Mermaid و CSS', hint: 'Config و CSS اختصاصی', keys: '', run: () => $('#btn-settings')?.click() },
     { id: 'theme', title: 'تغییر پوستهٔ رابط', hint: 'روشن یا تیره', keys: '', run: () => $('#app-theme-toggle')?.click() },
+    { id: 'help', title: 'نمایش راهنمای میانبرها', hint: 'فهرست کلیدهای سریع ادیتور', keys: '', run: () => $('#help-modal')?.classList.add('show') },
     ...SNIPPETS.map((snippet) => ({
       id: `snippet-${snippet.id}`,
       title: snippet.title,

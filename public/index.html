@@ -26,6 +26,9 @@
 
       <div class="toolbar-group file-actions">
         <button id="btn-new" class="icon-btn wide" title="ساخت نمودار جدید">جدید</button>
+        <label class="sample-picker">
+          <select id="examples-select" title="بارگذاری یک نمونه" aria-label="بارگذاری نمونه آماده"></select>
+        </label>
         <button id="btn-open" class="icon-btn wide" title="باز کردن فایل .mmd یا Markdown">باز کردن</button>
         <button id="btn-save" class="icon-btn wide" title="ذخیره کد به صورت فایل .mmd">ذخیره</button>
         <button id="btn-share" class="icon-btn wide" title="کپی لینک اشتراک‌گذاری">اشتراک‌گذاری</button>
@@ -42,7 +45,6 @@
             <button class="seg" data-bg="dark" title="تیره">◼</button>
           </div>
         </div>
-        <label class="field"><span>نمونه آماده</span><select id="examples-select" title="بارگذاری یک نمونه"></select></label>
       </div>
       <div class="toolbar-group right export-actions">
         <button id="btn-settings" class="icon-btn" title="تنظیمات Mermaid و CSS">⚙</button>
@@ -50,7 +52,6 @@
         <button id="btn-svg" class="btn ghost" title="دانلود سریع SVG">SVG</button>
         <button id="btn-png" class="btn ghost" title="دانلود سریع PNG">PNG</button>
         <button id="btn-copy" class="btn ghost" title="کپی کد SVG">کپی</button>
-        <button id="btn-help" class="icon-btn" title="راهنمای میانبرها">؟</button>
         <button id="app-theme-toggle" class="icon-btn" title="تغییر پوسته رابط">☾</button>
       </div>
     </header>
@@ -183,7 +184,6 @@
           <div><kbd>Ctrl/⌘</kbd>+<kbd>Shift</kbd>+<kbd>K</kbd><span>کپی لینک اشتراک‌گذاری</span></div>
           <div><kbd>Ctrl/⌘</kbd>+<kbd>0</kbd><span>تنظیم اندازه نمودار</span></div>
           <div><kbd>F</kbd><span>پیش‌نمایش تمام‌صفحه</span></div>
-          <div><kbd>?</kbd><span>نمایش این راهنما</span></div>
           <div><kbd>Esc</kbd><span>بستن پنجره یا تمام‌صفحه</span></div>
           <div><kbd>Scroll</kbd><span>بزرگ‌نمایی · <kbd>Drag</kbd> جابه‌جایی</span></div>
           <div><kbd>Tab</kbd><span>تورفتگی در ادیتور</span></div>

@@ -35,6 +35,26 @@ test('Nemodara editor exposes commands, diagnostics and a focused mobile workflo
   });
   assert.match(await page.title(), /نمودارا/);
   assert.equal(await page.$eval('#save-state', (node) => node.textContent.includes('ذخیره')), true);
+  await page.setViewport({ width: 1280, height: 900, deviceScaleFactor: 1 });
+  const toolbarLayout = await page.evaluate(() => {
+    const toolbar = document.querySelector('.toolbar');
+    const visibleItems = [...toolbar.children].filter((node) => getComputedStyle(node).display !== 'none');
+    const centers = visibleItems.map((node) => {
+      const rect = node.getBoundingClientRect();
+      return rect.top + (rect.height / 2);
+    });
+    return {
+      height: toolbar.getBoundingClientRect().height,
+      centerSpread: Math.max(...centers) - Math.min(...centers),
+      sampleInFileActions: document.querySelector('#examples-select')?.closest('.file-actions') !== null,
+      helpButtonVisible: Boolean(document.querySelector('#btn-help')),
+    };
+  });
+  assert.ok(toolbarLayout.height <= 82, `toolbar must stay on one row: ${JSON.stringify(toolbarLayout)}`);
+  assert.ok(toolbarLayout.centerSpread <= 2, `toolbar controls must share one row: ${JSON.stringify(toolbarLayout)}`);
+  assert.equal(toolbarLayout.sampleInFileActions, true);
+  assert.equal(toolbarLayout.helpButtonVisible, false);
+  await page.setViewport({ width: 1440, height: 960, deviceScaleFactor: 1 });
 
   await page.click('#btn-command');
   await page.waitForSelector('#command-modal.show');
@@ -43,6 +63,12 @@ test('Nemodara editor exposes commands, diagnostics and a focused mobile workflo
   await page.keyboard.press('Enter');
   await page.waitForFunction(() => window.nemodaraEditor.getCode().includes('sequenceDiagram'));
   assert.equal(await page.$eval('#command-modal', (node) => node.classList.contains('show')), false);
+
+  await page.click('#btn-command');
+  await page.type('#command-input', 'راهنمای میانبرها');
+  await page.keyboard.press('Enter');
+  await page.waitForSelector('#help-modal.show');
+  await page.click('#help-cancel');
 
   await page.evaluate(() => window.nemodaraEditor.setCode('flowchart TD\n  A[شروع --> B'));
   await page.waitForFunction(() => document.querySelector('#diagnostics-panel')?.classList.contains('has-error'), { timeout: 20_000 });
