@@ -1,0 +1,42 @@
+name: Import product growth foundation
+
+on:
+  push:
+    branches:
+      - agent/nemodara-product-growth-v3
+    paths:
+      - .github/workflows/import-product-growth-foundation.yml
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/nemodara-product-growth-v3
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Copy validated foundation from the previous branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin agent/nemodara-product-growth-v2
+          mkdir -p public/css src/server
+          for path in \
+            public/about.html \
+            public/content-admin.html \
+            public/css/articles.css \
+            public/editorial-policy.html \
+            src/server/article-content.js \
+            src/server/content-registry.js; do
+            git show origin/agent/nemodara-product-growth-v2:"$path" > "$path"
+          done
+          rm -f .github/workflows/import-product-growth-foundation.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Import magazine and content operations foundation"
+          git push origin HEAD:agent/nemodara-product-growth-v3
