@@ -1,3 +1,11 @@
+.section-heading { max-width: 720px; margin: 0 auto 42px; text-align: center; }
+.section-heading.align-right { margin-right: 0; text-align: right; }
+.section-heading h2 { margin: 8px 0 12px; font-size: clamp(30px, 4.2vw, 48px); line-height: 1.35; letter-spacing: -.04em; }
+.section-heading p { margin: 0; color: var(--muted); font-size: 14px; line-height: 2; }
+.page-glow { display: none; }
+.eyebrow { display: inline-flex; align-items: center; gap: 8px; }
+.eyebrow > span { width: 6px; height: 6px; display: inline-block; border-radius: 50%; background: var(--success); }
+
 .use-case-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--border); }
 .use-case-grid article { min-height: 310px; padding: 29px 29px 31px; display: flex; flex-direction: column; border-left: 1px solid var(--border); }
 .use-case-grid article:last-child { border-left: 0; }
