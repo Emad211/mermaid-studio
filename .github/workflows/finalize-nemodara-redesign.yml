@@ -85,15 +85,31 @@ jobs:
             -v nemodara-editorial-ci:/data/analytics \
             nemodara:editorial-ci
           trap 'docker logs nemodara-editorial-ci || true; docker rm -f nemodara-editorial-ci >/dev/null 2>&1 || true; docker volume rm nemodara-editorial-ci >/dev/null 2>&1 || true' EXIT
+
+          healthy=false
           for attempt in $(seq 1 100); do
-            if curl -fsS http://127.0.0.1:4321/api/health >/dev/null; then break; fi
+            if curl -fsS http://127.0.0.1:4321/api/health > /tmp/nemodara-health.json; then
+              healthy=true
+              break
+            fi
             sleep 1
           done
-          curl -fsS http://127.0.0.1:4321/ | grep -q 'نمودار خوب'
-          curl -fsS http://127.0.0.1:4321/learn | grep -q 'Mermaid را برای حل مسئله'
-          curl -fsS http://127.0.0.1:4321/learn/flowchart-mermaid | grep -q 'article-summary'
-          curl -fsS http://127.0.0.1:4321/learn/flowchart-mermaid | grep -q 'data-article-toc'
-          curl -fsS http://127.0.0.1:4321/sitemap.xml | grep -q 'https://nemodara.ir/learn/flowchart-mermaid'
+          if [ "$healthy" != true ]; then
+            echo 'Nemodara container did not become healthy.' >&2
+            exit 1
+          fi
+          grep -q '"ok":true' /tmp/nemodara-health.json
+
+          curl -fsS http://127.0.0.1:4321/ --output /tmp/nemodara-landing.html
+          curl -fsS http://127.0.0.1:4321/learn --output /tmp/nemodara-learn.html
+          curl -fsS http://127.0.0.1:4321/learn/flowchart-mermaid --output /tmp/nemodara-article.html
+          curl -fsS http://127.0.0.1:4321/sitemap.xml --output /tmp/nemodara-sitemap.xml
+          grep -q 'نمودار خوب' /tmp/nemodara-landing.html
+          grep -q 'Mermaid را برای حل مسئله' /tmp/nemodara-learn.html
+          grep -q 'article-summary' /tmp/nemodara-article.html
+          grep -q 'data-article-toc' /tmp/nemodara-article.html
+          grep -q 'https://nemodara.ir/learn/flowchart-mermaid' /tmp/nemodara-sitemap.xml
+
           curl -fsS -X POST http://127.0.0.1:4321/api/render \
             -H 'content-type: application/json' \
             --data '{"code":"flowchart TD; A-->B","format":"pdf"}' \
