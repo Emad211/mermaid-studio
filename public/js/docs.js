@@ -2,13 +2,14 @@ const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 const THEME_KEY = 'mstudio:site-theme';
 
-function setTheme(theme) {
-  document.documentElement.dataset.theme = theme;
-  localStorage.setItem(THEME_KEY, theme);
+function setTheme(theme, persist = true) {
+  const next = theme === 'dark' ? 'dark' : 'light';
+  document.documentElement.dataset.theme = next;
+  if (persist) localStorage.setItem(THEME_KEY, next);
   const button = $('#theme-toggle');
   if (button) {
-    button.textContent = theme === 'dark' ? '☾' : '☀';
-    button.setAttribute('aria-label', theme === 'dark' ? 'فعال کردن پوسته روشن' : 'فعال کردن پوسته تیره');
+    button.textContent = next === 'dark' ? '☾' : '☀';
+    button.setAttribute('aria-label', next === 'dark' ? 'فعال کردن پوسته روشن' : 'فعال کردن پوسته تیره');
   }
 }
 
@@ -19,14 +20,7 @@ function bytesToBase64Url(bytes) {
 }
 
 function editorUrlFor(code) {
-  const state = {
-    code,
-    theme: 'default',
-    layout: 'dagre',
-    background: 'white',
-    config: '',
-    css: '',
-  };
+  const state = { code, theme: 'default', layout: 'dagre', background: 'white', config: '', css: '' };
   const token = 'u:' + bytesToBase64Url(new TextEncoder().encode(JSON.stringify(state)));
   return `/editor#code=${encodeURIComponent(token)}`;
 }
@@ -36,19 +30,23 @@ function codeFor(button) {
   return id ? document.getElementById(id)?.textContent || '' : '';
 }
 
+function showCopyFeedback(button, message) {
+  const previous = button.textContent;
+  button.textContent = message;
+  setTimeout(() => { button.textContent = previous; }, 1600);
+}
+
 function setupExamples() {
   for (const button of $$('[data-copy-target]')) {
     button.addEventListener('click', async () => {
       const code = codeFor(button);
       if (!code) return;
-      const old = button.textContent;
       try {
         await navigator.clipboard.writeText(code.trim());
-        button.textContent = 'کپی شد ✓';
+        showCopyFeedback(button, 'کپی شد ✓');
       } catch {
-        button.textContent = 'کپی نشد';
+        showCopyFeedback(button, 'کپی نشد');
       }
-      setTimeout(() => { button.textContent = old; }, 1600);
     });
   }
 
@@ -58,9 +56,47 @@ function setupExamples() {
   }
 }
 
+function setupReadingProgress() {
+  const progress = $('#article-progress');
+  const article = $('.article-main');
+  if (!progress || !article) return;
+  const update = () => {
+    const start = article.getBoundingClientRect().top + window.scrollY;
+    const end = start + article.offsetHeight - window.innerHeight;
+    const ratio = end <= start ? 1 : Math.min(1, Math.max(0, (window.scrollY - start) / (end - start)));
+    progress.style.width = `${ratio * 100}%`;
+  };
+  update();
+  document.addEventListener('scroll', update, { passive: true });
+  window.addEventListener('resize', update);
+}
 
-setTheme(localStorage.getItem(THEME_KEY) || 'dark');
-$('#theme-toggle')?.addEventListener('click', () => {
-  setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
-});
+function setupActiveToc() {
+  const sections = $$('.article-section[id]');
+  const links = $$('[data-article-toc] a[href^="#"]');
+  if (!sections.length || !links.length || !('IntersectionObserver' in window)) return;
+  const map = new Map(links.map((link) => [link.getAttribute('href').slice(1), link]));
+  const observer = new IntersectionObserver((entries) => {
+    const visible = entries.filter((entry) => entry.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+    if (!visible) return;
+    links.forEach((link) => link.classList.remove('is-active'));
+    map.get(visible.target.id)?.classList.add('is-active');
+  }, { rootMargin: '-15% 0px -70% 0px', threshold: [0, .1] });
+  sections.forEach((section) => observer.observe(section));
+}
+
+function closeMobileTocAfterNavigation() {
+  const toc = $('.mobile-toc');
+  if (!toc) return;
+  toc.addEventListener('click', (event) => {
+    if (event.target.closest('a')) toc.removeAttribute('open');
+  });
+}
+
+const savedTheme = localStorage.getItem(THEME_KEY);
+setTheme(savedTheme || 'light', Boolean(savedTheme));
+$('#theme-toggle')?.addEventListener('click', () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'));
 setupExamples();
+setupReadingProgress();
+setupActiveToc();
+closeMobileTocAfterNavigation();
