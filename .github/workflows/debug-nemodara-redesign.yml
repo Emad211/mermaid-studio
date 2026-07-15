@@ -1,0 +1,50 @@
+name: Debug Nemodara editorial redesign
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  diagnostics:
+    if: github.event.pull_request.head.ref == 'agent/nemodara-editorial-redesign'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/nemodara-editorial-redesign
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - run: python tools/finalize-nemodara-redesign.py
+      - run: npm install --package-lock-only --ignore-scripts
+      - name: Run tests and preserve full output
+        id: diagnostics
+        shell: bash
+        env:
+          PUPPETEER_NO_SANDBOX: true
+        run: |
+          set +e
+          : > nemodara-redesign.log
+          overall=0
+          for command in "npm ci" "npm run build" "npm run check" "node --test tests/editorial-pages.test.mjs" "npm test"; do
+            echo "===== $command =====" | tee -a nemodara-redesign.log
+            bash -lc "$command" >> nemodara-redesign.log 2>&1
+            status=$?
+            echo "STATUS=$status" | tee -a nemodara-redesign.log
+            if [ "$status" -ne 0 ]; then overall=$status; fi
+          done
+          echo "status=$overall" >> "$GITHUB_OUTPUT"
+          exit 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nemodara-redesign-diagnostics
+          path: nemodara-redesign.log
+          retention-days: 2
+      - name: Fail when diagnostics failed
+        if: steps.diagnostics.outputs.status != '0'
+        run: exit 1
