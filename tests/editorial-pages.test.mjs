@@ -65,12 +65,30 @@ test('Nemodara landing, learning hub and long-form article are editorial and mob
   });
 
   const page = await browser.newPage();
+  await page.evaluateOnNewDocument(() => localStorage.setItem('mstudio:site-theme', 'light'));
   await page.setViewport({ width: 1440, height: 1000, deviceScaleFactor: 1 });
   const landing = await inspectPage(page, `${server.url}/`, /نمودار خوب/);
   assert.match(landing.title, /نمودارا/);
   assert.equal(await page.$$eval('.use-case-grid article', (nodes) => nodes.length), 3);
   assert.equal(await page.$$eval('.lesson-card', (nodes) => nodes.length), 3);
   assert.equal(await page.$eval('.hero-demo', (node) => getComputedStyle(node).transform), 'none');
+  const lightDemo = await page.evaluate(() => ({
+    editorBackground: getComputedStyle(document.querySelector('.demo-editor')).backgroundColor,
+    decisionColor: getComputedStyle(document.querySelector('.decision'), '::after').color,
+    decisionContent: getComputedStyle(document.querySelector('.decision'), '::after').content,
+  }));
+  assert.match(lightDemo.editorBackground, /^rgb\(2[0-9]{2}, 2[0-9]{2}, 2[0-9]{2}\)$/);
+  assert.doesNotMatch(lightDemo.decisionColor, /rgba\([^)]*, 0\)$/);
+  assert.match(lightDemo.decisionContent, /کامل است/);
+
+  await page.click('#theme-toggle');
+  await page.waitForFunction(() => document.documentElement.dataset.theme === 'dark');
+  const darkDemo = await page.evaluate(() => ({
+    editorBackground: getComputedStyle(document.querySelector('.demo-editor')).backgroundColor,
+    decisionColor: getComputedStyle(document.querySelector('.decision'), '::after').color,
+  }));
+  assert.match(darkDemo.editorBackground, /^rgb\([0-4]?[0-9], [0-4]?[0-9], [0-4]?[0-9]\)$/);
+  assert.doesNotMatch(darkDemo.decisionColor, /rgba\([^)]*, 0\)$/);
 
   await inspectPage(page, `${server.url}/learn`, /Mermaid را برای حل مسئله/);
   assert.equal(await page.$$eval('.guide-card', (nodes) => nodes.length), 8);
