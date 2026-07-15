@@ -109,9 +109,50 @@ test('Nemodara editor exposes commands, diagnostics and a focused mobile workflo
 
   await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 1 });
   await page.waitForSelector('.mobile-pane-switch', { visible: true });
+  const mobileLayout = await page.evaluate(() => {
+    const rect = (selector) => {
+      const bounds = document.querySelector(selector).getBoundingClientRect();
+      return { width: bounds.width, height: bounds.height };
+    };
+    const visibleToolbarControls = [...document.querySelectorAll('.toolbar button, .toolbar a')].filter((node) => {
+      const bounds = node.getBoundingClientRect();
+      return bounds.width > 0 && bounds.height > 0;
+    });
+    return {
+      toolbar: rect('.toolbar'),
+      paneSwitchButtons: [...document.querySelectorAll('.mobile-pane-switch button')].map((node) => node.getBoundingClientRect().height),
+      toolbarControls: visibleToolbarControls.map((node) => ({ width: node.getBoundingClientRect().width, height: node.getBoundingClientRect().height })),
+      commandLabel: document.querySelector('#btn-command span').textContent.trim(),
+      commandKeyVisible: getComputedStyle(document.querySelector('#btn-command kbd')).display !== 'none',
+    };
+  });
+  assert.ok(mobileLayout.toolbar.height <= 64, `mobile toolbar is too tall: ${JSON.stringify(mobileLayout)}`);
+  assert.ok(mobileLayout.toolbarControls.every(({ width, height }) => width >= 44 && height >= 44), `mobile toolbar targets are too small: ${JSON.stringify(mobileLayout)}`);
+  assert.ok(mobileLayout.paneSwitchButtons.every((height) => height >= 44), `mobile pane targets are too small: ${JSON.stringify(mobileLayout)}`);
+  assert.equal(mobileLayout.commandLabel, 'فرمان‌ها');
+  assert.equal(mobileLayout.commandKeyVisible, false);
+
+  await page.click('#btn-command');
+  await page.type('#command-input', 'نمونه نقشه ذهنی');
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => window.nemodaraEditor.getCode().startsWith('mindmap'));
   await page.click('[data-mobile-pane="preview"]');
   assert.equal(await page.$eval('body', (node) => node.dataset.mobilePane), 'preview');
   assert.equal(await page.$eval('.preview-pane', (node) => getComputedStyle(node).visibility), 'visible');
+  const previewControls = await page.evaluate(() => {
+    const bounds = (node) => {
+      const rect = node.getBoundingClientRect();
+      return { left: rect.left, right: rect.right, width: rect.width, height: rect.height };
+    };
+    return {
+      tools: [...document.querySelectorAll('.preview-tools button')].map(bounds),
+      zoom: [...document.querySelectorAll('.zoom-controls button')].filter((node) => getComputedStyle(node).display !== 'none').map(bounds),
+      dims: bounds(document.querySelector('.dims')),
+    };
+  });
+  assert.ok(previewControls.tools.every(({ width, height }) => width >= 44 && height >= 44));
+  assert.ok(previewControls.zoom.every(({ width, height }) => width >= 44 && height >= 44));
+  assert.ok(previewControls.dims.right < previewControls.tools[0].left || previewControls.dims.left > previewControls.tools.at(-1).right, 'preview tools and dimensions must not overlap');
   await page.click('[data-mobile-pane="editor"]');
   assert.equal(await page.$eval('body', (node) => node.dataset.mobilePane), 'editor');
   const dimensions = await page.evaluate(() => ({ viewport: window.innerWidth, scroll: document.documentElement.scrollWidth }));

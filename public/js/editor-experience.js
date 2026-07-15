@@ -53,6 +53,25 @@ function faNumber(value) {
   return String(value).replace(/\d/g, (digit) => '۰۱۲۳۴۵۶۷۸۹'[Number(digit)]);
 }
 
+function exampleCommands() {
+  const select = $('#examples-select');
+  if (!select) return [];
+  return [...select.options].filter((option) => option.value).map((option) => {
+    const value = option.value;
+    const label = option.textContent.trim();
+    return {
+      id: `example-${value}`,
+      title: `نمونه: ${label}`,
+      hint: 'بارگذاری نمودار آماده و قابل ویرایش',
+      search: `نمونه آماده ${label} ${value}`,
+      run: () => {
+        select.value = value;
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+      },
+    };
+  });
+}
+
 function commands() {
   return [
     { id: 'new', title: 'نمودار جدید', hint: 'پاک‌کردن سند و شروع دوباره', keys: 'Ctrl N', run: () => $('#btn-new')?.click() },
@@ -64,6 +83,7 @@ function commands() {
     { id: 'settings', title: 'بازکردن تنظیمات Mermaid و CSS', hint: 'Config و CSS اختصاصی', keys: '', run: () => $('#btn-settings')?.click() },
     { id: 'theme', title: 'تغییر پوستهٔ رابط', hint: 'روشن یا تیره', keys: '', run: () => $('#app-theme-toggle')?.click() },
     { id: 'help', title: 'نمایش راهنمای میانبرها', hint: 'فهرست کلیدهای سریع ادیتور', keys: '', run: () => $('#help-modal')?.classList.add('show') },
+    ...exampleCommands(),
     ...SNIPPETS.map((snippet) => ({
       id: `snippet-${snippet.id}`,
       title: snippet.title,
@@ -96,7 +116,11 @@ function closePalette() {
 
 function renderCommands(query) {
   const normalized = String(query || '').trim().toLowerCase();
-  filteredCommands = commands().filter((command) => `${command.title} ${command.hint} ${command.search || ''}`.toLowerCase().includes(normalized));
+  const terms = normalized.split(/\s+/).filter(Boolean);
+  filteredCommands = commands().filter((command) => {
+    const haystack = `${command.title} ${command.hint} ${command.search || ''}`.toLowerCase();
+    return terms.every((term) => haystack.includes(term));
+  });
   selectedIndex = Math.min(selectedIndex, Math.max(0, filteredCommands.length - 1));
   const list = $('#command-list');
   list.innerHTML = filteredCommands.length ? filteredCommands.map((command, index) => `<button type="button" class="command-item ${index === selectedIndex ? 'is-selected' : ''}" data-command-index="${index}"><span><strong>${command.title}</strong><small>${command.hint}</small></span>${command.keys ? `<kbd>${command.keys}</kbd>` : ''}</button>`).join('') : '<div class="command-empty">فرمانی با این عبارت پیدا نشد.</div>';
