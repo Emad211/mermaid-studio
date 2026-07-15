@@ -1,0 +1,432 @@
+const UPDATED = '2026-07-15';
+
+const AUTHOR = Object.freeze({
+  name: 'تحریریهٔ نمودارا',
+  role: 'آموزش مستندسازی فنی و نمودار به‌صورت کد',
+  url: '/about#editorial',
+});
+
+export const EDITORIAL_ARTICLES = [
+  {
+    slug: 'diagram-as-code-for-teams',
+    category: 'مستندسازی',
+    title: 'نمودار به‌صورت کد؛ چه وقت انتخاب خوبی است و چه وقت نه؟',
+    description: 'یک راهنمای عملی برای تصمیم‌گیری دربارهٔ Diagram as Code؛ مزایا، محدودیت‌ها، گردش کار تیمی و موقعیت‌هایی که ابزار تصویری انتخاب بهتری است.',
+    deck: 'نمودار متنی همیشه پاسخ درست نیست. ارزش آن زمانی روشن می‌شود که تغییر، بازبینی و نگهداری نمودار بخشی از کار روزانهٔ تیم باشد.',
+    keywords: ['Diagram as Code', 'نمودار با کد', 'مستندسازی نرم افزار', 'Mermaid در Git'],
+    published: UPDATED,
+    updated: UPDATED,
+    minutes: 12,
+    author: AUTHOR,
+    testedWith: 'Mermaid 11 و خروجی SVG نمودارا',
+    takeaways: [
+      'تشخیص بدهی کدام نمودارها باید کنار کد نسخه‌بندی شوند.',
+      'هزینهٔ واقعی نگهداری نمودار متنی را قبل از مهاجرت بسنجی.',
+      'یک گردش کار بازبینی ساده برای Pull Request و مستندات تعریف کنی.',
+      'بدانی چه زمانی ابزار آزادِ تصویری، وایت‌برد یا Figma انتخاب بهتری است.',
+    ],
+    sections: [
+      {
+        id: 'problem',
+        title: 'مشکل معمول، ساخت نمودار نیست؛ به‌روز نگه‌داشتن آن است',
+        paragraphs: [
+          'بیشتر تیم‌ها در شروع پروژه نمودار قابل قبولی دارند. مسئله چند ماه بعد شروع می‌شود: سرویس جابه‌جا شده، نام جدول عوض شده یا یک مسیر خطا اضافه شده، اما فایل تصویری هنوز نسخهٔ قدیمی را نشان می‌دهد. چون تغییر تصویر از تغییر کد جداست، معمولاً در فشار تحویل فراموش می‌شود.',
+          'Diagram as Code این فاصله را کم می‌کند. فایل نمودار می‌تواند کنار README، ADR یا مستند API قرار بگیرد و همان Pull Requestی که رفتار سیستم را عوض می‌کند، مستندات را هم تغییر دهد. مزیت اصلی «سریع‌تر کشیدن» نیست؛ نزدیک‌کردن تغییر مستندات به محل تصمیم فنی است.',
+        ],
+        note: 'اگر نمودار هیچ‌وقت همراه تغییر کد بازبینی نمی‌شود، صرفاً تبدیل آن به Mermaid مشکل نگهداری را حل نمی‌کند. فرایند تیم مهم‌تر از فرمت فایل است.',
+      },
+      {
+        id: 'good-fit',
+        title: 'چه نمودارهایی معمولاً نامزد خوبی هستند؟',
+        paragraphs: [
+          'نمودارهایی که ساختار روشن، تعداد عنصر محدود و تغییرات تکرارشونده دارند بیشترین سود را می‌برند. Flowchart یک فرایند، Sequence یک endpoint، ERD بخشی از مدل داده و نمای Context یا Container معماری نمونه‌های خوب‌اند.',
+        ],
+        bullets: [
+          'نمودار در Markdown، Wiki فنی یا مستندات داخل Repository استفاده می‌شود.',
+          'تغییرات آن باید در Code Review دیده و درباره‌شان بحث شود.',
+          'اعضای تیم با متن و Git راحت‌اند و خروجی پیکسلی منبع اصلی نیست.',
+          'نمودار قرار است یک سؤال مشخص را پاسخ دهد، نه تمام جزئیات سامانه را.',
+        ],
+        code: `flowchart LR
+  Client[وب‌اپ] --> API[API سفارش]
+  API --> DB[(دیتابیس)]
+  API --> Queue[صف رویداد]
+  Queue --> Worker[پردازش پس‌زمینه]`,
+        codeLabel: 'یک نمای کوچک که تغییر آن در Pull Request قابل فهم است',
+      },
+      {
+        id: 'poor-fit',
+        title: 'چه وقت نمودار متنی انتخاب ضعیفی است؟',
+        paragraphs: [
+          'برای کارگاه ایده‌پردازی، نقشه‌های بسیار آزاد، طراحی بصری برند یا نموداری که جای دقیق هر عنصر اهمیت دارد، ابزار تصویری معمولاً اصطکاک کمتری دارد. چیدمان خودکار در نمودارهای متنی عمداً بخشی از کنترل پیکسلی را از شما می‌گیرد.',
+          'همچنین اگر مخاطب اصلی نتواند فایل متنی را اصلاح کند، باید روشن کنید چه کسی مالک به‌روزرسانی است. یک فرمت فنی که فقط یک نفر آن را می‌فهمد، می‌تواند به همان اندازهٔ فایل تصویری قدیمی خطرناک باشد.',
+        ],
+        bullets: [
+          'وایت‌برد جلسه و کشف مسئله؛ ابتدا با ابزار آزاد فکر کنید، بعد نتیجهٔ پایدار را متنی کنید.',
+          'اینفوگرافیک بازاریابی یا نمودار دارای ترکیب‌بندی دقیق؛ ابزار طراحی مناسب‌تر است.',
+          'نقشهٔ بسیار بزرگ با ده‌ها خط متقاطع؛ مسئله را به چند نما تقسیم کنید.',
+          'مخاطب غیر فنی که باید خودش شکل‌ها را جابه‌جا کند؛ یک ابزار بصری ساده‌تر است.',
+        ],
+      },
+      {
+        id: 'workflow',
+        title: 'یک گردش کار کوچک که واقعاً قابل اجراست',
+        paragraphs: [
+          'به‌جای مهاجرت همهٔ تصاویر، از یک سند پرتغییر شروع کنید. فایل `.mmd` را کنار سند نگه دارید، خروجی SVG را در Build یا قبل از Merge بسازید و در توضیح Pull Request یک تصویر قابل مشاهده قرار دهید.',
+          'در بازبینی از دو سؤال استفاده کنید: آیا نمودار هنوز سؤال اصلی را پاسخ می‌دهد؟ و آیا نام‌ها با کد، مانیتورینگ و اصطلاحات تیم یکی‌اند؟ این دو سؤال معمولاً مهم‌تر از رنگ و فاصلهٔ گره‌ها هستند.',
+        ],
+        checklist: [
+          'منبع Mermaid و خروجی نهایی هر دو نام قابل پیش‌بینی داشته باشند.',
+          'مالک سند و رویداد به‌روزرسانی آن مشخص باشد.',
+          'نمونه در CI رندر شود تا خطای سینتکس وارد شاخهٔ اصلی نشود.',
+          'نمودار تاریخ یا نسخهٔ دستی نداشته باشد؛ تاریخ Git منبع معتبرتر است.',
+        ],
+      },
+      {
+        id: 'decision',
+        title: 'یک معیار تصمیم ساده',
+        paragraphs: [
+          'اگر نمودار باید با تغییرات فنی حرکت کند، بازبینی شود و در چند خروجی استفاده شود، Mermaid ارزش امتحان‌کردن دارد. اگر هدف اصلی گفت‌وگوی آزاد یا کنترل کامل ترکیب‌بندی است، ابزار بصری را نگه دارید. بسیاری از تیم‌ها از ترکیب هر دو استفاده می‌کنند: کشف آزاد، مستندسازی پایدار به‌صورت کد.',
+        ],
+        quote: 'فرمت خوب، فرمتی است که تیم در لحظهٔ تغییر واقعاً حاضر باشد آن را به‌روز کند.',
+      },
+    ],
+    relatedLearn: ['flowchart-mermaid', 'sequence-diagram-mermaid', 'architecture-diagram-mermaid'],
+  },
+  {
+    slug: 'choose-the-right-diagram',
+    category: 'راهنمای تصمیم',
+    title: 'فلوچارت، Sequence، ERD یا معماری؟ از سؤال شروع کن، نه از شکل',
+    description: 'راهنمای انتخاب نوع نمودار براساس سؤال مخاطب؛ با مثال‌های واقعی برای فرایند، API، مدل داده، معماری، زمان‌بندی و ایده‌پردازی.',
+    deck: 'بیشتر نمودارهای شلوغ از انتخاب نوع اشتباه شروع می‌شوند. قبل از نوشتن سینتکس، یک جمله بنویس: مخاطب بعد از دیدن این تصویر باید چه چیزی را بفهمد؟',
+    keywords: ['انتخاب نوع نمودار', 'فلوچارت یا Sequence', 'ERD یا Class Diagram', 'نمودار معماری'],
+    published: UPDATED,
+    updated: UPDATED,
+    minutes: 14,
+    author: AUTHOR,
+    testedWith: 'نمونه‌های Mermaid 11 در نمودارا',
+    takeaways: [
+      'از روی سؤال مخاطب نوع نمودار را انتخاب کنی.',
+      'فرق ساختار، رفتار، زمان و تصمیم را در مدل‌سازی تشخیص بدهی.',
+      'از ترکیب چند سؤال در یک نمودار جلوگیری کنی.',
+      'برای یک قابلیت، مجموعه‌ای کوچک از نماهای مکمل بسازی.',
+    ],
+    sections: [
+      {
+        id: 'one-question',
+        title: 'هر نمودار باید یک سؤال اصلی داشته باشد',
+        paragraphs: [
+          'عبارت‌هایی مثل «معماری سیستم را نشان بده» بیش از حد باز هستند. آیا مخاطب می‌خواهد بداند اجزای اصلی کدام‌اند؟ درخواست ورود چگونه حرکت می‌کند؟ داده در چه جدول‌هایی ذخیره می‌شود؟ یا تحویل قابلیت چه زمانی است؟ هر کدام به نمای متفاوتی نیاز دارد.',
+          'وقتی دو یا سه سؤال را در یک تصویر جواب می‌دهید، مجبور می‌شوید جزئیات ناهم‌سطح را کنار هم بگذارید. نتیجه معمولاً برای همه آشناست اما برای هیچ‌کس واقعاً مفید نیست.',
+        ],
+      },
+      {
+        id: 'decision-table',
+        title: 'جدول انتخاب سریع',
+        paragraphs: ['این جدول را نقطهٔ شروع بدانید، نه قانون قطعی. نوع نمودار باید با واژگان و سطح دانش مخاطب هم سازگار باشد.'],
+        table: {
+          headers: ['سؤال اصلی', 'نوع پیشنهادی', 'نمونهٔ کاربرد'],
+          rows: [
+            ['چه مراحلی طی می‌شود و کجا تصمیم می‌گیریم؟', 'Flowchart', 'فرایند تأیید درخواست یا الگوریتم'],
+            ['چه کسی، به چه ترتیبی، چه پیامی می‌فرستد؟', 'Sequence Diagram', 'ورود کاربر، پرداخت یا درخواست API'],
+            ['داده از چه موجودیت‌هایی تشکیل شده و رابطه‌ها چیست؟', 'ER Diagram', 'مدل سفارش، مشتری و محصول'],
+            ['کلاس‌ها و قراردادهای کد چه رابطه‌ای دارند؟', 'Class Diagram', 'طراحی domain model یا SDK'],
+            ['اجزای سامانه و مرزهای مسئولیت کجاست؟', 'Architecture / C4', 'وب‌اپ، API، صف و دیتابیس'],
+            ['کارها چه زمانی و با چه وابستگی انجام می‌شوند؟', 'Gantt', 'انتشار نسخه یا مهاجرت زیرساخت'],
+            ['یک موضوع به چه شاخه‌هایی تقسیم می‌شود؟', 'Mindmap', 'معماری اطلاعات یا برنامهٔ محتوا'],
+          ],
+        },
+      },
+      {
+        id: 'behavior-vs-structure',
+        title: 'رفتار را با ساختار اشتباه نکن',
+        paragraphs: [
+          'ERD و Class Diagram ساختار را نشان می‌دهند؛ Sequence رفتار یک سناریو را در طول زمان. اگر می‌خواهید بفهمید چرا درخواست پرداخت شکست خورد، دیدن جدول‌ها کافی نیست. اگر می‌خواهید بدانید حذف یک ستون چه اثر ساختاری دارد، Sequence پاسخ مناسبی نمی‌دهد.',
+          'برای قابلیت‌های مهم معمولاً یک نمای ساختاری و یک نمای رفتاری مکمل یکدیگرند. مثلاً ERD برای مدل سفارش و Sequence برای سناریوی ثبت همان سفارش.',
+        ],
+        code: `sequenceDiagram
+  actor User as کاربر
+  participant Web as وب‌اپ
+  participant API
+  participant DB as دیتابیس
+  User->>Web: ثبت سفارش
+  Web->>API: POST /orders
+  API->>DB: ذخیره سفارش
+  DB-->>API: order_id
+  API-->>Web: 201 Created`,
+        codeLabel: 'نمای رفتاری یک سناریوی مشخص',
+      },
+      {
+        id: 'audience',
+        title: 'نوع نمودار بدون شناخت مخاطب کامل نیست',
+        paragraphs: [
+          'مدیر محصول ممکن است به مسیر تصمیم و نقاط ریسک نیاز داشته باشد؛ توسعه‌دهنده به نام endpoint و ترتیب پیام؛ تیم عملیات به مرز شبکه و وابستگی‌های runtime. یک تصویر واحد برای این سه مخاطب معمولاً یا بیش از حد ساده است یا بیش از حد شلوغ.',
+          'قبل از رسم، سطح جزئیات را روی کاغذ مشخص کنید: Context، Container، Component یا سناریوی خاص. حذف آگاهانهٔ جزئیات بخشی از طراحی نمودار است، نه کم‌کاری.',
+        ],
+      },
+      {
+        id: 'review',
+        title: 'آزمون پنج‌دقیقه‌ای قبل از انتشار',
+        checklist: [
+          'عنوان نمودار به یک سؤال مشخص اشاره می‌کند.',
+          'هر گره در یک سطح انتزاع قرار دارد؛ سرویس و متد داخلی بی‌دلیل کنار هم نیستند.',
+          'برچسب خط‌ها معنای رابطه یا پیام را روشن می‌کند.',
+          'مخاطب بدون توضیح شفاهی می‌تواند مسیر اصلی را پیدا کند.',
+          'اگر یک عنصر حذف شود، اطلاعات لازم از بین می‌رود؛ در غیر این صورت آن عنصر احتمالاً اضافی است.',
+        ],
+      },
+    ],
+    relatedLearn: ['flowchart-mermaid', 'sequence-diagram-mermaid', 'er-diagram-mermaid', 'class-diagram-mermaid'],
+  },
+  {
+    slug: 'svg-png-pdf-export-guide',
+    category: 'خروجی و انتشار',
+    title: 'SVG، PNG یا PDF؟ خروجی نمودار را برای مقصد انتخاب کن',
+    description: 'مقایسهٔ عملی SVG، PNG، WebP و PDF برای مستندات، GitHub، ارائه، پیام‌رسان، چاپ و آرشیو؛ همراه با نکات کیفیت و دسترس‌پذیری.',
+    deck: '«بالاترین کیفیت» یک پاسخ واحد ندارد. فایل مناسب برای README با فایل مناسب برای اسلاید یا چاپ یکسان نیست.',
+    keywords: ['SVG یا PNG', 'خروجی Mermaid', 'PDF نمودار', 'کیفیت تصویر نمودار'],
+    published: UPDATED,
+    updated: UPDATED,
+    minutes: 11,
+    author: AUTHOR,
+    testedWith: 'خروجی‌های SVG، PNG و PDF نمودارا',
+    takeaways: [
+      'برای هر مقصد، فرمت درست را انتخاب کنی.',
+      'از تارشدن متن در اسلاید و چاپ جلوگیری کنی.',
+      'بین اندازه فایل، شفافیت و قابلیت جست‌وجوی متن تعادل برقرار کنی.',
+      'منبع Mermaid را جدا از خروجی نهایی نگه داری.',
+    ],
+    sections: [
+      {
+        id: 'svg',
+        title: 'SVG؛ انتخاب پیش‌فرض برای وب و مستندات فنی',
+        paragraphs: [
+          'SVG برداری است؛ در بزرگ‌نمایی لبه‌ها و متن واضح می‌مانند و معمولاً برای نمودارهای خطی حجم مناسبی دارد. در README، سایت مستندات و Wiki داخلی، این فرمت اغلب بهترین نقطهٔ شروع است.',
+          'مزیت دیگر SVG این است که مرورگر آن را مستقیماً نمایش می‌دهد. با این حال بعضی ویرایشگرها، ایمیل‌ها و پیام‌رسان‌ها SVG را مسدود یا به‌درستی پیش‌نمایش نمی‌کنند. برای این مقصدها نسخهٔ PNG همراه داشته باشید.',
+        ],
+        bullets: [
+          'مناسب: وب، README، مستندات، بزرگ‌نمایی و آرشیو برداری.',
+          'احتیاط: سامانه‌هایی که SVG یا فونت‌های آن را محدود می‌کنند.',
+          'نکته: برای دسترس‌پذیری، توضیح متنی نمودار را در صفحه حفظ کنید.',
+        ],
+      },
+      {
+        id: 'png',
+        title: 'PNG؛ سازگار و قابل پیش‌بینی',
+        paragraphs: [
+          'PNG تقریباً همه‌جا باز می‌شود و برای پیام‌رسان، Issue، اسلاید و ابزارهایی که SVG را قبول نمی‌کنند انتخاب امنی است. هزینهٔ این سازگاری، اندازهٔ پیکسلی ثابت است.',
+          'اگر قرار است نمودار در عرض ۱۲۰۰ پیکسل نمایش داده شود، خروجی را دست‌کم در همان اندازه یا با scale دو بسازید. بزرگ‌کردن PNG کوچک در پاورپوینت، متن را به‌سرعت تار می‌کند.',
+        ],
+        checklist: [
+          'پس‌زمینه را با مقصد هماهنگ کنید؛ شفاف برای قرارگرفتن روی چند رنگ، سفید برای ایمیل و سند.',
+          'قبل از ارسال، تصویر را در اندازهٔ واقعی مقصد باز کنید.',
+          'برای نمودارهای خیلی بلند، چند تصویر هدفمند بهتر از یک تصویر غیرقابل خواندن است.',
+        ],
+      },
+      {
+        id: 'webp-jpg',
+        title: 'WebP و JPG؛ وقتی حجم مهم‌تر از لبهٔ کاملاً تیز است',
+        paragraphs: [
+          'JPG برای نمودارهای متنی معمولاً انتخاب اول نیست، چون فشرده‌سازی lossy اطراف حروف و خطوط نازک آرتیفکت ایجاد می‌کند. WebP در کیفیت مشابه حجم کمتری می‌دهد، اما باز هم برای خط و متن بهتر است کیفیت بالا انتخاب شود.',
+          'این فرمت‌ها زمانی مفیدند که پلتفرم محدودیت حجم دارد یا نمودار بخشی از یک تصویر بزرگ‌تر است. نسخهٔ اصلی را همچنان SVG یا فایل Mermaid نگه دارید.',
+        ],
+      },
+      {
+        id: 'pdf',
+        title: 'PDF؛ برای چاپ، گزارش رسمی و یک صفحهٔ کنترل‌شده',
+        paragraphs: [
+          'PDF برای گزارش، ضمیمهٔ رسمی و چاپ مناسب است، به‌خصوص وقتی باید اندازهٔ کاغذ و حاشیه قابل پیش‌بینی باشد. اگر نمودار عریض است، حالت Landscape یا کاغذ بزرگ‌تر را انتخاب کنید؛ کوچک‌کردن اجباری یک معماری بزرگ روی A4 خوانایی را از بین می‌برد.',
+          'در نمودارا می‌توان PDF را به اندازهٔ خود نمودار یا یک اندازهٔ ثابت مانند A4 ساخت. قبل از ارسال، نسخهٔ چاپی را در ۱۰۰٪ بررسی کنید؛ Fit شدن به صفحه همیشه به معنی خوانا بودن نیست.',
+        ],
+      },
+      {
+        id: 'source',
+        title: 'خروجی نهایی، منبع اصلی نیست',
+        paragraphs: [
+          'فایل `.mmd` یا بلوک Mermaid را کنار SVG و PDF نگه دارید. تصویر برای مصرف است و متن برای نگهداری. اگر فقط PNG باقی بماند، مزیت نسخه‌بندی و اصلاح سریع از بین می‌رود.',
+        ],
+        quote: 'منبع را برای آینده نگه دار؛ خروجی را برای مقصد امروز بساز.',
+      },
+    ],
+    relatedLearn: ['flowchart-mermaid', 'architecture-diagram-mermaid'],
+  },
+  {
+    slug: 'architecture-diagram-that-stays-useful',
+    category: 'معماری نرم‌افزار',
+    title: 'چطور نمودار معماری بنویسیم که سه ماه بعد هنوز مفید باشد؟',
+    description: 'اصول عملی ساخت نمودار معماری قابل نگهداری؛ تعیین مخاطب، سطح جزئیات، نام‌گذاری، مرزها، جریان داده، مالکیت و بازبینی دوره‌ای.',
+    deck: 'نمودار معماری زمانی ارزش دارد که در تصمیم، Onboarding یا Incident استفاده شود؛ نه فقط وقتی که تازه و زیباست.',
+    keywords: ['نمودار معماری نرم افزار', 'مستندسازی معماری', 'C4 Mermaid', 'Architecture Diagram'],
+    published: UPDATED,
+    updated: UPDATED,
+    minutes: 15,
+    author: AUTHOR,
+    testedWith: 'Architecture Diagram و Flowchart در Mermaid 11',
+    takeaways: [
+      'سطح مناسب نمودار را برای مخاطب انتخاب کنی.',
+      'نام‌ها و خط‌ها را به دادهٔ عملیاتی متصل کنی.',
+      'از نمودارهای همه‌چیزدان و غیرقابل نگهداری دوری کنی.',
+      'مالکیت و رویداد به‌روزرسانی را بخشی از سند قرار دهی.',
+    ],
+    sections: [
+      {
+        id: 'purpose',
+        title: 'اول بنویس این نمودار در کدام لحظه استفاده می‌شود',
+        paragraphs: [
+          '«برای مستندسازی» هدف کافی نیست. آیا نمودار برای Onboarding توسعه‌دهندهٔ جدید است؟ بررسی امنیت؟ برنامهٔ مهاجرت؟ تحلیل Incident؟ یا توضیح محصول به یک تیم دیگر؟ لحظهٔ استفاده تعیین می‌کند چه چیزی باید داخل تصویر باشد.',
+          'اگر کاربرد مشخص نباشد، نمودار به فهرستی از همهٔ اجزای شناخته‌شده تبدیل می‌شود. چنین تصویری در نگاه اول کامل به نظر می‌رسد، اما مسیر تصمیم یا جریان اصلی را پنهان می‌کند.',
+        ],
+      },
+      {
+        id: 'level',
+        title: 'یک سطح انتزاع را انتخاب کن',
+        paragraphs: [
+          'در نمای Context، سامانه و بازیگران بیرونی مهم‌اند. در نمای Container، وب‌اپ، API، Worker و دیتابیس. در نمای Component، اجزای داخلی یک سرویس. مخلوط‌کردن یک دیتابیس production با کلاس داخلی Java در یک سطح، مقایسه و خواندن را دشوار می‌کند.',
+          'برای هر سطح یک فایل جدا بسازید و بین آن‌ها لینک بدهید. این کار هم نمودار را کوچک نگه می‌دارد و هم مخاطب را مجبور نمی‌کند جزئیات نامرتبط را پردازش کند.',
+        ],
+        code: `flowchart LR
+  User[کاربر] --> Web[وب‌اپ]
+  Web --> API[API اصلی]
+  API --> DB[(دیتابیس)]
+  API --> Bus[صف رویداد]
+  Bus --> Worker[Worker اعلان]`,
+        codeLabel: 'نمای Container با اجزای هم‌سطح',
+      },
+      {
+        id: 'names',
+        title: 'نام‌ها را با واقعیت عملیاتی هماهنگ کن',
+        paragraphs: [
+          'اگر سرویس در مانیتورینگ `order-api` نام دارد اما در نمودار «هستهٔ تجارت» نوشته شده، هنگام Incident تطبیق ذهنی اضافی ایجاد می‌شود. نام فنی را حفظ کنید و در صورت نیاز توضیح انسانی کوتاه کنار آن بیاورید.',
+          'برای خط‌ها نیز فقط فلش نکشید. HTTP، event، batch، replication یا دسترسی مدیریتی معنای متفاوت دارند. برچسب رابطه باید به خواننده بگوید چه چیزی حرکت می‌کند، نه فقط اینکه دو جعبه به هم متصل‌اند.',
+        ],
+      },
+      {
+        id: 'boundaries',
+        title: 'مرز مسئولیت و اعتماد را دیده‌شدنی کن',
+        paragraphs: [
+          'مرز تیم، حساب ابری، شبکهٔ خصوصی، دادهٔ حساس و سامانهٔ شخص ثالث روی تصمیم معماری اثر دارند. اگر نمودار برای امنیت یا عملیات استفاده می‌شود، این مرزها باید واضح باشند.',
+          'رنگ تنها راه نمایش مرز نیست. `subgraph`، عنوان روشن و توضیح کنار نمودار در نسخهٔ چاپ سیاه‌وسفید هم معنا را حفظ می‌کنند.',
+        ],
+        code: `flowchart LR
+  subgraph Public[شبکه عمومی]
+    Browser[مرورگر]
+  end
+  subgraph Private[شبکه خصوصی]
+    API[order-api]
+    DB[(orders-db)]
+  end
+  Browser -- HTTPS --> API
+  API -- SQL/TLS --> DB`,
+        codeLabel: 'نمایش مرز اعتماد و نوع ارتباط',
+      },
+      {
+        id: 'ownership',
+        title: 'مالکیت و رویداد به‌روزرسانی را تعریف کن',
+        paragraphs: [
+          'هیچ نموداری خودبه‌خود تازه نمی‌ماند. در کنار فایل مشخص کنید چه تیمی مالک آن است و چه تغییراتی باید باعث بازبینی شوند: افزودن سرویس، تغییر مسیر داده، تغییر مرز شبکه یا مهاجرت دیتابیس.',
+          'بازبینی تقویمی به‌تنهایی کافی نیست. بهترین زمان اصلاح، همان Pull Request یا ADRی است که معماری را تغییر می‌دهد. اگر نمودار در همان Repository نیست، حداقل لینک دوطرفه بین تصمیم و سند بسازید.',
+        ],
+        checklist: [
+          'مخاطب و کاربرد در دو جمله بالای نمودار نوشته شده است.',
+          'تمام اجزا در یک سطح انتزاع‌اند.',
+          'نام سرویس‌ها با deployment و monitoring هماهنگ است.',
+          'خط‌ها نوع ارتباط یا داده را توضیح می‌دهند.',
+          'مالک و رویدادهای بازبینی مشخص‌اند.',
+        ],
+      },
+    ],
+    relatedLearn: ['architecture-diagram-mermaid', 'sequence-diagram-mermaid', 'flowchart-mermaid'],
+  },
+];
+
+const ARTICLE_MAP = new Map(EDITORIAL_ARTICLES.map((article) => [article.slug, article]));
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, (character) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  })[character]);
+}
+
+function inline(value) {
+  return escapeHtml(value).replace(/`([^`]+)`/g, '<code>$1</code>');
+}
+
+function wordCount(article) {
+  return [article.deck, ...(article.takeaways || []), ...article.sections.flatMap((section) => [
+    section.title,
+    ...(section.paragraphs || []),
+    ...(section.bullets || []),
+    ...(section.checklist || []),
+    ...(section.table?.rows || []).flat(),
+  ])].join(' ').split(/\s+/).filter(Boolean).length;
+}
+
+function renderTable(table) {
+  if (!table?.headers?.length) return '';
+  return `<div class="article-table-wrap"><table class="article-table"><thead><tr>${table.headers.map((item) => `<th>${escapeHtml(item)}</th>`).join('')}</tr></thead><tbody>${table.rows.map((row) => `<tr>${row.map((item) => `<td>${inline(item)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+}
+
+function renderSection(section, index) {
+  const paragraphs = (section.paragraphs || []).map((paragraph) => `<p>${inline(paragraph)}</p>`).join('');
+  const bullets = section.bullets?.length ? `<ul>${section.bullets.map((item) => `<li>${inline(item)}</li>`).join('')}</ul>` : '';
+  const checklist = section.checklist?.length ? `<div class="article-checklist"><strong>چک‌لیست اجرایی</strong><ul>${section.checklist.map((item) => `<li>${inline(item)}</li>`).join('')}</ul></div>` : '';
+  const code = section.code ? `<div class="code-example"><div class="code-example-head"><span>${escapeHtml(section.codeLabel || 'نمونهٔ Mermaid')}</span><button type="button" data-copy-target="article-code-${index}">کپی کد</button><a data-open-target="article-code-${index}" href="/editor">بازکردن در ادیتور</a></div><pre><code id="article-code-${index}">${escapeHtml(section.code)}</code></pre></div>` : '';
+  const note = section.note ? `<aside class="article-note"><strong>یادداشت تحریریه</strong><p>${inline(section.note)}</p></aside>` : '';
+  const quote = section.quote ? `<blockquote>${inline(section.quote)}</blockquote>` : '';
+  return `<section class="article-section"><div class="article-section-number">${String(index + 1).padStart(2, '0')}</div><h2 id="${escapeHtml(section.id)}">${escapeHtml(section.title)}</h2>${paragraphs}${renderTable(section.table)}${bullets}${checklist}${code}${note}${quote}</section>`;
+}
+
+function relatedLearnLinks(slugs) {
+  const titles = {
+    'flowchart-mermaid': 'آموزش فلوچارت Mermaid',
+    'sequence-diagram-mermaid': 'آموزش Sequence Diagram',
+    'er-diagram-mermaid': 'آموزش ER Diagram',
+    'class-diagram-mermaid': 'آموزش Class Diagram',
+    'architecture-diagram-mermaid': 'آموزش نمودار معماری',
+  };
+  return (slugs || []).map((slug) => `<a href="/learn/${escapeHtml(slug)}">${escapeHtml(titles[slug] || slug)}</a>`).join('');
+}
+
+export function getEditorialArticle(slug) {
+  return ARTICLE_MAP.get(String(slug || '')) || null;
+}
+
+export function articleSitemapEntries() {
+  return [
+    { path: '/articles', updated: UPDATED, priority: 0.86 },
+    ...EDITORIAL_ARTICLES.map((article) => ({ path: `/articles/${article.slug}`, updated: article.updated, priority: 0.78 })),
+  ];
+}
+
+export function articleInventory() {
+  return EDITORIAL_ARTICLES.map((article) => ({
+    path: `/articles/${article.slug}`,
+    slug: article.slug,
+    type: 'article',
+    title: article.title,
+    description: article.description,
+    category: article.category,
+    updated: article.updated,
+    published: article.published,
+    minutes: article.minutes,
+    wordCount: wordCount(article),
+    sections: article.sections.length,
+    targetQuery: article.keywords[0] || '',
+  }));
+}
+
+export function renderArticlesIndex() {
+  const featured = EDITORIAL_ARTICLES[0];
+  const cards = EDITORIAL_ARTICLES.map((article, index) => `<article class="journal-card ${index === 0 ? 'journal-card--featured' : ''}"><div class="journal-card-meta"><span>${escapeHtml(article.category)}</span><time datetime="${article.updated}">${escapeHtml(article.minutes.toLocaleString('fa-IR'))} دقیقه</time></div><h2><a href="/articles/${article.slug}">${escapeHtml(article.title)}</a></h2><p>${escapeHtml(article.deck)}</p><div class="journal-card-foot"><span>${escapeHtml(article.author.name)}</span><a href="/articles/${article.slug}">خواندن مقاله <span aria-hidden="true">←</span></a></div></article>`).join('');
+  return `<!doctype html><html lang="fa" dir="rtl" data-theme="light"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="theme-color" content="#f5f3ed"/><title>مقاله‌های نمودارا</title><meta name="description" content="مقاله‌های تحلیلی نمودارا دربارهٔ مستندسازی فنی، Diagram as Code، انتخاب نوع نمودار، معماری نرم‌افزار و خروجی حرفه‌ای."/><link rel="icon" href="/logo.svg" type="image/svg+xml"/><link rel="stylesheet" href="/css/landing.css?v=%V%"/><link rel="stylesheet" href="/css/docs.css?v=%V%"/><link rel="stylesheet" href="/css/articles.css?v=%V%"/><link rel="stylesheet" href="/css/ads.css?v=%V%"/></head><body class="journal-body"><a class="skip-link" href="#articles-main">رفتن به مقاله‌ها</a><header class="docs-header"><a class="brand" href="/" aria-label="نمودارا"><img src="/logo.svg" width="38" height="38" alt=""/><span class="brand-copy"><strong>نمودارا</strong><small>یادداشت‌هایی دربارهٔ نمودار و مستندسازی</small></span></a><nav><a href="/learn">آموزش</a><a href="/articles" aria-current="page">مقاله‌ها</a><a href="/about">دربارهٔ نمودارا</a></nav><a class="button button-small" href="/editor">بازکردن ادیتور</a></header><main id="articles-main" class="journal-shell"><header class="journal-hero"><p class="section-kicker">مجلهٔ نمودارا</p><h1>کمتر دربارهٔ شکل‌ها؛ بیشتر دربارهٔ تصمیم‌هایی که نمودار باید روشن کند.</h1><p>این بخش برای نکته‌های سینتکسی ساخته نشده است. دربارهٔ نگهداری مستندات، انتخاب نوع نمودار، کار تیمی و اشتباه‌هایی می‌نویسیم که در پروژهٔ واقعی هزینه می‌سازند.</p><div class="journal-hero-note"><span>نویسنده</span><strong>${escapeHtml(featured.author.name)}</strong><a href="/editorial-policy">روش نوشتن و بازبینی محتوا</a></div></header><aside class="ad-slot ad-slot--leaderboard" data-ad-slot="articlesTop" data-ad-format="leaderboard" hidden aria-label="تبلیغات"><span class="ad-slot__label">تبلیغات</span><a class="ad-slot__privacy" href="/privacy#advertising">درباره تبلیغات</a><div class="ad-slot__mount" data-ad-mount></div></aside><section class="journal-grid" aria-label="فهرست مقاله‌ها">${cards}</section><aside class="ad-slot ad-slot--native" data-ad-slot="articlesInline" data-ad-format="native" hidden aria-label="تبلیغات"><span class="ad-slot__label">تبلیغات</span><a class="ad-slot__privacy" href="/privacy#advertising">درباره تبلیغات</a><div class="ad-slot__mount" data-ad-mount></div></aside><section class="journal-about"><div><p class="section-kicker">اصل تحریریه</p><h2>مقاله باید بعد از خواندن، یک تصمیم را آسان‌تر کند.</h2></div><p>هر مطلب با یک مسئلهٔ مشخص شروع می‌شود، مثال‌های Mermaid آن رندر می‌شوند و تاریخ فقط زمانی تغییر می‌کند که محتوای واقعی بازبینی شده باشد.</p><a href="/editorial-policy">سیاست تحریریه</a></section></main><footer class="site-footer section-shell"><div><strong>نمودارا</strong><span>ادیتور و مرجع فارسی Mermaid</span></div><nav><a href="/learn">آموزش</a><a href="/articles">مقاله‌ها</a><a href="/about">دربارهٔ ما</a><a href="/editorial-policy">سیاست تحریریه</a></nav><small>nemodara.ir</small></footer><script type="module" src="/js/docs.js?v=%V%"></script><script type="module" src="/js/ads.js?v=%V%"></script></body></html>`;
+}
+
+export function renderEditorialArticle(slug) {
+  const article = getEditorialArticle(slug);
+  if (!article) return null;
+  const toc = article.sections.map((section) => `<a href="#${escapeHtml(section.id)}">${escapeHtml(section.title)}</a>`).join('');
+  const related = relatedLearnLinks(article.relatedLearn);
+  return `<!doctype html><html lang="fa" dir="rtl" data-theme="light"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="theme-color" content="#f5f3ed"/><title>${escapeHtml(article.title)}</title><meta name="description" content="${escapeHtml(article.description)}"/><link rel="icon" href="/logo.svg" type="image/svg+xml"/><link rel="stylesheet" href="/css/landing.css?v=%V%"/><link rel="stylesheet" href="/css/docs.css?v=%V%"/><link rel="stylesheet" href="/css/articles.css?v=%V%"/><link rel="stylesheet" href="/css/ads.css?v=%V%"/></head><body class="docs-body journal-body"><div class="reading-progress" aria-hidden="true"><span id="reading-progress-bar"></span></div><header class="docs-header"><a class="brand" href="/" aria-label="نمودارا"><img src="/logo.svg" width="38" height="38" alt=""/><span class="brand-copy"><strong>نمودارا</strong><small>مجلهٔ مستندسازی فنی</small></span></a><nav><a href="/learn">آموزش</a><a href="/articles">مقاله‌ها</a><a href="/about">درباره</a></nav><a class="button button-small" href="/editor">ادیتور</a></header><main class="docs-shell article-layout"><div class="docs-main"><nav class="breadcrumbs" aria-label="مسیر صفحه"><a href="/">خانه</a><span>←</span><a href="/articles">مقاله‌ها</a><span>←</span><span>${escapeHtml(article.category)}</span></nav><article><header class="doc-hero journal-article-hero"><div class="article-category">${escapeHtml(article.category)}</div><h1>${escapeHtml(article.title)}</h1><p class="doc-deck">${escapeHtml(article.deck)}</p><div class="byline"><a href="${article.author.url}">${escapeHtml(article.author.name)}</a><span>${escapeHtml(article.author.role)}</span></div><div class="doc-meta"><span>${article.minutes.toLocaleString('fa-IR')} دقیقه مطالعه</span><span>انتشار و بازبینی: ۲۴ تیر ۱۴۰۵</span><span>تست‌شده با ${escapeHtml(article.testedWith)}</span></div></header><details class="mobile-toc"><summary>فهرست مقاله</summary><nav>${toc}</nav></details><aside class="ad-slot ad-slot--article-lead" data-ad-slot="articleTop" data-ad-format="article" hidden aria-label="تبلیغات"><span class="ad-slot__label">تبلیغات</span><a class="ad-slot__privacy" href="/privacy#advertising">درباره تبلیغات</a><div class="ad-slot__mount" data-ad-mount></div></aside><div class="doc-article journal-article"><section class="article-summary"><span>بعد از خواندن این مقاله</span><h2>می‌توانی این تصمیم‌ها را دقیق‌تر بگیری</h2><ul>${article.takeaways.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul></section>${article.sections.map((section, index) => `${renderSection(section, index)}${index === 1 ? '<aside class="ad-slot ad-slot--in-article" data-ad-slot="articleMid" data-ad-format="article" hidden aria-label="تبلیغات"><span class="ad-slot__label">تبلیغات</span><a class="ad-slot__privacy" href="/privacy#advertising">درباره تبلیغات</a><div class="ad-slot__mount" data-ad-mount></div></aside>' : ''}`).join('')}<section class="editorial-method"><p class="section-kicker">این مقاله چطور آماده شد؟</p><h2>مثال‌ها رندر شده‌اند؛ ادعاها به تجربهٔ استفاده محدود شده‌اند.</h2><p>کدهای این صفحه با نسخهٔ فعلی Mermaid در تست‌های پروژه اجرا می‌شوند. دربارهٔ رتبه، درآمد یا نتیجه‌ای که دادهٔ واقعی نداریم وعده نمی‌دهیم. جزئیات در <a href="/editorial-policy">سیاست تحریریه</a> نوشته شده است.</p></section><section class="related-reading"><h2>برای تمرین عملی</h2><div>${related}</div></section></div></article><aside class="ad-slot ad-slot--article-end" data-ad-slot="articleEnd" data-ad-format="article" hidden aria-label="تبلیغات"><span class="ad-slot__label">تبلیغات</span><a class="ad-slot__privacy" href="/privacy#advertising">درباره تبلیغات</a><div class="ad-slot__mount" data-ad-mount></div></aside></div><aside class="docs-sidebar"><h2>در این مقاله</h2><nav data-article-toc>${toc}</nav><div class="sidebar-author"><span>نوشته و بازبینی</span><strong>${escapeHtml(article.author.name)}</strong><a href="/editorial-policy">روش تحریریه</a></div><a class="sidebar-cta" href="/editor">امتحان در ادیتور</a></aside></main><script type="module" src="/js/docs.js?v=%V%"></script><script type="module" src="/js/ads.js?v=%V%"></script></body></html>`;
+}
+
+export { AUTHOR as EDITORIAL_AUTHOR, UPDATED as ARTICLES_UPDATED };
