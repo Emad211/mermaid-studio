@@ -32,14 +32,16 @@ test('ordinary raster exports are attempted locally before the server fallback',
   assert.match(source, /MAX_RASTER_PIXELS/);
 });
 
-test('landing, templates and learning pages expose free Persian entry points and ad slots', async () => {
+test('landing, templates and learning pages expose Nemodara Persian entry points and ad slots', async () => {
   const landing = await read('public/landing.html');
   const templates = await read('public/templates.html');
   const learn = await read('public/learn.html');
-  assert.match(landing, /شروع ساخت نمودار/);
+  assert.match(landing, /نمودارا/);
+  assert.match(landing, /ساخت اولین نمودار/);
   assert.match(landing, /href="\/editor"/);
   assert.match(landing, /href="\/learn"/);
   assert.match(landing, /data-ad-slot="homeInline"/);
   assert.match(templates, /data-ad-slot="templatesInline"/);
+  assert.match(learn, /Mermaid را برای حل مسئله/);
   assert.match(learn, /data-ad-slot="learnInline"/);
 });
