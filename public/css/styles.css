@@ -2,6 +2,8 @@
    Mermaid Studio — GUI styles
    =================================================================== */
 
+@import url("/css/fonts.css");
+
 :root {
   --brand-1: #b16cea;
   --brand-2: #ff5e92;
@@ -14,8 +16,8 @@
   --radius-sm: 7px;
   --shadow: 0 8px 30px rgba(0, 0, 0, 0.28);
   --editor-w: 42%;
-  --font-mono: ui-monospace, "SFMono-Regular", "JetBrains Mono", "Fira Code", Consolas, monospace;
-  --font-ui: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono Variable", "Vazirmatn Variable", Consolas, monospace;
+  --font-ui: "Vazirmatn Variable", Tahoma, "Segoe UI", sans-serif;
 }
 
 /* ---- Dark (default) ---- */
@@ -93,7 +95,7 @@ body {
 }
 .brand-text strong {
   font-size: 15px;
-  letter-spacing: 0.2px;
+  letter-spacing: 0;
 }
 .brand-text small {
   color: var(--muted);
@@ -119,7 +121,7 @@ body {
 .field > span {
   font-size: 10.5px;
   text-transform: uppercase;
-  letter-spacing: 0.6px;
+  letter-spacing: 0;
   color: var(--muted);
   font-weight: 600;
 }
@@ -187,7 +189,7 @@ input:focus {
   font-weight: 600;
   font-family: var(--font-ui);
   cursor: pointer;
-  letter-spacing: 0.3px;
+  letter-spacing: 0;
   transition: background 0.15s, transform 0.05s, opacity 0.15s;
   position: relative;
 }
@@ -576,7 +578,7 @@ input:focus {
 .editor-header .eh-label {
   font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.6px;
+  letter-spacing: 0;
   color: var(--muted);
   font-weight: 700;
 }

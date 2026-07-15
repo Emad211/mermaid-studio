@@ -23,11 +23,11 @@
 }
 
 .journal-hero h1 {
-  max-width: 880px;
+  max-width: 840px;
   margin: 14px 0 24px;
-  font-size: clamp(2.65rem, 7vw, 5.6rem);
-  line-height: 1.12;
-  letter-spacing: -.055em;
+  font-size: 3.5rem;
+  line-height: 1.42;
+  letter-spacing: 0;
   text-wrap: balance;
 }
 
@@ -35,7 +35,7 @@
   max-width: 740px;
   margin: 0;
   color: var(--muted);
-  font-size: clamp(1rem, 1.8vw, 1.2rem);
+  font-size: 1.2rem;
   line-height: 2.05;
 }
 
@@ -94,9 +94,9 @@
 .journal-card h2 {
   max-width: 720px;
   margin: 28px 0 15px;
-  font-size: clamp(1.6rem, 3.3vw, 2.65rem);
-  line-height: 1.4;
-  letter-spacing: -.025em;
+  font-size: 2.3rem;
+  line-height: 1.5;
+  letter-spacing: 0;
 }
 
 .journal-card h2 a:hover { color: var(--accent); }
@@ -124,7 +124,7 @@
   border-bottom: 1px solid var(--border);
 }
 
-.journal-about h2 { margin: 8px 0 0; font-size: clamp(1.6rem, 3vw, 2.5rem); line-height: 1.45; }
+.journal-about h2 { margin: 8px 0 0; font-size: 2.5rem; line-height: 1.45; }
 .journal-about > p { margin: 0; color: var(--muted); line-height: 2; }
 .journal-about > a { padding-bottom: 4px; border-bottom: 1px solid currentColor; color: var(--accent); white-space: nowrap; }
 
@@ -141,8 +141,8 @@
 
 .journal-article-hero::before { display: none; }
 .article-category { color: var(--accent); font-size: .82rem; font-weight: 850; }
-.journal-article-hero h1 { max-width: 880px; font-size: clamp(2.45rem, 6vw, 4.8rem); line-height: 1.24; }
-.journal-article-hero .doc-deck { max-width: 810px; font-size: clamp(1.05rem, 1.9vw, 1.28rem); line-height: 2.08; }
+.journal-article-hero h1 { max-width: 850px; font-size: 3.25rem; line-height: 1.42; text-wrap: balance; }
+.journal-article-hero .doc-deck { max-width: 810px; font-size: 1.28rem; line-height: 2.08; }
 
 .byline {
   margin-top: 28px;
@@ -172,7 +172,7 @@
   background: color-mix(in srgb, var(--surface) 72%, transparent);
 }
 .article-summary > span { color: var(--accent); font-size: .8rem; font-weight: 850; }
-.article-summary h2 { margin: 7px 0 22px !important; font-size: clamp(1.45rem, 2.7vw, 2rem) !important; }
+.article-summary h2 { margin: 7px 0 22px !important; font-size: 2rem !important; }
 .article-summary ul { margin: 0; display: grid; gap: 10px; }
 
 .article-section {
@@ -186,11 +186,11 @@
   font-family: var(--font-mono);
   font-size: .75rem;
   font-weight: 800;
-  letter-spacing: .08em;
+  letter-spacing: 0;
 }
 .article-section h2 { margin-top: 0 !important; text-wrap: balance; }
 .article-section p,
-.article-section li { font-size: clamp(.98rem, 1.4vw, 1.075rem); }
+.article-section li { font-size: 1.075rem; }
 .article-section p + p { margin-top: 1.15em; }
 
 .article-checklist {
@@ -219,7 +219,7 @@
   padding: 8px 27px 8px 0;
   border-right: 3px solid var(--accent-2);
   color: var(--text);
-  font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+  font-size: 1.75rem;
   line-height: 1.9;
   font-weight: 750;
 }
@@ -243,7 +243,7 @@
   border-top: 2px solid var(--text);
   border-bottom: 1px solid var(--border);
 }
-.editorial-method h2 { margin: 7px 0 15px !important; font-size: clamp(1.5rem, 3vw, 2.25rem) !important; }
+.editorial-method h2 { margin: 7px 0 15px !important; font-size: 2.25rem !important; }
 .editorial-method p { margin: 0; color: var(--muted); line-height: 2; }
 .editorial-method a { color: var(--accent); text-decoration: underline; text-underline-offset: 4px; }
 
@@ -277,13 +277,13 @@
 @media (max-width: 620px) {
   .journal-shell { width: calc(100% - 24px); margin-top: 42px; }
   .journal-hero { padding-bottom: 38px; }
-  .journal-hero h1 { font-size: clamp(2.35rem, 13vw, 3.55rem); }
+  .journal-hero h1 { font-size: 2.625rem; }
   .journal-grid { margin-top: 30px; border-right: 0; }
   .journal-card { min-height: auto; padding: 26px 4px 32px; border-left: 0; }
   .journal-card h2 { font-size: 1.65rem; }
   .journal-card-foot { align-items: flex-start; flex-direction: column; }
   .journal-about { margin-top: 60px; }
-  .journal-article-hero h1 { font-size: clamp(2.15rem, 12vw, 3.2rem); }
+  .journal-article-hero h1 { font-size: 2.5rem; }
   .article-summary { border-inline: 0; padding-inline: 0; background: transparent; }
   .article-section { margin-bottom: 64px; }
   .article-section p,

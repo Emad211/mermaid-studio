@@ -33,6 +33,7 @@ import { getLearnArticle, renderLearnArticle } from './learn-content.js';
 import { getEditorialArticle, renderArticlesIndex, renderEditorialArticle } from './article-content.js';
 import { contentInventory } from './content-registry.js';
 import { buildContentOperations } from './content-operations.js';
+import { applySiteShell } from './site-shell.js';
 import {
   canonicalRedirect,
   enhanceHtml,
@@ -173,7 +174,7 @@ function injectAnalyticsScript(html, pathname, analytics) {
 }
 
 function prepareHtml(req, source, { pathname = req.path, seo = true, track = true } = {}, state) {
-  let html = String(source).split('%V%').join(BUILD);
+  let html = applySiteShell(source, pathname).split('%V%').join(BUILD);
   let meta = null;
   if (seo) {
     const enhanced = enhanceHtml(html, pathname, state.seo);
@@ -550,6 +551,8 @@ export function createApp({ environment = process.env, logger = console } = {}) 
   app.use('/vendor/katex', express.static(path.join(NODE_MODULES, 'katex', 'dist'), { setHeaders: vendorHeaders }));
   app.use('/vendor/pako', express.static(path.join(NODE_MODULES, 'pako', 'dist'), { setHeaders: vendorHeaders }));
   app.use('/vendor/iconify', express.static(path.join(NODE_MODULES, '@iconify-json'), { setHeaders: vendorHeaders }));
+  app.use('/vendor/fontsource/vazirmatn', express.static(path.join(NODE_MODULES, '@fontsource-variable', 'vazirmatn'), { setHeaders: vendorHeaders }));
+  app.use('/vendor/fontsource/jetbrains-mono', express.static(path.join(NODE_MODULES, '@fontsource-variable', 'jetbrains-mono'), { setHeaders: vendorHeaders }));
   app.use('/vendor-build', express.static(path.join(PUBLIC_DIR, 'vendor-build'), { setHeaders: vendorHeaders }));
 
   app.get('/', (req, res) => sendHtml(req, res, LANDING_HTML, { pathname: '/' }, state));
@@ -587,7 +590,7 @@ export function createApp({ environment = process.env, logger = console } = {}) 
     res.type('text/plain').send(`Contact: ${state.seo.githubUrl}/security/advisories/new\nCanonical: ${state.seo.siteUrl || ''}/.well-known/security.txt\nPreferred-Languages: fa, en\nExpires: 2027-07-13T00:00:00.000Z\n`);
   });
 
-  for (const legacy of ['/landing.html', '/templates.html', '/learn.html', '/editor.html']) {
+  for (const legacy of ['/landing.html', '/templates.html', '/learn.html', '/editor.html', '/about.html', '/editorial-policy.html', '/privacy.html', '/terms.html']) {
     app.get(legacy, (_req, res) => res.redirect(301, legacy === '/landing.html' ? '/' : legacy.replace('.html', '')));
   }
 

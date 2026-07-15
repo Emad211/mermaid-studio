@@ -1,3 +1,5 @@
+@import url("/css/fonts.css");
+
 :root {
   color-scheme: dark;
   --a-bg: #080b13;
@@ -19,7 +21,7 @@
   --a-cyan: #4ed8e5;
   --a-radius: 18px;
   --a-shadow: 0 24px 70px rgba(0, 0, 0, .31);
-  font-family: Vazirmatn, Tahoma, "Segoe UI", sans-serif;
+  font-family: "Vazirmatn Variable", Tahoma, "Segoe UI", sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -70,8 +72,8 @@ code, .number, input[type="date"], input[type="number"] { font-variant-numeric: 
 .text-button { padding: 0; border: 0; background: none; color: #c5b6ff; cursor: pointer; font-size: 10px; }
 
 .admin-hero { margin: 42px 0 25px; display: flex; align-items: flex-end; justify-content: space-between; gap: 26px; }
-.hero-kicker, .section-heading span { color: #bcaaff; font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
-.admin-hero h1 { margin: 5px 0 9px; font-size: clamp(30px, 4vw, 49px); letter-spacing: -.045em; }
+.hero-kicker, .section-heading span { color: #bcaaff; font-size: 10px; font-weight: 800; letter-spacing: 0; text-transform: uppercase; }
+.admin-hero h1 { margin: 5px 0 9px; font-size: 49px; letter-spacing: 0; }
 .admin-hero p { max-width: 850px; margin: 0; color: var(--a-muted); line-height: 1.95; font-size: 12px; }
 .analytics-status { padding: 9px 12px; display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--a-border); border-radius: 999px; background: var(--a-panel); color: var(--a-muted); white-space: nowrap; font-size: 10px; }
 .analytics-status::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--a-warning); box-shadow: 0 0 0 4px rgba(245,196,81,.11); }
@@ -82,7 +84,7 @@ code, .number, input[type="date"], input[type="number"] { font-variant-numeric: 
 .view-panel.is-active { display: block; animation: view-in .2s ease; }
 @keyframes view-in { from { opacity: .35; transform: translateY(5px); } }
 .section-heading { margin: 0 0 16px; display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; }
-.section-heading h2 { margin: 5px 0 0; font-size: clamp(22px, 3vw, 32px); }
+.section-heading h2 { margin: 5px 0 0; font-size: 32px; }
 .section-actions { display: flex; gap: 8px; }
 
 .kpi-grid { display: grid; gap: 12px; }
@@ -91,7 +93,7 @@ code, .number, input[type="date"], input[type="number"] { font-variant-numeric: 
 .kpi-card { min-height: 124px; padding: 16px; position: relative; overflow: hidden; border: 1px solid var(--a-border); border-radius: var(--a-radius); background: linear-gradient(145deg, rgba(255,255,255,.025), transparent), var(--a-panel); box-shadow: 0 10px 32px rgba(0,0,0,.13); }
 .kpi-card::after { content: ""; width: 90px; height: 90px; position: absolute; inset: auto -38px -43px auto; border-radius: 50%; background: var(--card-accent, var(--a-primary)); opacity: .14; filter: blur(3px); }
 .kpi-card > span { color: var(--a-muted); font-size: 10px; }
-.kpi-card strong { display: block; margin: 14px 0 6px; position: relative; z-index: 1; direction: ltr; text-align: right; font-size: clamp(20px, 2.1vw, 29px); }
+.kpi-card strong { display: block; margin: 14px 0 6px; position: relative; z-index: 1; direction: ltr; text-align: right; font-size: 29px; }
 .kpi-card small { position: relative; z-index: 1; display: block; color: var(--a-muted); font-size: 9px; line-height: 1.55; }
 .kpi-card small.delta-up { color: var(--a-success); }
 .kpi-card small.delta-down { color: var(--a-danger); }

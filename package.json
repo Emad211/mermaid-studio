@@ -13,7 +13,7 @@
     "serve:public": "node bin/cli.js serve --host 0.0.0.0 --no-open",
     "render": "node bin/cli.js render",
     "build": "node scripts/build-vendor.mjs",
-    "check": "node --check public/js/app.js && node --check public/js/exporter.js && node --check public/js/editor.js && node --check public/js/templates.js && node --check public/js/ads.js && node --check public/js/analytics.js && node --check public/js/analytics-dashboard.js && node --check public/js/svg-safety.js && node --check public/js/share.js && node --check public/js/mermaid-runtime.js && node --check public/js/headless.js && node --check src/server/app.js && node --check src/server/ads.js && node --check src/server/analytics.js && node --check src/server/seo.js && node --check src/server/learn-content.js && node --check src/server/guards.js && node --check src/core/renderer.js && node --check src/server/admin-store.js && node --check src/server/growth-insights.js && node --check src/server/seo-audit.js && node --check src/server/search-console.js && node --check src/server/indexnow.js && node --check scripts/docker-local-smoke.mjs && node --check public/js/editor-experience.js && node --check public/js/content-admin.js && node --check public/js/revenue-planner.js && node --check src/server/article-content.js && node --check src/server/content-registry.js && node --check src/server/content-operations.js",
+    "check": "node --check public/js/app.js && node --check public/js/exporter.js && node --check public/js/editor.js && node --check public/js/templates.js && node --check public/js/ads.js && node --check public/js/analytics.js && node --check public/js/analytics-dashboard.js && node --check public/js/svg-safety.js && node --check public/js/share.js && node --check public/js/mermaid-runtime.js && node --check public/js/headless.js && node --check public/js/site-shell.js && node --check src/server/app.js && node --check src/server/ads.js && node --check src/server/analytics.js && node --check src/server/seo.js && node --check src/server/site-shell.js && node --check src/server/learn-content.js && node --check src/server/guards.js && node --check src/core/renderer.js && node --check src/server/admin-store.js && node --check src/server/growth-insights.js && node --check src/server/seo-audit.js && node --check src/server/search-console.js && node --check src/server/indexnow.js && node --check scripts/docker-local-smoke.mjs && node --check public/js/editor-experience.js && node --check public/js/content-admin.js && node --check public/js/revenue-planner.js && node --check src/server/article-content.js && node --check src/server/content-registry.js && node --check src/server/content-operations.js",
     "test:security": "node --test tests/security.test.mjs",
     "test:product": "node --test tests/browser.test.mjs tests/admin-browser.test.mjs tests/editorial-pages.test.mjs tests/editor-professional.test.mjs tests/product-growth-v3.test.mjs tests/localization.test.mjs tests/ads.test.mjs tests/analytics.test.mjs tests/seo.test.mjs tests/admin-control-center.test.mjs && node tests/product.mjs",
     "test:analytics": "node --test tests/analytics.test.mjs tests/seo.test.mjs",
@@ -62,6 +62,8 @@
     "node": ">=18"
   },
   "dependencies": {
+    "@fontsource-variable/jetbrains-mono": "^5.2.8",
+    "@fontsource-variable/vazirmatn": "^5.2.8",
     "@iconify-json/fa6-brands": "^1.2.6",
     "@iconify-json/fa6-solid": "^1.2.4",
     "@iconify-json/logos": "^1.2.11",

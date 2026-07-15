@@ -30,7 +30,7 @@ const THEME_LABELS = {
   base: 'پایه',
 };
 
-const LAYOUT_LABELS = { dagre: 'Dagre — استاندارد', elk: 'ELK — پیشرفته' };
+const LAYOUT_LABELS = { dagre: 'Dagre — استاندارد', elk: 'ELK — نمودارهای سازگار' };
 
 const TYPE_LABELS = {
   flowchart: 'فلوچارت',

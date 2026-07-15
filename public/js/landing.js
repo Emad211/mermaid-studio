@@ -1,27 +1,5 @@
 const $ = (selector) => document.querySelector(selector);
 
-const root = document.documentElement;
-const themeToggle = $('#theme-toggle');
-const savedTheme = localStorage.getItem('mstudio:site-theme');
-const preferredTheme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-
-function applyTheme(theme) {
-  const next = theme === 'light' ? 'light' : 'dark';
-  root.dataset.theme = next;
-  if (themeToggle) {
-    themeToggle.textContent = next === 'dark' ? '☾' : '☀';
-    themeToggle.setAttribute('aria-label', next === 'dark' ? 'فعال کردن پوسته روشن' : 'فعال کردن پوسته تیره');
-  }
-}
-
-applyTheme(savedTheme || preferredTheme);
-
-themeToggle?.addEventListener('click', () => {
-  const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
-  localStorage.setItem('mstudio:site-theme', next);
-  applyTheme(next);
-});
-
 let toastTimer;
 function showToast(message) {
   const toast = $('#copy-toast');

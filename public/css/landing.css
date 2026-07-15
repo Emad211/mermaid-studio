@@ -1,3 +1,5 @@
+@import url("/css/fonts.css");
+
 :root {
   color-scheme: light;
   --bg: #f5f3ed;
@@ -24,9 +26,9 @@
   --radius-sm: 13px;
   --shell: min(1180px, calc(100% - 48px));
   --reading: 720px;
-  --font: "Vazirmatn", "Noto Sans Arabic", "Noto Sans", Tahoma, "Segoe UI", sans-serif;
-  --font-display: "Vazirmatn", "Noto Sans Arabic", Tahoma, sans-serif;
-  --mono: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --font: "Vazirmatn Variable", Tahoma, "Segoe UI", sans-serif;
+  --font-display: "Vazirmatn Variable", Tahoma, sans-serif;
+  --mono: "JetBrains Mono Variable", "Vazirmatn Variable", Consolas, monospace;
 }
 
 html[data-theme="dark"] {
@@ -124,7 +126,7 @@ img, svg { max-width: 100%; }
 .brand { display: inline-flex; align-items: center; gap: 10px; min-width: max-content; }
 .brand-mark { width: 38px; height: 38px; display: block; }
 .brand-copy { display: flex; flex-direction: column; line-height: 1.22; }
-.brand-copy strong { font-family: var(--font-display); font-size: 16px; font-weight: 800; letter-spacing: -.025em; }
+.brand-copy strong { font-family: var(--font-display); font-size: 16px; font-weight: 800; letter-spacing: 0; }
 .brand-copy small { margin-top: 3px; color: var(--muted); font-size: 10px; font-weight: 450; }
 
 .main-nav { display: flex; align-items: center; gap: 25px; color: var(--muted); font-size: 12px; }
@@ -132,6 +134,8 @@ img, svg { max-width: 100%; }
 .main-nav a::after { content: ""; position: absolute; right: 0; bottom: 3px; width: 0; height: 1px; background: currentColor; transition: width .18s ease; }
 .main-nav a:hover { color: var(--text); }
 .main-nav a:hover::after { width: 100%; }
+.main-nav a[aria-current="page"] { color: var(--text); font-weight: 700; }
+.main-nav a[aria-current="page"]::after { width: 100%; }
 
 .header-actions { margin-right: auto; display: flex; align-items: center; gap: 7px; }
 .icon-button {
@@ -194,22 +198,23 @@ html[data-theme="dark"] .button-primary { color: #0d2118; }
   color: var(--primary);
   font-size: 11px;
   font-weight: 750;
-  letter-spacing: .02em;
+  letter-spacing: 0;
 }
 .hero h1 {
   max-width: 620px;
   margin: 20px 0 23px;
   font-family: var(--font-display);
-  font-size: clamp(45px, 6vw, 78px);
-  font-weight: 850;
-  line-height: 1.21;
-  letter-spacing: -.052em;
+  font-size: 64px;
+  font-weight: 800;
+  line-height: 1.32;
+  letter-spacing: 0;
+  text-wrap: balance;
 }
 .hero-lead {
   max-width: 580px;
   margin: 0;
   color: var(--muted);
-  font-size: clamp(15px, 1.45vw, 18px);
+  font-size: 18px;
   line-height: 2.05;
 }
 .hero-actions { margin-top: 32px; display: flex; flex-wrap: wrap; align-items: center; gap: 17px; }
@@ -221,10 +226,10 @@ html[data-theme="dark"] .button-primary { color: #0d2118; }
 .section-intro h2, .process-copy h2, .privacy-copy h2, .final-cta h2 {
   margin: 8px 0 14px;
   font-family: var(--font-display);
-  font-size: clamp(31px, 4.4vw, 52px);
-  font-weight: 820;
-  line-height: 1.34;
-  letter-spacing: -.04em;
+  font-size: 46px;
+  font-weight: 780;
+  line-height: 1.45;
+  letter-spacing: 0;
 }
 .section-intro p, .process-copy > p:last-child, .privacy-copy > p, .final-cta p { margin: 0; color: var(--muted); font-size: 14px; line-height: 2; }
 .section-intro--split > p { max-width: 500px; justify-self: end; }
@@ -274,7 +279,7 @@ html[data-theme="dark"] .button-primary { color: #0d2118; }
   .mobile-menu summary { font-size: 0; }
   .mobile-menu summary::before { content: "☰"; font-size: 16px; }
   .hero { padding: 72px 0 60px; gap: 45px; }
-  .hero h1 { font-size: clamp(39px, 13vw, 58px); letter-spacing: -.045em; }
+  .hero h1 { font-size: 42px; letter-spacing: 0; }
   .hero-lead { font-size: 15px; }
   .hero-actions { align-items: stretch; flex-direction: column; }
   .hero-actions .button { width: 100%; }
@@ -282,7 +287,7 @@ html[data-theme="dark"] .button-primary { color: #0d2118; }
   .trust-row { gap: 8px 14px; }
   .section-block { padding-top: 88px; }
   .section-intro { margin-bottom: 30px; }
-  .section-intro h2, .process-copy h2, .privacy-copy h2, .final-cta h2 { font-size: clamp(28px, 9.6vw, 39px); }
+  .section-intro h2, .process-copy h2, .privacy-copy h2, .final-cta h2 { font-size: 34px; }
   .site-footer { min-height: auto; padding: 46px 0 36px; grid-template-columns: 1fr; gap: 27px; }
   .footer-meta { grid-column: auto; text-align: right; }
 }

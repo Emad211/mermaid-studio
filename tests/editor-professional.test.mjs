@@ -60,6 +60,8 @@ test('Nemodara editor exposes commands, diagnostics and a focused mobile workflo
   await page.evaluate(() => window.nemodaraEditor.setCode('flowchart TD\n  A[شروع] --> B[پایان]'));
   await page.waitForFunction(() => document.querySelector('#diagnostics-panel')?.classList.contains('is-clean'), { timeout: 20_000 });
 
+  await page.select('#layout-select', 'elk');
+  await page.waitForFunction(() => document.querySelector('#diagnostics-panel')?.classList.contains('is-clean'), { timeout: 20_000 });
   const examples = await page.$$eval('#examples-select option', (options) => options.filter((option) => option.value).map((option) => option.value));
   for (const example of examples) {
     const diagnosticCount = await page.evaluate(() => window.__diagnosticCount);
@@ -67,6 +69,10 @@ test('Nemodara editor exposes commands, diagnostics and a focused mobile workflo
     await page.waitForFunction((count) => window.__diagnosticCount > count, { timeout: 20_000 }, diagnosticCount);
     assert.equal(await page.$eval('#diagnostics-panel', (node) => node.classList.contains('is-clean')), true, `example failed: ${example}`);
     assert.equal(await page.$$eval('.error-icon, .error-text, [id^="dmstudio-"]', (nodes) => nodes.length), 0, `orphan render output: ${example}`);
+    if (example === 'mindmap') {
+      assert.equal(await page.$eval('#stage > svg', (node) => node.classList.contains('mindmapDiagram')), true);
+      assert.match(await page.$eval('#diagnostics-title', (node) => node.textContent), /نقشه ذهنی/);
+    }
   }
 
   await page.click('#btn-command');

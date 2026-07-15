@@ -17,7 +17,7 @@ const BASE_CONFIG = Object.freeze({
   startOnLoad: false,
   securityLevel: 'strict',
   fontFamily:
-    'Vazirmatn, Tahoma, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+    '"Vazirmatn Variable", Vazirmatn, Tahoma, ui-sans-serif, system-ui, sans-serif',
 });
 
 export function registerIconPacks() {
@@ -49,6 +49,14 @@ export async function registerElk() {
 
 function wantsElk(config, layout) {
   return layout === 'elk' || config?.layout === 'elk';
+}
+
+function resolveLayout(code, config, layout) {
+  const requested = layout || config?.layout;
+  // Mermaid's mindmap renderer is not compatible with the external ELK
+  // renderer and currently crashes instead of ignoring the global option.
+  if (requested === 'elk' && detectType(code) === 'mindmap') return 'dagre';
+  return layout;
 }
 
 function safeConfig(config, theme, layout) {
@@ -99,8 +107,9 @@ function removeTemporaryRenderNodes(id) {
 export async function renderToSvg(code, { theme = 'default', config = {}, layout, css = '' } = {}) {
   return enqueueOperation(async () => {
     registerIconPacks();
+    const effectiveLayout = resolveLayout(code, config, layout);
 
-    if (wantsElk(config, layout)) {
+    if (wantsElk(config, effectiveLayout)) {
       try {
         await registerElk();
       } catch (error) {
@@ -108,7 +117,7 @@ export async function renderToSvg(code, { theme = 'default', config = {}, layout
       }
     }
 
-    const merged = safeConfig(config, theme, layout);
+    const merged = safeConfig(config, theme, effectiveLayout);
     mermaid.initialize(merged);
     const id = `mstudio-${Date.now().toString(36)}-${++counter}`;
     try {

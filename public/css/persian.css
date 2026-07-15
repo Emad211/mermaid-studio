@@ -1,7 +1,7 @@
 /* Persian product layer — layout, typography, RTL and responsive behavior. */
 
 :root {
-  --font-ui-fa: Vazirmatn, IRANSansX, Shabnam, Tahoma, "Segoe UI", sans-serif;
+  --font-ui-fa: "Vazirmatn Variable", Tahoma, "Segoe UI", sans-serif;
 }
 
 html,

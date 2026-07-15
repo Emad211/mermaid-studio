@@ -1,17 +1,5 @@
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
-const THEME_KEY = 'mstudio:site-theme';
-
-function setTheme(theme, persist = true) {
-  const next = theme === 'dark' ? 'dark' : 'light';
-  document.documentElement.dataset.theme = next;
-  if (persist) localStorage.setItem(THEME_KEY, next);
-  const button = $('#theme-toggle');
-  if (button) {
-    button.textContent = next === 'dark' ? '☾' : '☀';
-    button.setAttribute('aria-label', next === 'dark' ? 'فعال کردن پوسته روشن' : 'فعال کردن پوسته تیره');
-  }
-}
 
 function bytesToBase64Url(bytes) {
   let binary = '';
@@ -93,9 +81,6 @@ function closeMobileTocAfterNavigation() {
   });
 }
 
-const savedTheme = localStorage.getItem(THEME_KEY);
-setTheme(savedTheme || 'light', Boolean(savedTheme));
-$('#theme-toggle')?.addEventListener('click', () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'));
 setupExamples();
 setupReadingProgress();
 setupActiveToc();

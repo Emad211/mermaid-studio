@@ -4,7 +4,7 @@
   --accent: #2f7256;
   --accent-hover: #3c8466;
   --editor-w: 44%;
-  --font-ui: Vazirmatn, "Noto Sans Arabic", Tahoma, "Segoe UI", sans-serif;
+  --font-ui: "Vazirmatn Variable", Tahoma, "Segoe UI", sans-serif;
 }
 
 [data-app-theme="dark"] {

@@ -35,16 +35,31 @@ async function inspectPage(page, url, expectedHeading) {
   const response = await page.goto(url, { waitUntil: 'networkidle0' });
   assert.equal(response.status(), 200);
   assert.match(await page.$eval('h1', (node) => node.textContent), expectedHeading);
-  const metrics = await page.evaluate(() => ({
-    viewport: window.innerWidth,
-    scrollWidth: document.documentElement.scrollWidth,
-    title: document.title,
-    canonical: document.querySelector('link[rel="canonical"]')?.href || '',
-    robots: document.querySelector('meta[name="robots"]')?.content || '',
-    brand: document.querySelector('.brand-copy strong')?.textContent?.trim() || '',
-  }));
+  const metrics = await page.evaluate(async () => {
+    await document.fonts.ready;
+    const heading = document.querySelector('h1');
+    const header = document.querySelector('.site-header');
+    return {
+      viewport: window.innerWidth,
+      scrollWidth: document.documentElement.scrollWidth,
+      title: document.title,
+      canonical: document.querySelector('link[rel="canonical"]')?.href || '',
+      robots: document.querySelector('meta[name="robots"]')?.content || '',
+      brand: document.querySelector('.brand-copy strong')?.textContent?.trim() || '',
+      nav: [...document.querySelectorAll('.site-header > .main-nav > a')].map((node) => node.textContent.trim()),
+      headerHeight: Math.round(header?.getBoundingClientRect().height || 0),
+      bodyFont: getComputedStyle(document.body).fontFamily,
+      fontReady: document.fonts.check('16px "Vazirmatn Variable"', 'نمودارا'),
+      headingSize: parseFloat(getComputedStyle(heading).fontSize),
+    };
+  });
   assert.ok(metrics.scrollWidth <= metrics.viewport + 2, `horizontal overflow at ${url}: ${JSON.stringify(metrics)}`);
   assert.equal(metrics.brand, 'نمودارا');
+  assert.deepEqual(metrics.nav, ['خانه', 'آموزش', 'مجله', 'قالب‌ها', 'دربارهٔ ما']);
+  assert.ok(metrics.headerHeight >= 60 && metrics.headerHeight <= 70, `header height at ${url}: ${metrics.headerHeight}`);
+  assert.match(metrics.bodyFont, /Vazirmatn Variable/);
+  assert.equal(metrics.fontReady, true);
+  assert.ok(metrics.headingSize <= (metrics.viewport <= 720 ? 46 : 64), `oversized heading at ${url}: ${metrics.headingSize}px`);
   assert.match(metrics.canonical, /^https:\/\/nemodara\.ir\//);
   assert.doesNotMatch(metrics.robots, /noindex/);
   assert.deepEqual(consoleErrors, []);
@@ -105,6 +120,13 @@ test('Nemodara landing, learning hub and long-form article are editorial and mob
   });
   assert.ok(articleTypography.fontSize >= 15.5);
   assert.ok(articleTypography.lineHeight >= 1.95);
+
+  await inspectPage(page, `${server.url}/templates`, /قالب مناسب/);
+  await inspectPage(page, `${server.url}/articles`, /کمتر دربارهٔ شکل‌ها/);
+  await inspectPage(page, `${server.url}/articles/diagram-as-code-for-teams`, /نمودار به‌صورت کد/);
+  await inspectPage(page, `${server.url}/about`, /واضح‌ترکردن فکرهای فنی/);
+  await inspectPage(page, `${server.url}/privacy`, /حریم خصوصی/);
+  await inspectPage(page, `${server.url}/terms`, /شرایط استفاده/);
 
   await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 1 });
   await inspectPage(page, `${server.url}/`, /نمودار خوب/);
