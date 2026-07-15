@@ -1,0 +1,122 @@
+name: Finalize Nemodara product growth v3
+
+on:
+  push:
+    branches:
+      - agent/nemodara-product-growth-v3
+    paths:
+      - tools/finalize-product-growth-v3.py
+      - .github/workflows/finalize-product-growth-v3.yml
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+concurrency:
+  group: finalize-nemodara-product-growth-v3
+  cancel-in-progress: true
+
+jobs:
+  finalize:
+    if: github.event_name == 'push' || github.event.pull_request.head.ref == 'agent/nemodara-product-growth-v3'
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/nemodara-product-growth-v3
+          fetch-depth: 0
+          persist-credentials: true
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Apply integrated product, ads and content operations changes
+        run: python tools/finalize-product-growth-v3.py
+
+      - name: Synchronize lockfile
+        run: npm install --package-lock-only --ignore-scripts
+
+      - name: Install, build and run every source test
+        env:
+          PUPPETEER_NO_SANDBOX: true
+        run: |
+          npm ci
+          npm run build
+          npm test
+          npm run smoke:production
+          npm audit --omit=dev --audit-level=high
+
+      - name: Validate production and local Compose
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp .env.example .env
+          sed -i 's|^ANALYTICS_ADMIN_PASSWORD=.*|ANALYTICS_ADMIN_PASSWORD=ci-only-long-random-password|' .env
+          sed -i 's|^ANALYTICS_HASH_SECRET=.*|ANALYTICS_HASH_SECRET=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef|' .env
+          docker compose config --quiet
+          cp .env.local.example .env.local
+          sed -i 's|^ANALYTICS_ADMIN_PASSWORD=.*|ANALYTICS_ADMIN_PASSWORD=ci-only-long-random-password|' .env.local
+          sed -i 's|^ANALYTICS_HASH_SECRET=.*|ANALYTICS_HASH_SECRET=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef|' .env.local
+          docker compose --env-file .env.local -f compose.local.yaml config --quiet
+
+      - name: Build and smoke-test production image
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker build --pull --tag nemodara:growth-v3 .
+          docker volume create nemodara-growth-v3-data >/dev/null
+          docker run -d --name nemodara-growth-v3 \
+            -p 127.0.0.1:4321:4321 \
+            -e SITE_URL=https://nemodara.ir \
+            -e SITE_NAME=نمودارا \
+            -e SEO_LAST_MODIFIED=2026-07-15 \
+            -e SEO_AUTHOR_NAME='تحریریهٔ نمودارا' \
+            -e ANALYTICS_ENABLED=true \
+            -e ANALYTICS_DATA_DIR=/data/analytics \
+            -e ANALYTICS_TIME_ZONE=UTC \
+            -e ANALYTICS_ADMIN_USER=admin \
+            -e ANALYTICS_ADMIN_PASSWORD=ci-only-long-random-password \
+            -e ANALYTICS_HASH_SECRET=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef \
+            -e ADS_ENABLED=false \
+            -e GSC_ENABLED=false \
+            -e INDEXNOW_ENABLED=false \
+            -v nemodara-growth-v3-data:/data/analytics \
+            nemodara:growth-v3
+          trap 'docker logs nemodara-growth-v3 || true; docker rm -f nemodara-growth-v3 >/dev/null 2>&1 || true; docker volume rm nemodara-growth-v3-data >/dev/null 2>&1 || true' EXIT
+          for attempt in $(seq 1 110); do
+            if curl -fsS http://127.0.0.1:4321/api/health >/dev/null; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:4321/api/health | grep -q '"ok":true'
+          curl -fsS http://127.0.0.1:4321/articles | grep -q 'مجلهٔ نمودارا'
+          curl -fsS http://127.0.0.1:4321/articles/diagram-as-code-for-teams | grep -q 'data-ad-slot="articleMid"'
+          curl -fsS http://127.0.0.1:4321/editor | grep -q 'id="btn-command"'
+          curl -fsS -u 'admin:ci-only-long-random-password' http://127.0.0.1:4321/admin/content | grep -q 'اتاق عملیات محتوا'
+          curl -fsS -X POST -u 'admin:ci-only-long-random-password' \
+            -H 'content-type: application/json' \
+            --data '{"title":"آزمون Brief","contentType":"article","status":"idea","priority":3}' \
+            http://127.0.0.1:4321/api/admin/content/briefs | grep -q 'آزمون Brief'
+          curl -fsS -u 'admin:ci-only-long-random-password' 'http://127.0.0.1:4321/api/admin/content/overview?days=30' | grep -q 'inventory'
+          curl -fsS http://127.0.0.1:4321/sitemap.xml | grep -q 'https://nemodara.ir/articles/diagram-as-code-for-teams'
+          curl -fsS -X POST http://127.0.0.1:4321/api/render \
+            -H 'content-type: application/json' \
+            --data '{"code":"flowchart TD; A-->B","format":"pdf"}' \
+            --output /tmp/nemodara-growth-v3.pdf
+          grep -q '%PDF-' /tmp/nemodara-growth-v3.pdf
+
+      - name: Commit validated final source
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f tools/finalize-product-growth-v3.py .github/workflows/finalize-product-growth-v3.yml
+          rmdir tools 2>/dev/null || true
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Finalize magazine, professional editor, ads and content operations"
+          git push origin HEAD:agent/nemodara-product-growth-v3
