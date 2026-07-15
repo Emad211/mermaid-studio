@@ -1,40 +1,40 @@
 import { LEARN_ARTICLES, getLearnArticle, learnSitemapEntries } from './learn-content.js';
 
-const DEFAULT_UPDATED = '2026-07-13';
+const DEFAULT_UPDATED = '2026-07-15';
 
 const STATIC_PAGE_META = {
   '/': {
-    title: 'Mermaid Studio | ادیتور فارسی ساخت نمودار با کد',
-    description: 'ادیتور رایگان و فارسی Mermaid برای ساخت فلوچارت، Sequence، ERD، Gantt و UML با پیش‌نمایش زنده و خروجی SVG، PNG و PDF.',
+    title: 'نمودارا | ادیتور فارسی Mermaid و ساخت نمودار با کد',
+    description: 'نمودارا، ادیتور رایگان و فارسی Mermaid برای ساخت فلوچارت، Sequence، ERD، گانت و UML با پیش‌نمایش زنده و خروجی SVG، PNG و PDF.',
     type: 'website',
     priority: 1,
   },
   '/templates': {
-    title: 'قالب‌های رایگان Mermaid فارسی | فلوچارت، ERD، UML و گانت',
+    title: 'قالب‌های رایگان Mermaid فارسی | نمودارا',
     description: 'قالب‌های فارسی و قابل ویرایش Mermaid برای فلوچارت، نمودار توالی، ERD، کلاس UML، گانت، معماری و نقشه ذهنی.',
     type: 'website',
     priority: 0.9,
   },
   '/learn': {
-    title: 'آموزش Mermaid به فارسی؛ از صفر تا نمودار حرفه‌ای',
+    title: 'آموزش Mermaid به فارسی؛ مثال‌محور و رایگان | نمودارا',
     description: 'مرجع رایگان آموزش Mermaid به فارسی با مثال‌های قابل ویرایش برای فلوچارت، Sequence Diagram، ERD، Gantt، UML، معماری و رفع خطا.',
     type: 'website',
     priority: 0.95,
   },
   '/privacy': {
-    title: 'سیاست حریم خصوصی | Mermaid Studio',
-    description: 'سیاست حریم خصوصی، تحلیل first-party، تبلیغات و پردازش محلی نمودارها در Mermaid Studio.',
+    title: 'سیاست حریم خصوصی | نمودارا',
+    description: 'سیاست حریم خصوصی، تحلیل first-party، تبلیغات و پردازش محلی نمودارها در نمودارا.',
     type: 'website',
     priority: 0.2,
   },
   '/terms': {
-    title: 'شرایط استفاده | Mermaid Studio',
-    description: 'شرایط استفاده از نسخه رایگان و عمومی Mermaid Studio و محدودیت‌های فنی سرویس.',
+    title: 'شرایط استفاده | نمودارا',
+    description: 'شرایط استفاده از نسخهٔ رایگان و عمومی نمودارا و محدودیت‌های فنی سرویس.',
     type: 'website',
     priority: 0.2,
   },
   '/editor': {
-    title: 'ادیتور آنلاین Mermaid فارسی | Mermaid Studio',
+    title: 'ادیتور آنلاین Mermaid فارسی | نمودارا',
     description: 'کد Mermaid را بنویسید، نمودار را زنده ببینید و در فرمت SVG، PNG، WebP، JPG یا PDF خروجی بگیرید.',
     type: 'website',
     robots: 'noindex,follow,noarchive',
@@ -67,13 +67,13 @@ export function seoConfig(env = process.env) {
   const production = env.NODE_ENV === 'production';
   return {
     siteUrl: cleanUrl(env.SITE_URL, production),
-    siteName: String(env.SITE_NAME || 'Mermaid Studio').trim().slice(0, 80) || 'Mermaid Studio',
+    siteName: String(env.SITE_NAME || 'نمودارا').trim().slice(0, 80) || 'نمودارا',
     locale: 'fa_IR',
     language: 'fa-IR',
     updated: String(env.SEO_LAST_MODIFIED || DEFAULT_UPDATED).trim() || DEFAULT_UPDATED,
     googleVerification: safeVerification(env.GOOGLE_SITE_VERIFICATION),
     bingVerification: safeVerification(env.BING_SITE_VERIFICATION),
-    authorName: String(env.SEO_AUTHOR_NAME || 'تیم Mermaid Studio').trim().slice(0, 100),
+    authorName: String(env.SEO_AUTHOR_NAME || 'تیم تحریریه نمودارا').trim().slice(0, 100),
     githubUrl: 'https://github.com/Emad211/mermaid-studio',
   };
 }
