@@ -33,6 +33,8 @@ function environment(directory) {
     ADS_EDITOR_ENABLED: 'true',
     ADS_EDITOR_REQUIRE_CROSS_ORIGIN: 'true',
     ADS_EDITOR_FRAME_ORIGIN: 'https://ads.nemodara.ir',
+    ADS_EDITOR_TRAFFIC_PERCENT: '100',
+    ADS_EDITOR_LOAD_DELAY_MS: '0',
     ADS_SLOT_HOME_TOP: 'pos-home-test',
     ADS_SLOT_EDITOR_RAIL: 'pos-editor-rail-test',
     ADS_SLOT_EDITOR_DOCK: 'pos-editor-dock-test',
@@ -43,7 +45,7 @@ function environment(directory) {
 
 const basic = () => `Basic ${Buffer.from(`owner:${PASSWORD}`).toString('base64')}`;
 
-test('editor advertising is fail-closed unless the frame origin is isolated', () => {
+test('editor advertising is fail-closed unless origin, rollout and placements are valid', () => {
   const unsafe = advertisingConfig({
     NODE_ENV: 'production',
     SITE_URL: 'https://nemodara.ir',
@@ -59,9 +61,15 @@ test('editor advertising is fail-closed unless the frame origin is isolated', ()
   assert.equal(unsafe.editor.enabled, false);
   assert.equal(unsafe.slots.editorRail, '');
 
+  const excluded = advertisingConfig({ ...environment('/tmp/unused'), ADS_EDITOR_TRAFFIC_PERCENT: '0' });
+  assert.equal(excluded.editor.enabled, false);
+  assert.equal(excluded.slots.editorRail, '');
+
   const safe = advertisingConfig(environment('/tmp/unused'));
   assert.equal(safe.editor.enabled, true);
   assert.equal(safe.editor.frameOrigin, 'https://ads.nemodara.ir');
+  assert.equal(safe.editor.trafficPercent, 100);
+  assert.equal(safe.editor.loadDelayMs, 0);
   assert.equal(safe.slots.editorRail, 'pos-editor-rail-test');
   assert.equal(safe.slots.editorDock, 'pos-editor-dock-test');
 });
@@ -104,6 +112,10 @@ test('editor page reserves responsive ad inventory while keeping publisher scrip
 
   const unknown = await fetch(`${server.url}/ads/editor-frame?slot=homeTop`);
   assert.equal(unknown.status, 404);
+
+  const adHostContent = await fetch(`${server.url}/articles`, { headers: { Host: 'ads.nemodara.ir' }, redirect: 'manual' });
+  assert.equal(adHostContent.status, 302);
+  assert.equal(adHostContent.headers.get('location'), 'https://nemodara.ir/articles');
 
   const readiness = await fetch(`${server.url}/api/admin/launch/readiness`, { headers: { authorization: basic() } });
   assert.equal(readiness.status, 200);
