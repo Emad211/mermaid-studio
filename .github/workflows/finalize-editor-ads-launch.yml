@@ -35,6 +35,23 @@ jobs:
           node-version: 24
           cache: npm
 
+      - name: Normalize finalizer source
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('tools/finalize-editor-ads-launch.py')
+          text = path.read_text(encoding='utf-8')
+          text = text.replace(
+              '"""          adSlotViews: 0,\n          revenueRial: 0,\n"""',
+              '"""        adSlotViews: 0,\n        revenueRial: 0,\n"""',
+          ).replace(
+              '"""          adSlotViews: 0,\n          adViewable: 0,\n          revenueRial: 0,\n"""',
+              '"""        adSlotViews: 0,\n        adViewable: 0,\n        revenueRial: 0,\n"""',
+          )
+          path.write_text(text, encoding='utf-8')
+          PY
+
       - name: Apply deterministic integration
         run: python tools/finalize-editor-ads-launch.py
 
@@ -120,7 +137,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          rm -f tools/finalize-editor-ads-launch.py .github/workflows/finalize-editor-ads-launch.yml
+          rm -f tools/finalize-editor-ads-launch.py .github/workflows/finalize-editor-ads-launch.yml .github/workflows/debug-editor-ads-finalizer.yml
           rmdir tools 2>/dev/null || true
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
