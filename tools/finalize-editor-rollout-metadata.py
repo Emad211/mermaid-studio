@@ -7,6 +7,13 @@ package = json.loads(package_path.read_text(encoding='utf-8'))
 check = 'node --check src/server/editor-ad-rollout.js'
 if check not in package['scripts']['check']:
     package['scripts']['check'] += f' && {check}'
+
+browser_test = 'tests/editor-ads-browser.test.mjs'
+product = package['scripts']['test:product']
+if browser_test not in product:
+    product = product.replace('tests/editor-ads-launch.test.mjs', f'tests/editor-ads-launch.test.mjs {browser_test}')
+package['scripts']['test:product'] = product
+package['scripts']['test:editor-ads'] = 'node --test tests/editor-ads-launch.test.mjs tests/editor-ads-browser.test.mjs'
 package_path.write_text(json.dumps(package, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
 
 privacy_path = Path('public/privacy.html')
@@ -25,4 +32,4 @@ if needle in readme and 'تخصیص rollout روی سرور' not in readme:
     readme = readme.replace(needle, replacement, 1)
 readme_path.write_text(readme, encoding='utf-8')
 
-print('Editor rollout metadata and privacy disclosure finalized.')
+print('Editor rollout metadata, browser tests and privacy disclosure finalized.')
