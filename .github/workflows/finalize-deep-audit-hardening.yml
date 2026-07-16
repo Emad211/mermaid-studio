@@ -1,0 +1,163 @@
+name: Finalize deep product audit hardening
+
+on:
+  push:
+    branches:
+      - agent/editor-ads-launch-readiness
+    paths:
+      - tools/apply-deep-audit-hardening.py
+      - tests/deep-audit-hardening.test.mjs
+      - .github/workflows/finalize-deep-audit-hardening.yml
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: finalize-deep-product-audit
+  cancel-in-progress: true
+
+jobs:
+  finalize:
+    if: github.event_name == 'push' || github.event.pull_request.head.ref == 'agent/editor-ads-launch-readiness'
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/editor-ads-launch-readiness
+          fetch-depth: 0
+          persist-credentials: true
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Apply deterministic hardening patch
+        run: python tools/apply-deep-audit-hardening.py
+
+      - name: Upgrade vulnerable or unsupported toolchain within compatible majors
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --save 'mermaid@^11' 'puppeteer@^24'
+          npm install --save-dev 'esbuild@^0.25'
+          npm install --package-lock-only --ignore-scripts
+
+      - name: Install and build
+        env:
+          PUPPETEER_NO_SANDBOX: true
+        run: |
+          npm ci
+          npm run build
+
+      - name: Run focused hardening tests
+        env:
+          PUPPETEER_NO_SANDBOX: true
+        run: |
+          npm run check
+          npm run test:audit-hardening
+          npm run test:editor-ads
+
+      - name: Run complete source and browser suite
+        env:
+          PUPPETEER_NO_SANDBOX: true
+        run: |
+          npm test
+          npm run smoke:production
+          npm audit --omit=dev --audit-level=high
+
+      - name: Validate Compose configurations
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp .env.example .env
+          sed -i 's|^ANALYTICS_ADMIN_PASSWORD=.*|ANALYTICS_ADMIN_PASSWORD=ci-only-long-random-password|' .env
+          sed -i 's|^ANALYTICS_HASH_SECRET=.*|ANALYTICS_HASH_SECRET=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef|' .env
+          docker compose config --quiet
+          cp .env.local.example .env.local
+          sed -i 's|^ANALYTICS_ADMIN_PASSWORD=.*|ANALYTICS_ADMIN_PASSWORD=ci-only-long-random-password|' .env.local
+          sed -i 's|^ANALYTICS_HASH_SECRET=.*|ANALYTICS_HASH_SECRET=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef|' .env.local
+          docker compose --env-file .env.local -f compose.local.yaml config --quiet
+
+      - name: Build and smoke-test hardened production image
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker build --pull --tag nemodara:deep-audit-ci .
+          docker volume create nemodara-deep-audit-ci >/dev/null
+          docker run -d --name nemodara-deep-audit-ci \
+            -p 127.0.0.1:4321:4321 \
+            -e NODE_ENV=production \
+            -e SITE_URL=https://nemodara.ir \
+            -e SITE_NAME=نمودارا \
+            -e TRUST_PROXY=true \
+            -e ANALYTICS_ENABLED=true \
+            -e ANALYTICS_DATA_DIR=/data/analytics \
+            -e ANALYTICS_TIME_ZONE=UTC \
+            -e ANALYTICS_ADMIN_USER=admin \
+            -e ANALYTICS_ADMIN_PASSWORD=ci-only-long-random-password \
+            -e ANALYTICS_HASH_SECRET=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef \
+            -e ADS_ENABLED=true \
+            -e ADS_PROVIDER=yektanet \
+            -e ADS_SCRIPT_URL=https://cdn.yektanet.com/rg_woebegone/scripts_v3/test/rg.complete.js \
+            -e ADS_SCRIPT_ID=ua-script-test \
+            -e ADS_ALLOWED_ORIGINS=https://cdn.yektanet.com,https://*.yektanet.com \
+            -e ADS_SLOT_HOME_INLINE=pos-home-inline-test \
+            -e ADS_EDITOR_ENABLED=true \
+            -e ADS_EDITOR_REQUIRE_CROSS_ORIGIN=true \
+            -e ADS_EDITOR_FRAME_ORIGIN=https://ads.nemodara.ir \
+            -e ADS_EDITOR_TRAFFIC_PERCENT=100 \
+            -e ADS_EDITOR_LOAD_DELAY_MS=0 \
+            -e ADS_SLOT_EDITOR_RAIL=pos-editor-rail-test \
+            -e ADS_SLOT_EDITOR_DOCK=pos-editor-dock-test \
+            -e RENDER_GET_ENABLED=false \
+            -e GSC_ENABLED=false \
+            -e INDEXNOW_ENABLED=false \
+            -v nemodara-deep-audit-ci:/data/analytics \
+            nemodara:deep-audit-ci
+          trap 'docker logs nemodara-deep-audit-ci || true; docker rm -f nemodara-deep-audit-ci >/dev/null 2>&1 || true; docker volume rm nemodara-deep-audit-ci >/dev/null 2>&1 || true' EXIT
+          for attempt in $(seq 1 120); do
+            if curl -fsS http://127.0.0.1:4321/api/health >/dev/null; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:4321/api/health
+          curl -fsS -D /tmp/landing.headers -H 'Host: nemodara.ir' http://127.0.0.1:4321/ -o /tmp/landing.html
+          grep -qi 's-maxage=300' /tmp/landing.headers
+          curl -fsS -D /tmp/editor.headers -c /tmp/editor.cookies -H 'Host: nemodara.ir' http://127.0.0.1:4321/editor -o /tmp/editor.html
+          grep -qi 'no-store' /tmp/editor.headers
+          grep -q 'data-ad-slot="editorRail"' /tmp/editor.html
+          ! grep -q 'cdn.yektanet.com/rg_woebegone' /tmp/editor.html
+          direct_status=$(curl -sS -o /dev/null -w '%{http_code}' -H 'Host: ads.nemodara.ir' -H 'Sec-Fetch-Dest: document' -H 'Sec-Fetch-Site: none' 'http://127.0.0.1:4321/ads/editor-frame?slot=editorRail')
+          test "$direct_status" = '403'
+          curl -fsS -H 'Host: ads.nemodara.ir' -H 'Sec-Fetch-Dest: iframe' -H 'Sec-Fetch-Site: same-site' -H 'Referer: https://nemodara.ir/editor' 'http://127.0.0.1:4321/ads/editor-frame?slot=editorRail' -o /tmp/frame.html
+          grep -q 'pos-editor-rail-test' /tmp/frame.html
+          get_status=$(curl -sS -o /tmp/get-render.json -w '%{http_code}' 'http://127.0.0.1:4321/api/render?code=flowchart%20TD%3B%20A--%3EB&format=svg')
+          test "$get_status" = '405'
+          curl -fsS -X POST http://127.0.0.1:4321/api/render \
+            -H 'content-type: application/json' \
+            --data '{"code":"flowchart TD; A-->B","format":"svg"}' \
+            --output /tmp/deep-audit.svg
+          grep -q '<svg' /tmp/deep-audit.svg
+          curl -fsS -X POST http://127.0.0.1:4321/api/render \
+            -H 'content-type: application/json' \
+            --data '{"code":"flowchart TD; A-->B","format":"pdf"}' \
+            --output /tmp/deep-audit.pdf
+          grep -q '%PDF-' /tmp/deep-audit.pdf
+
+      - name: Commit only fully validated source
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f \
+            tools/apply-deep-audit-hardening.py \
+            .github/workflows/finalize-deep-audit-hardening.yml \
+            .github/workflows/export-source-audit.yml
+          rmdir tools 2>/dev/null || true
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Harden launch security, caching and ad measurement"
+          git push origin HEAD:agent/editor-ads-launch-readiness
