@@ -13,6 +13,7 @@ const EVENT_NAMES = new Set([
   'share',
   'template_open',
   'ad_slot_view',
+  'ad_viewable',
   'ad_script_loaded',
   'ad_script_error',
   'ad_blocked',
@@ -637,11 +638,12 @@ class AnalyticsService {
       }
 
       if (payload.event.startsWith('ad_') && payload.slot) {
-        data.adSlots[payload.slot] ||= { views: 0, loaded: 0, errors: 0, blocked: 0 };
+        data.adSlots[payload.slot] ||= { views: 0, viewable: 0, loaded: 0, errors: 0, blocked: 0 };
         if (payload.event === 'ad_slot_view') {
           data.adSlots[payload.slot].views += 1;
           ensurePage(data.pages, payload.path).adSlotViews += 1;
         }
+        if (payload.event === 'ad_viewable') data.adSlots[payload.slot].viewable += 1;
         if (payload.event === 'ad_script_loaded') data.adSlots[payload.slot].loaded += 1;
         if (payload.event === 'ad_script_error') data.adSlots[payload.slot].errors += 1;
         if (payload.event === 'ad_blocked') data.adSlots[payload.slot].blocked += 1;
@@ -799,6 +801,7 @@ class AnalyticsService {
         shareSessions: 0,
         exports: 0,
         adSlotViews: 0,
+        adViewable: 0,
         revenueRial: 0,
         impressions: 0,
         clicks: 0,
@@ -825,7 +828,7 @@ class AnalyticsService {
           pages[page].adSlotViews += finite(stats.adSlotViews);
         }
         for (const [slot, stats] of Object.entries(value.adSlots || {})) {
-          adSlots[slot] ||= { views: 0, loaded: 0, errors: 0, blocked: 0 };
+          adSlots[slot] ||= { views: 0, viewable: 0, loaded: 0, errors: 0, blocked: 0 };
           for (const key of Object.keys(adSlots[slot])) adSlots[slot][key] += finite(stats[key]);
         }
         for (const metric of Object.keys(vitalSamples)) vitalSamples[metric].push(...(value.vitals?.[metric] || []));
@@ -841,6 +844,7 @@ class AnalyticsService {
           shareSessions: finite(value.totals.shareSessions),
           exports: Object.values(value.exports || {}).reduce((sum, number) => sum + finite(number), 0),
           adSlotViews: Object.values(value.adSlots || {}).reduce((sum, stats) => sum + finite(stats.views), 0),
+          adViewable: Object.values(value.adSlots || {}).reduce((sum, stats) => sum + finite(stats.viewable), 0),
         });
       }
       dailyMap.set(day, daily);
@@ -912,6 +916,7 @@ class AnalyticsService {
 
     const totalExports = Object.values(exportsByFormat).reduce((sum, number) => sum + finite(number), 0);
     const totalAdSlotViews = Object.values(adSlots).reduce((sum, stats) => sum + finite(stats.views), 0);
+    const totalAdViewable = Object.values(adSlots).reduce((sum, stats) => sum + finite(stats.viewable), 0);
     const totalRenders = finite(events.render_success) + finite(events.render_error);
     const estimatedRevenueRial = Math.round((totals.pageviews * this.config.estimatedRpmRial) / 1_000);
     const dailyValues = [...dailyMap.values()];
@@ -940,6 +945,7 @@ class AnalyticsService {
         ...totals,
         exports: totalExports,
         adSlotViews: totalAdSlotViews,
+        adViewable: totalAdViewable,
         actualRevenueRial,
         estimatedRevenueRial,
         impressions,
@@ -959,6 +965,7 @@ class AnalyticsService {
         cpcRial: clicks ? actualRevenueRial / clicks : 0,
         ecpmRial: impressions ? (actualRevenueRial / impressions) * 1_000 : 0,
         fillRate: totalAdSlotViews ? (impressions / totalAdSlotViews) * 100 : 0,
+        viewabilityRate: totalAdSlotViews ? (totalAdViewable / totalAdSlotViews) * 100 : 0,
         searchCtr: searchImpressions ? (searchClicks / searchImpressions) * 100 : 0,
         averageSearchPosition: weightedPosition / Math.max(1, searchImpressions),
       },
@@ -993,7 +1000,7 @@ class AnalyticsService {
     const summary = await this.summary(options);
     const header = [
       'date', 'pageviews', 'sessions', 'visitors', 'engaged_sessions', 'engagement_seconds',
-      'exports', 'ad_slot_views', 'revenue_rial', 'impressions', 'clicks', 'search_clicks', 'search_impressions',
+      'exports', 'ad_slot_views', 'ad_viewable', 'revenue_rial', 'impressions', 'clicks', 'search_clicks', 'search_impressions',
     ];
     const rows = summary.daily.map((row) => header.map((key) => row[key] ?? '').join(','));
     return [header.join(','), ...rows].join('\n') + '\n';

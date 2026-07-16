@@ -198,6 +198,7 @@ window.addEventListener('mstudio:ad', (event) => {
   const detail = event.detail || {};
   const eventName = {
     loaded: 'ad_script_loaded',
+    viewable: 'ad_viewable',
     error: 'ad_script_error',
     blocked: 'ad_blocked',
   }[detail.type];
@@ -212,7 +213,7 @@ window.mstudioAnalytics = Object.freeze({
 
 const EVENT_ALLOWLIST = new Set([
   'editor_open', 'render_success', 'render_error', 'export', 'copy_svg', 'share',
-  'template_open', 'ad_slot_view', 'ad_script_loaded', 'ad_script_error', 'ad_blocked',
+  'template_open', 'ad_slot_view', 'ad_viewable', 'ad_script_loaded', 'ad_script_error', 'ad_blocked',
 ]);
 
 async function initialize() {

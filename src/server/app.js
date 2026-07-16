@@ -22,10 +22,12 @@ import {
   normalizeRenderRequest,
   positiveInteger,
 } from './guards.js';
-import { advertisingConfig, advertisingCspSources, prepareAdvertisingHtml } from './ads.js';
+import { advertisingConfig, advertisingCspSources, editorFrameCspSources, prepareAdvertisingHtml, renderEditorAdFrame } from './ads.js';
 import { AnalyticsError, createAnalyticsService } from './analytics.js';
 import { createAdminStore } from './admin-store.js';
 import { buildGrowthReport, previousRange } from './growth-insights.js';
+import { buildLaunchReadiness } from './launch-readiness.js';
+import { editorAdRollout } from './editor-ad-rollout.js';
 import { runSeoAudit } from './seo-audit.js';
 import { searchConsoleConfig, syncSearchConsole } from './search-console.js';
 import { indexNowConfig, submitIndexNow } from './indexnow.js';
@@ -127,7 +129,9 @@ function advertisingAllowed(pathname) {
 
 function contentSecurityPolicy(req, environment, inlineHashes = []) {
   const adSources = advertisingAllowed(req.path) ? advertisingCspSources(environment) : [];
+  const editorFrames = req.path === '/editor' ? editorFrameCspSources(environment) : [];
   const external = adSources.length ? ` ${adSources.join(' ')}` : '';
+  const frameExternal = editorFrames.length ? ` ${editorFrames.join(' ')}` : '';
   return [
     "default-src 'self'",
     "base-uri 'none'",
@@ -139,10 +143,39 @@ function contentSecurityPolicy(req, environment, inlineHashes = []) {
     `img-src 'self' data: blob:${external}`,
     `font-src 'self' data:${external}`,
     `connect-src 'self'${external}`,
-    `frame-src 'self'${external}`,
+    `frame-src 'self'${frameExternal}${external}`,
     "media-src 'none'",
     "worker-src 'self' blob:",
     "manifest-src 'self'",
+  ].join('; ');
+}
+
+function safeHttpsOrigin(value) {
+  try {
+    const url = new URL(String(value || ''));
+    return url.protocol === 'https:' ? url.origin : '';
+  } catch {
+    return '';
+  }
+}
+
+function editorAdFramePolicy(environment, inlineHashes = []) {
+  const sources = advertisingCspSources(environment);
+  const external = sources.length ? ` ${sources.join(' ')}` : '';
+  const parentOrigin = safeHttpsOrigin(environment.SITE_URL) || "'self'";
+  return [
+    "default-src 'none'",
+    "base-uri 'none'",
+    "object-src 'none'",
+    `frame-ancestors ${parentOrigin}`,
+    "form-action 'none'",
+    `script-src 'self'${external}${inlineHashes.length ? ` ${inlineHashes.join(' ')}` : ''}`,
+    `style-src 'unsafe-inline'${external}`,
+    `img-src data: blob:${external}`,
+    `font-src data:${external}`,
+    `connect-src${external || " 'none'"}`,
+    `frame-src${external || " 'none'"}`,
+    `media-src${external || " 'none'"}`,
   ].join('; ');
 }
 
@@ -173,7 +206,7 @@ function injectAnalyticsScript(html, pathname, analytics) {
   return html.replace('</body>', `  <script type="module" src="/js/analytics.js?v=${BUILD}"></script>\n</body>`);
 }
 
-function prepareHtml(req, source, { pathname = req.path, seo = true, track = true } = {}, state) {
+function prepareHtml(req, source, { pathname = req.path, seo = true, track = true, editorAdsEligible = true } = {}, state) {
   let html = applySiteShell(source, pathname).split('%V%').join(BUILD);
   let meta = null;
   if (seo) {
@@ -181,7 +214,7 @@ function prepareHtml(req, source, { pathname = req.path, seo = true, track = tru
     html = enhanced.html;
     meta = enhanced.meta;
   }
-  if (advertisingAllowed(pathname)) html = prepareAdvertisingHtml(html, state.environment);
+  if (advertisingAllowed(pathname) || pathname === '/editor') html = prepareAdvertisingHtml(html, state.environment, { editorEligible: editorAdsEligible });
   if (track) html = injectAnalyticsScript(html, pathname, state.analytics);
   const hashes = inlineScriptHashes(html);
   return { html, meta, hashes };
@@ -289,6 +322,26 @@ export function createApp({ environment = process.env, logger = console } = {}) 
   if (envBoolean(environment, 'TRUST_PROXY')) app.set('trust proxy', 1);
   app.use(securityHeaders(environment));
 
+  const editorAdvertising = advertisingConfig(environment);
+  const primarySiteOrigin = safeHttpsOrigin(environment.SITE_URL);
+  let editorFrameHostname = '';
+  try {
+    editorFrameHostname = new URL(editorAdvertising.editor.frameOrigin || '').hostname.toLowerCase();
+  } catch {
+    editorFrameHostname = '';
+  }
+  if (editorFrameHostname) {
+    app.use((req, res, next) => {
+      const requestHostname = String(req.hostname || '').toLowerCase();
+      if (requestHostname !== editorFrameHostname) return next();
+      if (req.path === '/ads/editor-frame' || req.path === '/api/health') return next();
+      if (['GET', 'HEAD'].includes(req.method) && primarySiteOrigin) {
+        return res.redirect(302, `${primarySiteOrigin}${req.originalUrl}`);
+      }
+      return next(new HttpError(404, 'EDITOR_AD_HOST_ROUTE_NOT_FOUND', 'This host only serves the isolated advertising frame.'));
+    });
+  }
+
   app.use((req, res, next) => {
     if (!['GET', 'HEAD'].includes(req.method)) return next();
     const target = canonicalRedirect(req.path);
@@ -307,6 +360,31 @@ export function createApp({ environment = process.env, logger = console } = {}) 
   app.get('/api/analytics/config', (_req, res) => {
     res.setHeader('Cache-Control', 'no-store');
     res.json(state.analytics.publicConfig());
+  });
+
+  app.get('/ads/editor-frame', (req, res, next) => {
+    try {
+      const config = advertisingConfig(environment);
+      if (environment.NODE_ENV === 'production' && config.editor.frameOrigin) {
+        const expectedHostname = new URL(config.editor.frameOrigin).hostname.toLowerCase();
+        if (String(req.hostname || '').toLowerCase() !== expectedHostname) {
+          throw new HttpError(404, 'EDITOR_AD_FRAME_HOST_MISMATCH', 'The advertising frame is only available on its configured host.');
+        }
+      }
+      const html = renderEditorAdFrame(req.query.slot, environment);
+      if (!html) throw new HttpError(404, 'EDITOR_AD_NOT_CONFIGURED', 'Editor advertising frame is not configured.');
+      const hashes = inlineScriptHashes(html);
+      res.removeHeader('X-Frame-Options');
+      res.removeHeader('Cross-Origin-Opener-Policy');
+      res.setHeader('Content-Security-Policy', editorAdFramePolicy(environment, hashes));
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-store, max-age=0');
+      res.setHeader('Referrer-Policy', 'origin');
+      res.setHeader('X-Robots-Tag', 'noindex, nofollow, noarchive');
+      res.send(html);
+    } catch (error) {
+      next(error);
+    }
   });
   app.post('/api/analytics/event', analyticsEventLimit, express.json({ limit: '8kb', strict: true }), async (req, res, next) => {
     try {
@@ -497,6 +575,27 @@ export function createApp({ environment = process.env, logger = console } = {}) 
     }
   });
 
+
+  app.get('/api/admin/launch/readiness', adminLimit, adminAuth, async (_req, res, next) => {
+    try {
+      const persisted = await state.adminStore.integrationStatus();
+      const gsc = searchConsoleConfig(environment);
+      const indexNow = indexNowConfig(environment);
+      res.json(buildLaunchReadiness({
+        environment,
+        seo: state.seo,
+        analytics: state.analytics.health(),
+        advertising: advertisingConfig(environment),
+        integrations: {
+          searchConsole: { configured: gsc.enabled, last: persisted.services?.searchConsole || null },
+          indexNow: { configured: indexNow.enabled, last: persisted.services?.indexNow || null },
+        },
+      }));
+    } catch (error) {
+      next(error);
+    }
+  });
+
   app.post('/api/admin/seo/search-console/sync', adminLimit, adminAuth, requireSameOrigin, express.json({ limit: '16kb', strict: true }), async (req, res, next) => {
     try {
       const result = await syncSearchConsole({
@@ -556,7 +655,10 @@ export function createApp({ environment = process.env, logger = console } = {}) 
   app.use('/vendor-build', express.static(path.join(PUBLIC_DIR, 'vendor-build'), { setHeaders: vendorHeaders }));
 
   app.get('/', (req, res) => sendHtml(req, res, LANDING_HTML, { pathname: '/' }, state));
-  app.get('/editor', (req, res) => sendHtml(req, res, EDITOR_HTML, { pathname: '/editor' }, state));
+  app.get('/editor', (req, res) => {
+    const rollout = editorAdRollout(req, res, advertisingConfig(environment), environment);
+    return sendHtml(req, res, EDITOR_HTML, { pathname: '/editor', editorAdsEligible: rollout.eligible }, state);
+  });
   app.get('/templates', (req, res) => sendHtml(req, res, TEMPLATES_HTML, { pathname: '/templates' }, state));
   app.get('/learn', (req, res) => sendHtml(req, res, LEARN_HTML, { pathname: '/learn' }, state));
   app.get('/learn/:slug', (req, res, next) => {

@@ -92,6 +92,13 @@ Set-ExecutionPolicy -Scope Process Bypass
 
 راهنمای تنظیم دامنه، Search Console، structured data و استراتژی محتوا در [`docs/SEO_FA.md`](docs/SEO_FA.md) است.
 
+
+## درآمدزایی از بازدید ادیتور
+
+نسخهٔ Production می‌تواند دو جایگاه تبلیغاتی مستقل در ادیتور داشته باشد: ستون کنار ادیتور در نمایشگر عریض و نوار زیر محیط کار در موبایل و لپ‌تاپ. Publisher Script در Origin جداگانهٔ `ads.nemodara.ir` اجرا می‌شود و به متن Mermaid دسترسی ندارد. تخصیص rollout روی سرور و پیش از رندر HTML انجام می‌شود تا گروه خارج از آزمایش دچار جمع‌شدن جایگاه و CLS نشود. راهنمای کامل در [`docs/EDITOR_ADS_FA.md`](docs/EDITOR_ADS_FA.md) قرار دارد.
+
+پنل `/admin/analytics` علاوه بر Viewability جایگاه‌های ادیتور، یک چک‌لیست آمادگی انتشار برای دامنه، دیسک، آنالیتیکس، تبلیغات و Search Console نمایش می‌دهد.
+
 ## انتشار نهایی با Docker Compose
 
 برای اجرای production همراه با HTTPS خودکار:

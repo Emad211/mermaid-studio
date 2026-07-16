@@ -11,6 +11,7 @@ let auditEntries = [];
 let integrations = null;
 let rawGoals = null;
 let health = null;
+let launchReadiness = null;
 let currentView = location.hash.replace('#', '') || 'overview';
 let chartResizeTimer;
 
@@ -359,7 +360,21 @@ function renderRevenueBreakdown(summary) {
 
 function renderAdSlots(rows) {
   const body = $('#ad-slots-table');
-  body.innerHTML = rows?.length ? rows.map((row) => `<tr><td>${escapeHtml(row.name)}</td><td class="number">${formatNumber(row.views)}</td><td class="number">${formatNumber(row.loaded)}</td><td class="number">${formatNumber(row.errors)}</td><td class="number">${formatNumber(row.blocked)}</td></tr>`).join('') : emptyRows(5, 'تبلیغات هنوز فعال نشده یا جایگاهی دیده نشده است.');
+  body.innerHTML = rows?.length ? rows.map((row) => {
+    const viewability = Number(row.views) ? Number(row.viewable || 0) / Number(row.views) * 100 : 0;
+    return `<tr><td>${escapeHtml(row.name)}</td><td class="number">${formatNumber(row.views)}</td><td class="number">${formatNumber(row.viewable)}</td><td class="number">${formatPercent(viewability)}</td><td class="number">${formatNumber(row.loaded)}</td><td class="number">${formatNumber(row.errors)}</td><td class="number">${formatNumber(row.blocked)}</td></tr>`;
+  }).join('') : emptyRows(7, 'تبلیغات هنوز فعال نشده یا جایگاهی دیده نشده است.');
+}
+
+function renderLaunchReadiness(report) {
+  const score = Number(report?.score);
+  $('#launch-readiness-score').textContent = Number.isFinite(score) ? formatNumber(score) : '—';
+  $('#launch-readiness-summary').textContent = report?.summary || 'گزارش آمادگی در دسترس نیست.';
+  const badge = $('#launch-readiness-badge');
+  badge.textContent = report?.ready ? `آماده · ${report.grade}` : `${formatNumber(report?.counts?.blockers || 0)} مانع`;
+  badge.classList.toggle('is-ready', Boolean(report?.ready));
+  const list = $('#launch-readiness-list');
+  list.innerHTML = (report?.checks || []).map((item) => `<div class="check-item ${item.status === 'blocker' ? 'fail' : item.status}"><div><strong>${escapeHtml(item.label)}</strong><small>${escapeHtml(item.detail)}</small><em>${escapeHtml(item.action)}</em></div></div>`).join('') || '<div class="empty-row">گزارش آمادگی موجود نیست.</div>';
 }
 
 function renderOpportunities(selector, rows, type) {
@@ -502,6 +517,11 @@ function renderRevenueView(summary) {
   $('#metric-ad-ctr').textContent = formatPercent(rates.ctr);
   $('#metric-fill-rate').textContent = formatPercent(rates.fillRate);
   $('#metric-session-rpm').textContent = formatRial(rates.sessionRpmRial, true);
+  const editorSlots = (summary.adSlots || []).filter((row) => String(row.name).startsWith('editor'));
+  const editorViews = editorSlots.reduce((sum, row) => sum + Number(row.views || 0), 0);
+  const editorViewable = editorSlots.reduce((sum, row) => sum + Number(row.viewable || 0), 0);
+  $('#metric-editor-viewable').textContent = formatNumber(editorViewable);
+  $('#metric-editor-viewability').textContent = formatPercent(editorViews ? editorViewable / editorViews * 100 : 0);
   renderRevenueBreakdown(summary);
   renderAdSlots(summary.adSlots);
   renderRevenue(summary.revenue?.entries);
@@ -577,6 +597,7 @@ function renderAll() {
   renderIntegrationCards(integrations);
   renderAudit(auditEntries);
   renderDataHealth();
+  renderLaunchReadiness(launchReadiness);
   $('#export-dashboard').href = `/api/admin/analytics/export.csv?${queryString()}`;
   $('#export-dashboard-secondary').href = `/api/admin/analytics/export.csv?${queryString()}`;
   setStatus(`آخرین به‌روزرسانی: ${new Date().toLocaleTimeString('fa-IR')}`, 'ok');
@@ -589,17 +610,19 @@ async function loadDashboard() {
   setStatus('در حال دریافت و تحلیل داده…');
   try {
     const query = queryString();
-    const [growth, audits, integrationStatus, goals, serviceHealth] = await Promise.all([
+    const [growth, audits, integrationStatus, goals, serviceHealth, readiness] = await Promise.all([
       api(`/api/admin/growth/overview?${query}`),
       api('/api/admin/seo/audits?limit=40'),
       api('/api/admin/integrations/status'),
       api('/api/admin/goals'),
       api('/api/health'),
+      api('/api/admin/launch/readiness'),
     ]);
     growthReport = growth;
     auditEntries = audits.entries || audits || [];
     integrations = integrationStatus;
     health = serviceHealth;
+    launchReadiness = readiness;
     populateGoals(goals);
     renderAll();
   } catch (error) {
