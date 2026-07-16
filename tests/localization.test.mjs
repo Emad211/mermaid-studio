@@ -4,14 +4,20 @@ import { readFile } from 'node:fs/promises';
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('editor shell is Persian, keeps source code left-to-right and has no ad loader', async () => {
+test('editor shell is Persian, keeps source code left-to-right and isolates advertising', async () => {
   const html = await read('public/index.html');
+  const editorAds = await read('public/js/editor-ads.js');
   assert.match(html, /<html[^>]+lang="fa"[^>]+dir="rtl"/);
   assert.match(html, /کد Mermaid/);
   assert.match(html, /id="config-input"[^>]+dir="ltr"/);
   assert.match(html, /id="css-input"[^>]+dir="ltr"/);
-  assert.doesNotMatch(html, /data-ad-slot=/);
+  assert.match(html, /data-editor-ad-slot[^>]+data-ad-slot="editorRail"/);
+  assert.match(html, /data-editor-ad-slot[^>]+data-ad-slot="editorDock"/);
+  assert.match(html, /\/js\/editor-ads\.js/);
   assert.doesNotMatch(html, /\/js\/ads\.js/);
+  assert.doesNotMatch(html, /ADS_SCRIPT_URL|cdn\.yektanet/);
+  assert.match(editorAds, /sandbox/);
+  assert.match(editorAds, /frameOrigin/);
 });
 
 test('editor controller uses a Persian starter diagram and Persian feedback', async () => {
