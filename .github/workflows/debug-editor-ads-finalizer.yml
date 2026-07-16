@@ -41,6 +41,8 @@ jobs:
           PY
           python tools/finalize-editor-ads-launch.py
           python tools/harden-editor-ad-host.py
+          python tools/apply-server-editor-rollout.py
+          python tools/finalize-editor-rollout-metadata.py
           npm install --package-lock-only --ignore-scripts
           npm ci
       - name: Run tests and preserve complete output
