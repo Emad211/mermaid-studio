@@ -92,17 +92,20 @@
 }
 
 .editor-ad-shell[data-ad-state="error"] .editor-ad-shell__state::before,
-.editor-ad-shell[data-ad-state="blocked"] .editor-ad-shell__state::before {
+.editor-ad-shell[data-ad-state="blocked"] .editor-ad-shell__state::before,
+.editor-ad-shell[data-ad-state="unavailable"] .editor-ad-shell__state::before {
   content: "تبلیغ در دسترس نیست";
 }
 
 .editor-ad-shell[data-ad-state="error"] .editor-ad-shell__state,
-.editor-ad-shell[data-ad-state="blocked"] .editor-ad-shell__state {
+.editor-ad-shell[data-ad-state="blocked"] .editor-ad-shell__state,
+.editor-ad-shell[data-ad-state="unavailable"] .editor-ad-shell__state {
   font-size: 0;
 }
 
 .editor-ad-shell[data-ad-state="error"] .editor-ad-shell__state::before,
-.editor-ad-shell[data-ad-state="blocked"] .editor-ad-shell__state::before {
+.editor-ad-shell[data-ad-state="blocked"] .editor-ad-shell__state::before,
+.editor-ad-shell[data-ad-state="unavailable"] .editor-ad-shell__state::before {
   font-size: 9px;
 }
 
