@@ -1,0 +1,36 @@
+name: Debug editor ads finalizer
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  diagnostics:
+    if: github.event.pull_request.head.ref == 'agent/editor-ads-launch-readiness'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/editor-ads-launch-readiness
+      - name: Run finalizer and preserve output
+        id: finalizer
+        shell: bash
+        run: |
+          set +e
+          python tools/finalize-editor-ads-launch.py > finalizer.log 2>&1
+          status=$?
+          cat finalizer.log
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          exit 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: editor-ads-finalizer-diagnostics
+          path: finalizer.log
+          retention-days: 2
+      - name: Fail when finalizer failed
+        if: steps.finalizer.outputs.status != '0'
+        run: exit 1
