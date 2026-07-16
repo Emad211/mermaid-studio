@@ -1,0 +1,129 @@
+name: Finalize editor ads and launch readiness
+
+on:
+  push:
+    branches:
+      - agent/editor-ads-launch-readiness
+    paths:
+      - tools/finalize-editor-ads-launch.py
+      - .github/workflows/finalize-editor-ads-launch.yml
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+concurrency:
+  group: finalize-editor-ads-launch-readiness
+  cancel-in-progress: true
+
+jobs:
+  finalize:
+    if: github.event_name == 'push' || github.event.pull_request.head.ref == 'agent/editor-ads-launch-readiness'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/editor-ads-launch-readiness
+          fetch-depth: 0
+          persist-credentials: true
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Apply deterministic integration
+        run: python tools/finalize-editor-ads-launch.py
+
+      - name: Synchronize lockfile
+        run: npm install --package-lock-only --ignore-scripts
+
+      - name: Build and run complete source tests
+        env:
+          PUPPETEER_NO_SANDBOX: true
+        run: |
+          npm ci
+          npm run build
+          npm run test:editor-ads
+          npm test
+          npm run smoke:production
+          npm audit --omit=dev --audit-level=high
+
+      - name: Validate production and local Compose
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp .env.example .env
+          sed -i 's|^ANALYTICS_ADMIN_PASSWORD=.*|ANALYTICS_ADMIN_PASSWORD=ci-only-long-random-password|' .env
+          sed -i 's|^ANALYTICS_HASH_SECRET=.*|ANALYTICS_HASH_SECRET=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef|' .env
+          docker compose config --quiet
+          cp .env.local.example .env.local
+          sed -i 's|^ANALYTICS_ADMIN_PASSWORD=.*|ANALYTICS_ADMIN_PASSWORD=ci-only-long-random-password|' .env.local
+          sed -i 's|^ANALYTICS_HASH_SECRET=.*|ANALYTICS_HASH_SECRET=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef|' .env.local
+          docker compose --env-file .env.local -f compose.local.yaml config --quiet
+
+      - name: Build and smoke-test monetized production image
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker build --pull --tag nemodara:editor-ads-ci .
+          docker volume create nemodara-editor-ads-ci >/dev/null
+          docker run -d --name nemodara-editor-ads-ci \
+            -p 127.0.0.1:4321:4321 \
+            -e SITE_URL=https://nemodara.ir \
+            -e SITE_NAME=نمودارا \
+            -e TRUST_PROXY=true \
+            -e ANALYTICS_ENABLED=true \
+            -e ANALYTICS_DATA_DIR=/data/analytics \
+            -e ANALYTICS_TIME_ZONE=UTC \
+            -e ANALYTICS_ADMIN_USER=admin \
+            -e ANALYTICS_ADMIN_PASSWORD=ci-only-long-random-password \
+            -e ANALYTICS_HASH_SECRET=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef \
+            -e ADS_ENABLED=true \
+            -e ADS_PROVIDER=yektanet \
+            -e ADS_SCRIPT_URL=https://cdn.yektanet.com/rg_woebegone/scripts_v3/test/rg.complete.js \
+            -e ADS_SCRIPT_ID=ua-script-test \
+            -e ADS_ALLOWED_ORIGINS=https://cdn.yektanet.com,https://*.yektanet.com \
+            -e ADS_SLOT_HOME_TOP=pos-home-test \
+            -e ADS_EDITOR_ENABLED=true \
+            -e ADS_EDITOR_REQUIRE_CROSS_ORIGIN=true \
+            -e ADS_EDITOR_FRAME_ORIGIN=https://ads.nemodara.ir \
+            -e ADS_SLOT_EDITOR_RAIL=pos-editor-rail-test \
+            -e ADS_SLOT_EDITOR_DOCK=pos-editor-dock-test \
+            -e GSC_ENABLED=false \
+            -e INDEXNOW_ENABLED=false \
+            -v nemodara-editor-ads-ci:/data/analytics \
+            nemodara:editor-ads-ci
+          trap 'docker logs nemodara-editor-ads-ci || true; docker rm -f nemodara-editor-ads-ci >/dev/null 2>&1 || true; docker volume rm nemodara-editor-ads-ci >/dev/null 2>&1 || true' EXIT
+          for attempt in $(seq 1 100); do
+            if curl -fsS http://127.0.0.1:4321/api/health >/dev/null; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:4321/editor > /tmp/editor.html
+          grep -q 'data-ad-slot="editorRail"' /tmp/editor.html
+          grep -q 'data-ad-state="reserved"' /tmp/editor.html
+          ! grep -q 'cdn.yektanet.com/rg_woebegone' /tmp/editor.html
+          curl -fsS 'http://127.0.0.1:4321/ads/editor-frame?slot=editorRail' > /tmp/editor-ad.html
+          grep -q 'pos-editor-rail-test' /tmp/editor-ad.html
+          curl -fsS -u 'admin:ci-only-long-random-password' http://127.0.0.1:4321/api/admin/launch/readiness > /tmp/readiness.json
+          grep -q '"monetizationReady":true' /tmp/readiness.json
+          curl -fsS -X POST http://127.0.0.1:4321/api/render \
+            -H 'content-type: application/json' \
+            --data '{"code":"flowchart TD; A-->B","format":"pdf"}' \
+            --output /tmp/editor-ads.pdf
+          grep -q '%PDF-' /tmp/editor-ads.pdf
+
+      - name: Commit validated source
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f tools/finalize-editor-ads-launch.py .github/workflows/finalize-editor-ads-launch.yml
+          rmdir tools 2>/dev/null || true
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Finalize isolated editor ads and launch readiness"
+          git push origin HEAD:agent/editor-ads-launch-readiness
