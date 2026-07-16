@@ -11,26 +11,60 @@ jobs:
   diagnostics:
     if: github.event.pull_request.head.ref == 'agent/editor-ads-launch-readiness'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v7
         with:
           ref: agent/editor-ads-launch-readiness
-      - name: Run finalizer and preserve output
-        id: finalizer
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - name: Apply final source in diagnostics workspace
         shell: bash
         run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('tools/finalize-editor-ads-launch.py')
+          text = path.read_text(encoding='utf-8')
+          text = text.replace(
+              '"""          adSlotViews: 0,\n          revenueRial: 0,\n"""',
+              '"""        adSlotViews: 0,\n        revenueRial: 0,\n"""',
+          ).replace(
+              '"""          adSlotViews: 0,\n          adViewable: 0,\n          revenueRial: 0,\n"""',
+              '"""        adSlotViews: 0,\n        adViewable: 0,\n        revenueRial: 0,\n"""',
+          )
+          path.write_text(text, encoding='utf-8')
+          PY
+          python tools/finalize-editor-ads-launch.py
+          npm install --package-lock-only --ignore-scripts
+          npm ci
+      - name: Run tests and preserve complete output
+        id: tests
+        shell: bash
+        env:
+          PUPPETEER_NO_SANDBOX: true
+        run: |
           set +e
-          python tools/finalize-editor-ads-launch.py > finalizer.log 2>&1
-          status=$?
-          cat finalizer.log
-          echo "status=$status" >> "$GITHUB_OUTPUT"
+          : > editor-ads-tests.log
+          overall=0
+          for command in \
+            "npm run check" \
+            "npm run test:editor-ads" \
+            "npm test"; do
+            echo "===== $command =====" | tee -a editor-ads-tests.log
+            bash -lc "$command" >> editor-ads-tests.log 2>&1
+            status=$?
+            echo "STATUS=$status" | tee -a editor-ads-tests.log
+            if [ "$status" -ne 0 ]; then overall=$status; fi
+          done
+          echo "status=$overall" >> "$GITHUB_OUTPUT"
           exit 0
       - uses: actions/upload-artifact@v4
         with:
-          name: editor-ads-finalizer-diagnostics
-          path: finalizer.log
+          name: editor-ads-test-diagnostics
+          path: editor-ads-tests.log
           retention-days: 2
-      - name: Fail when finalizer failed
-        if: steps.finalizer.outputs.status != '0'
+      - name: Fail when tests failed
+        if: steps.tests.outputs.status != '0'
         run: exit 1
