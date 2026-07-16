@@ -7,6 +7,8 @@ on:
     paths:
       - tools/finalize-editor-ads-launch.py
       - tools/harden-editor-ad-host.py
+      - tools/apply-server-editor-rollout.py
+      - tools/finalize-editor-rollout-metadata.py
       - .github/workflows/finalize-editor-ads-launch.yml
   pull_request:
     branches:
@@ -56,10 +58,12 @@ jobs:
           path.write_text(text, encoding='utf-8')
           PY
 
-      - name: Apply deterministic integration and host hardening
+      - name: Apply deterministic integration, rollout and host hardening
         run: |
           python tools/finalize-editor-ads-launch.py
           python tools/harden-editor-ad-host.py
+          python tools/apply-server-editor-rollout.py
+          python tools/finalize-editor-rollout-metadata.py
 
       - name: Synchronize lockfile
         run: npm install --package-lock-only --ignore-scripts
@@ -127,9 +131,10 @@ jobs:
             if curl -fsS http://127.0.0.1:4321/api/health >/dev/null; then break; fi
             sleep 1
           done
-          curl -fsS -H 'Host: nemodara.ir' http://127.0.0.1:4321/editor > /tmp/editor.html
+          curl -fsS -c /tmp/editor-cookies.txt -H 'Host: nemodara.ir' http://127.0.0.1:4321/editor > /tmp/editor.html
           grep -q 'data-ad-slot="editorRail"' /tmp/editor.html
           grep -q 'data-ad-state="reserved"' /tmp/editor.html
+          grep -q 'nemodara_editor_ads_bucket' /tmp/editor-cookies.txt
           ! grep -q 'cdn.yektanet.com/rg_woebegone' /tmp/editor.html
           curl -fsS -H 'Host: ads.nemodara.ir' 'http://127.0.0.1:4321/ads/editor-frame?slot=editorRail' > /tmp/editor-ad.html
           grep -q 'pos-editor-rail-test' /tmp/editor-ad.html
@@ -147,7 +152,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          rm -f tools/finalize-editor-ads-launch.py tools/harden-editor-ad-host.py .github/workflows/finalize-editor-ads-launch.yml .github/workflows/debug-editor-ads-finalizer.yml
+          rm -f \
+            tools/finalize-editor-ads-launch.py \
+            tools/harden-editor-ad-host.py \
+            tools/apply-server-editor-rollout.py \
+            tools/finalize-editor-rollout-metadata.py \
+            .github/workflows/finalize-editor-ads-launch.yml \
+            .github/workflows/debug-editor-ads-finalizer.yml
           rmdir tools 2>/dev/null || true
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
