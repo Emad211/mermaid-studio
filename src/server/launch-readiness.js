@@ -31,6 +31,7 @@ export function buildLaunchReadiness({ environment = process.env, seo, analytics
   const siteOrigin = cleanOrigin(seo?.siteUrl || environment.SITE_URL);
   const expectedOrigin = 'https://nemodara.ir';
   const editorOrigin = cleanOrigin(advertising?.editor?.frameOrigin);
+  const editorTrafficPercent = Math.min(100, Math.max(0, Number(advertising?.editor?.trafficPercent) || 0));
   const contentSlots = Object.entries(advertising?.slots || {})
     .filter(([name, value]) => value && !name.startsWith('editor'))
     .map(([name]) => name);
@@ -90,7 +91,7 @@ export function buildLaunchReadiness({ environment = process.env, seo, analytics
     check(
       'content-ad-inventory',
       'موجودی تبلیغ صفحات محتوایی',
-      advertising?.enabled && contentSlots.length >= 3 ? 'pass' : advertising?.enabled && contentSlots.length ? 'warning' : 'warning',
+      advertising?.enabled && contentSlots.length >= 3 ? 'pass' : 'warning',
       8,
       advertising?.enabled ? `${contentSlots.length} جایگاه محتوایی پیکربندی شده است.` : 'شبکهٔ تبلیغاتی هنوز فعال نیست.',
       'بعد از تأیید ناشر، حداقل جایگاه‌های خانه، آموزش و مقاله را با شناسه‌های واقعی پنل پر کنید.',
@@ -100,8 +101,8 @@ export function buildLaunchReadiness({ environment = process.env, seo, analytics
       'موجودی تبلیغ ادیتور',
       advertising?.editor?.enabled && editorSlots.length >= 2 ? 'pass' : advertising?.editor?.requested ? 'blocker' : 'warning',
       12,
-      advertising?.editor?.enabled ? `${editorSlots.length} جایگاه ادیتور با ایزولاسیون فعال است.` : advertising?.editor?.requested ? 'درخواست فعال‌سازی وجود دارد اما شرط‌های ایزولاسیون یا شناسه‌ها کامل نیستند.' : 'تبلیغ ادیتور هنوز فعال نشده است.',
-      'ADS_EDITOR_ENABLED، Origin جداگانه و شناسه‌های editorRail/editorDock را تنظیم کنید.',
+      advertising?.editor?.enabled ? `${editorSlots.length} جایگاه ادیتور با ایزولاسیون فعال است؛ rollout فعلی ${editorTrafficPercent}٪ است.` : advertising?.editor?.requested ? 'درخواست فعال‌سازی وجود دارد اما شرط‌های ایزولاسیون، rollout یا شناسه‌ها کامل نیستند.' : 'تبلیغ ادیتور هنوز فعال نشده است.',
+      'ADS_EDITOR_ENABLED، Origin جداگانه، درصد rollout و شناسه‌های editorRail/editorDock را تنظیم کنید.',
     ),
     check(
       'editor-ad-isolation',
@@ -110,6 +111,14 @@ export function buildLaunchReadiness({ environment = process.env, seo, analytics
       14,
       editorOrigin ? `Frame origin: ${editorOrigin}` : 'Origin جداگانه برای iframe تبلیغ تعریف نشده است.',
       'ads.nemodara.ir را به همان App متصل و ADS_EDITOR_FRAME_ORIGIN=https://ads.nemodara.ir تنظیم کنید.',
+    ),
+    check(
+      'editor-ad-rollout',
+      'انتشار مرحله‌ای تبلیغ ادیتور',
+      !advertising?.editor?.enabled ? 'warning' : editorTrafficPercent > 0 && editorTrafficPercent <= 50 ? 'pass' : 'warning',
+      6,
+      advertising?.editor?.enabled ? `${editorTrafficPercent}٪ Sessionها در rollout هستند.` : 'Rollout ادیتور فعال نیست.',
+      editorTrafficPercent > 50 ? 'انتشار رسمی را با ۱۰ تا ۲۵٪ شروع کنید و پس از بررسی Core Web Vitals و درآمد افزایش دهید.' : 'برای هر افزایش درصد، Annotation ثبت و حداقل چند روز داده جمع کنید.',
     ),
     check(
       'search-console',
