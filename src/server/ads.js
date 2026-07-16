@@ -171,13 +171,14 @@ function escapeRegex(value) {
 /**
  * Unhides only configured placements while HTML is still on the server. This
  * reserves the final slot height before first paint and avoids ad-induced CLS.
+ * Editor slots are additionally gated by a server-side rollout assignment.
  */
-export function prepareAdvertisingHtml(input, environment = process.env) {
+export function prepareAdvertisingHtml(input, environment = process.env, { editorEligible = true } = {}) {
   const config = advertisingConfig(environment);
   if (!config.enabled) return String(input);
   let html = String(input);
   for (const [name, placement] of Object.entries(config.slots)) {
-    if (!placement) continue;
+    if (!placement || (EDITOR_SLOTS.has(name) && !editorEligible)) continue;
     const meta = config.slotMeta[name] || { format: 'native', desktop: 160, mobile: 190 };
     const pattern = new RegExp(`(<(?:aside|div)\\b[^>]*\\bdata-ad-slot=["']${escapeRegex(name)}["'][^>]*)(>)`, 'i');
     html = html.replace(pattern, (_match, rawTag, close) => {
