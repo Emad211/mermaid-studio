@@ -97,7 +97,12 @@ test('Nemodara magazine, editorial trust, ad surfaces and content operations wor
   assert.match(editor, /id="btn-command"/);
   assert.match(editor, /id="diagnostics-panel"/);
   assert.match(editor, /editor-experience\.js/);
-  assert.doesNotMatch(editor, /data-ad-slot=/);
+  assert.match(editor, /data-editor-ad-slot[^>]+data-ad-slot="editorRail"/);
+  assert.match(editor, /data-editor-ad-slot[^>]+data-ad-slot="editorDock"/);
+  assert.match(editor, /editor-ads\.js/);
+  assert.match(editor, /data-ad-slot="editorRail"[^>]*hidden/);
+  assert.doesNotMatch(editor, /data-ad-state="reserved"/);
+  assert.doesNotMatch(editor, /\/js\/ads\.js/);
 
   const unauthorized = await fetch(`${server.url}/admin/content`, { redirect: 'manual' });
   assert.equal(unauthorized.status, 401);
