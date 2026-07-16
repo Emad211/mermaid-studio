@@ -33,10 +33,14 @@ jobs:
           ).replace(
               '"""          adSlotViews: 0,\n          adViewable: 0,\n          revenueRial: 0,\n"""',
               '"""        adSlotViews: 0,\n        adViewable: 0,\n        revenueRial: 0,\n"""',
+          ).replace(
+              'ADS_EDITOR_REQUIRE_CROSS_ORIGIN=true\nADS_EDITOR_FRAME_ORIGIN=https://ads.nemodara.ir\n',
+              'ADS_EDITOR_REQUIRE_CROSS_ORIGIN=true\nADS_EDITOR_FRAME_ORIGIN=https://ads.nemodara.ir\nADS_EDITOR_TRAFFIC_PERCENT=25\nADS_EDITOR_LOAD_DELAY_MS=1800\n',
           )
           path.write_text(text, encoding='utf-8')
           PY
           python tools/finalize-editor-ads-launch.py
+          python tools/harden-editor-ad-host.py
           npm install --package-lock-only --ignore-scripts
           npm ci
       - name: Run tests and preserve complete output
