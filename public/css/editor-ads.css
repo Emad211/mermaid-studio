@@ -108,7 +108,7 @@
 
 .editor-ad-shell--rail {
   display: none;
-  width: 190px;
+  width: 300px;
   margin: 12px 0 12px 12px;
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -131,7 +131,7 @@
   height: calc(100% - 27px);
 }
 
-@media (min-width: 1360px) {
+@media (min-width: 1440px) {
   .editor-ad-shell--rail:not([hidden]) {
     display: block;
   }
@@ -141,7 +141,7 @@
   }
 }
 
-@media (max-width: 1359px) {
+@media (max-width: 1439px) {
   .editor-ad-shell--rail:not([hidden]) {
     display: none;
   }
@@ -167,7 +167,7 @@
   }
 }
 
-@media (max-height: 640px) and (max-width: 1359px) {
+@media (max-height: 640px) and (max-width: 1439px) {
   .editor-ad-shell--dock {
     min-height: 82px;
     max-height: 88px;
