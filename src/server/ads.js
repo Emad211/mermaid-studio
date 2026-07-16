@@ -111,10 +111,12 @@ export function advertisingConfig(environment = process.env) {
   const frameOrigin = safeOrigin(environment.ADS_EDITOR_FRAME_ORIGIN, { httpsOnly: production });
   const editorRequested = booleanValue(environment.ADS_EDITOR_ENABLED, false);
   const requireCrossOrigin = booleanValue(environment.ADS_EDITOR_REQUIRE_CROSS_ORIGIN, production);
+  const trafficPercent = integerValue(environment.ADS_EDITOR_TRAFFIC_PERCENT, 100, 0, 100);
+  const editorLoadDelayMs = integerValue(environment.ADS_EDITOR_LOAD_DELAY_MS, 1_800, 0, 30_000);
   const isolationReady = Boolean(frameOrigin && (!requireCrossOrigin || !siteOrigin || frameOrigin !== siteOrigin));
 
   const slots = { ...rawSlots };
-  if (!editorRequested || !isolationReady) {
+  if (!editorRequested || !isolationReady || trafficPercent <= 0) {
     slots.editorRail = '';
     slots.editorDock = '';
   }
@@ -122,7 +124,7 @@ export function advertisingConfig(environment = process.env) {
   const hasPlacement = Object.values(slots).some(Boolean);
   const enabled = Boolean(booleanValue(environment.ADS_ENABLED) && PROVIDERS.has(provider) && scriptUrl && hasPlacement);
   const editorHasPlacement = Boolean(slots.editorRail || slots.editorDock);
-  const editorEnabled = Boolean(enabled && editorRequested && isolationReady && editorHasPlacement);
+  const editorEnabled = Boolean(enabled && editorRequested && isolationReady && editorHasPlacement && trafficPercent > 0);
 
   return {
     enabled,
@@ -136,10 +138,12 @@ export function advertisingConfig(environment = process.env) {
     editor: {
       requested: editorRequested,
       enabled: editorEnabled,
-      frameOrigin: editorEnabled ? frameOrigin : null,
+      frameOrigin: isolationReady ? frameOrigin : null,
       framePath: '/ads/editor-frame',
       requireCrossOrigin,
       isolationReady,
+      trafficPercent,
+      loadDelayMs: editorLoadDelayMs,
     },
   };
 }
