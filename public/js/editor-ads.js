@@ -2,7 +2,6 @@ const CONFIG_ENDPOINT = '/api/ads';
 const DESKTOP_QUERY = '(min-width: 1440px)';
 const VIEWABILITY_RATIO = 0.5;
 const VIEWABILITY_MS = 1_000;
-const ROLLOUT_KEY = 'nemodara:editor-ad-rollout:v1';
 
 function dispatch(type, slot) {
   window.dispatchEvent(new CustomEvent('mstudio:ad', { detail: { type, slot } }));
@@ -16,27 +15,6 @@ function sameOrigin(value) {
   }
 }
 
-function rolloutBucket() {
-  try {
-    const stored = Number(sessionStorage.getItem(ROLLOUT_KEY));
-    if (Number.isInteger(stored) && stored >= 0 && stored < 100) return stored;
-    const bytes = new Uint8Array(1);
-    crypto.getRandomValues(bytes);
-    const value = bytes[0] % 100;
-    sessionStorage.setItem(ROLLOUT_KEY, String(value));
-    return value;
-  } catch {
-    return Math.floor(Math.random() * 100);
-  }
-}
-
-function includedInRollout(percent) {
-  const value = Math.min(100, Math.max(0, Number(percent) || 0));
-  if (value >= 100) return true;
-  if (value <= 0) return false;
-  return rolloutBucket() < value;
-}
-
 function frameUrl(config, slot) {
   const origin = config.editor?.frameOrigin || location.origin;
   const url = new URL(config.editor?.framePath || '/ads/editor-frame', `${origin}/`);
@@ -46,7 +24,7 @@ function frameUrl(config, slot) {
 
 function configureSandbox(frame, url) {
   const permissions = ['allow-scripts', 'allow-popups', 'allow-popups-to-escape-sandbox'];
-  // allow-same-origin is safe only when the advertising document has a separate
+  // allow-same-origin is used only when the advertising document has a separate
   // origin. It improves publisher-script compatibility without exposing the
   // editor DOM or Mermaid source.
   if (!sameOrigin(url.href)) permissions.push('allow-same-origin');
@@ -115,6 +93,12 @@ async function initializeEditorAds() {
   const shells = [...document.querySelectorAll('[data-editor-ad-slot][data-ad-slot]')];
   if (!shells.length) return;
 
+  // The server assigns the rollout bucket before rendering `/editor`. When the
+  // visitor is outside the rollout, every shell is already hidden in the first
+  // HTML response, so the page does not collapse after JavaScript starts.
+  const active = selectShell(shells);
+  if (!active) return;
+
   let config;
   try {
     const response = await fetch(CONFIG_ENDPOINT, { credentials: 'same-origin', cache: 'no-store', headers: { Accept: 'application/json' } });
@@ -130,18 +114,13 @@ async function initializeEditorAds() {
     disableShells(shells, 'disabled');
     return;
   }
-  if (!includedInRollout(config.editor.trafficPercent)) {
-    disableShells(shells, 'rollout-excluded');
-    return;
-  }
 
-  const active = selectShell(shells);
   shells.forEach((shell) => {
     const enabled = shell === active && Boolean(config.slots?.[shell.dataset.adSlot]);
     shell.hidden = !enabled;
     if (!enabled) shell.dataset.adState = 'inactive';
   });
-  if (!active || active.hidden) return;
+  if (active.hidden) return;
 
   const slot = active.dataset.adSlot;
   const frame = active.querySelector('[data-editor-ad-frame]');
