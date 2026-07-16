@@ -25,6 +25,11 @@ const adEnvironmentKeys = [
   'ADS_SLOT_TEMPLATES_INLINE',
   'ADS_SLOT_LEARN_TOP',
   'ADS_SLOT_LEARN_INLINE',
+  'ADS_EDITOR_ENABLED',
+  'ADS_EDITOR_REQUIRE_CROSS_ORIGIN',
+  'ADS_EDITOR_FRAME_ORIGIN',
+  'ADS_SLOT_EDITOR_RAIL',
+  'ADS_SLOT_EDITOR_DOCK',
 ];
 const previousAdEnvironment = Object.fromEntries(adEnvironmentKeys.map((key) => [key, process.env[key]]));
 adEnvironmentKeys.forEach((key) => delete process.env[key]);
@@ -41,7 +46,15 @@ try {
   const editor = await fetch(server.url + '/editor');
   const editorHtml = await editor.text();
   assert('Persian editor route', editor.ok && /dir="rtl"/.test(editorHtml) && editorHtml.includes('کد Mermaid'));
-  assert('editor does not load publisher ads', !editorHtml.includes('data-ad-slot=') && !editorHtml.includes('/js/ads.js'));
+  assert(
+    'editor ad inventory is present but inert by default',
+    editorHtml.includes('data-ad-slot="editorRail"')
+      && editorHtml.includes('data-ad-slot="editorDock"')
+      && editorHtml.includes('/js/editor-ads.js')
+      && !editorHtml.includes('/js/ads.js')
+      && /data-ad-slot="editorRail"[^>]*hidden/.test(editorHtml)
+      && !editorHtml.includes('data-ad-state="reserved"'),
+  );
 
   const templates = await fetch(server.url + '/templates');
   const templatesHtml = await templates.text();
@@ -64,7 +77,10 @@ try {
 
   const adsResponse = await fetch(server.url + '/api/ads');
   const ads = await adsResponse.json();
-  assert('ads are opt-in and disabled by default', adsResponse.ok && ads.enabled === false && ads.slots?.homeTop === '');
+  assert(
+    'ads are opt-in and disabled by default',
+    adsResponse.ok && ads.enabled === false && ads.editor?.enabled === false && ads.slots?.homeTop === '' && ads.slots?.editorRail === '',
+  );
 
   const analyticsConfig = await (await fetch(server.url + '/api/analytics/config')).json();
   assert('first-party analytics config is explicit', typeof analyticsConfig.enabled === 'boolean' && analyticsConfig.respectDnt === true);
