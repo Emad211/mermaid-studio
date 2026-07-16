@@ -82,10 +82,11 @@ function selectShell(shells) {
     || null;
 }
 
-function disableShells(shells, state) {
+function preserveReservedShell(shells, active, state) {
   shells.forEach((shell) => {
-    shell.hidden = true;
-    shell.dataset.adState = state;
+    const selected = shell === active;
+    shell.hidden = !selected;
+    shell.dataset.adState = selected ? state : 'inactive';
   });
 }
 
@@ -105,22 +106,21 @@ async function initializeEditorAds() {
     if (!response.ok) throw new Error(`ADS_CONFIG_${response.status}`);
     config = await response.json();
   } catch {
-    disableShells(shells, 'config-error');
-    dispatch('error', 'editor-config');
+    preserveReservedShell(shells, active, 'error');
+    dispatch('error', active.dataset.adSlot || 'editor-config');
     return;
   }
 
-  if (!config?.enabled || !config.editor?.enabled) {
-    disableShells(shells, 'disabled');
+  if (!config?.enabled || !config.editor?.enabled || !config.slots?.[active.dataset.adSlot]) {
+    preserveReservedShell(shells, active, 'unavailable');
     return;
   }
 
   shells.forEach((shell) => {
-    const enabled = shell === active && Boolean(config.slots?.[shell.dataset.adSlot]);
+    const enabled = shell === active;
     shell.hidden = !enabled;
     if (!enabled) shell.dataset.adState = 'inactive';
   });
-  if (active.hidden) return;
 
   const slot = active.dataset.adSlot;
   const frame = active.querySelector('[data-editor-ad-frame]');
