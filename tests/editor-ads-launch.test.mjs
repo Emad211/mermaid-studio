@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
+import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import { advertisingConfig, renderEditorAdFrame } from '../src/server/ads.js';
@@ -44,6 +45,28 @@ function environment(directory) {
 }
 
 const basic = () => `Basic ${Buffer.from(`owner:${PASSWORD}`).toString('base64')}`;
+
+function requestWithHost(server, pathname, host) {
+  return new Promise((resolve, reject) => {
+    const request = http.request({
+      hostname: '127.0.0.1',
+      port: server.port,
+      path: pathname,
+      method: 'GET',
+      headers: { Host: host, Accept: 'text/html' },
+    }, (response) => {
+      const chunks = [];
+      response.on('data', (chunk) => chunks.push(chunk));
+      response.on('end', () => resolve({
+        status: response.statusCode,
+        headers: response.headers,
+        body: Buffer.concat(chunks).toString('utf8'),
+      }));
+    });
+    request.on('error', reject);
+    request.end();
+  });
+}
 
 test('editor advertising is fail-closed unless origin, rollout and placements are valid', () => {
   const unsafe = advertisingConfig({
@@ -113,9 +136,13 @@ test('editor page reserves responsive ad inventory while keeping publisher scrip
   const unknown = await fetch(`${server.url}/ads/editor-frame?slot=homeTop`);
   assert.equal(unknown.status, 404);
 
-  const adHostContent = await fetch(`${server.url}/articles`, { headers: { Host: 'ads.nemodara.ir' }, redirect: 'manual' });
+  const adHostContent = await requestWithHost(server, '/articles', 'ads.nemodara.ir');
   assert.equal(adHostContent.status, 302);
-  assert.equal(adHostContent.headers.get('location'), 'https://nemodara.ir/articles');
+  assert.equal(adHostContent.headers.location, 'https://nemodara.ir/articles');
+
+  const adHostFrame = await requestWithHost(server, '/ads/editor-frame?slot=editorRail', 'ads.nemodara.ir');
+  assert.equal(adHostFrame.status, 200);
+  assert.match(adHostFrame.body, /pos-editor-rail-test/);
 
   const readiness = await fetch(`${server.url}/api/admin/launch/readiness`, { headers: { authorization: basic() } });
   assert.equal(readiness.status, 200);
