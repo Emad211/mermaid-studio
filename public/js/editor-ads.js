@@ -1,7 +1,8 @@
 const CONFIG_ENDPOINT = '/api/ads';
-const DESKTOP_QUERY = '(min-width: 1360px)';
+const DESKTOP_QUERY = '(min-width: 1440px)';
 const VIEWABILITY_RATIO = 0.5;
 const VIEWABILITY_MS = 1_000;
+const ROLLOUT_KEY = 'nemodara:editor-ad-rollout:v1';
 
 function dispatch(type, slot) {
   window.dispatchEvent(new CustomEvent('mstudio:ad', { detail: { type, slot } }));
@@ -15,6 +16,27 @@ function sameOrigin(value) {
   }
 }
 
+function rolloutBucket() {
+  try {
+    const stored = Number(sessionStorage.getItem(ROLLOUT_KEY));
+    if (Number.isInteger(stored) && stored >= 0 && stored < 100) return stored;
+    const bytes = new Uint8Array(1);
+    crypto.getRandomValues(bytes);
+    const value = bytes[0] % 100;
+    sessionStorage.setItem(ROLLOUT_KEY, String(value));
+    return value;
+  } catch {
+    return Math.floor(Math.random() * 100);
+  }
+}
+
+function includedInRollout(percent) {
+  const value = Math.min(100, Math.max(0, Number(percent) || 0));
+  if (value >= 100) return true;
+  if (value <= 0) return false;
+  return rolloutBucket() < value;
+}
+
 function frameUrl(config, slot) {
   const origin = config.editor?.frameOrigin || location.origin;
   const url = new URL(config.editor?.framePath || '/ads/editor-frame', `${origin}/`);
@@ -24,9 +46,9 @@ function frameUrl(config, slot) {
 
 function configureSandbox(frame, url) {
   const permissions = ['allow-scripts', 'allow-popups', 'allow-popups-to-escape-sandbox'];
-  // allow-same-origin is safe only when the ad document is on a separate
-  // origin. It improves compatibility with publisher scripts without exposing
-  // the editor DOM or Mermaid source.
+  // allow-same-origin is safe only when the advertising document has a separate
+  // origin. It improves publisher-script compatibility without exposing the
+  // editor DOM or Mermaid source.
   if (!sameOrigin(url.href)) permissions.push('allow-same-origin');
   frame.setAttribute('sandbox', permissions.join(' '));
 }
@@ -35,7 +57,7 @@ function afterPageSettles(delayMs) {
   return new Promise((resolve) => {
     const start = () => window.setTimeout(resolve, Math.max(0, delayMs));
     if ('requestIdleCallback' in window) {
-      window.requestIdleCallback(start, { timeout: Math.max(1_500, delayMs + 700) });
+      window.requestIdleCallback(start, { timeout: Math.max(2_500, delayMs + 900) });
     } else if (document.readyState === 'complete') start();
     else window.addEventListener('load', start, { once: true });
   });
@@ -51,12 +73,16 @@ function observeViewability(shell, slot) {
   };
   const observer = new IntersectionObserver((entries) => {
     const entry = entries[0];
-    if (!entry || !entry.isIntersecting || entry.intersectionRatio < VIEWABILITY_RATIO) {
+    if (!entry || !entry.isIntersecting || entry.intersectionRatio < VIEWABILITY_RATIO || document.visibilityState !== 'visible') {
       cancel();
       return;
     }
     if (sent || timer) return;
     timer = window.setTimeout(() => {
+      if (document.visibilityState !== 'visible') {
+        cancel();
+        return;
+      }
       sent = true;
       timer = null;
       shell.dataset.adViewable = 'true';
@@ -65,6 +91,9 @@ function observeViewability(shell, slot) {
     }, VIEWABILITY_MS);
   }, { threshold: [0, VIEWABILITY_RATIO, 1] });
   observer.observe(shell);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') cancel();
+  });
 }
 
 function selectShell(shells) {
@@ -73,6 +102,13 @@ function selectShell(shells) {
   return shells.find((shell) => shell.dataset.adSlot === preferred && !shell.hidden)
     || shells.find((shell) => !shell.hidden)
     || null;
+}
+
+function disableShells(shells, state) {
+  shells.forEach((shell) => {
+    shell.hidden = true;
+    shell.dataset.adState = state;
+  });
 }
 
 async function initializeEditorAds() {
@@ -85,13 +121,17 @@ async function initializeEditorAds() {
     if (!response.ok) throw new Error(`ADS_CONFIG_${response.status}`);
     config = await response.json();
   } catch {
-    shells.forEach((shell) => { shell.hidden = true; });
+    disableShells(shells, 'config-error');
     dispatch('error', 'editor-config');
     return;
   }
 
   if (!config?.enabled || !config.editor?.enabled) {
-    shells.forEach((shell) => { shell.hidden = true; });
+    disableShells(shells, 'disabled');
+    return;
+  }
+  if (!includedInRollout(config.editor.trafficPercent)) {
+    disableShells(shells, 'rollout-excluded');
     return;
   }
 
@@ -129,7 +169,7 @@ async function initializeEditorAds() {
     dispatch('error', slot);
   }, { once: true });
 
-  await afterPageSettles(Number(config.loadDelayMs) || 0);
+  await afterPageSettles(Number(config.editor.loadDelayMs) || Number(config.loadDelayMs) || 0);
   frame.src = url.href;
 }
 
