@@ -20,7 +20,7 @@ https://nemodara.ir       سایت اصلی، ادیتور، محتوا و پن�
 https://ads.nemodara.ir   فقط سند iframe تبلیغ ادیتور
 ```
 
-Canonical، Sitemap و Search Console فقط به `nemodara.ir` تعلق دارند. دامنهٔ `ads.nemodara.ir` محتوای مستقلی برای ایندکس ندارد.
+Canonical، Sitemap و Search Console فقط به `nemodara.ir` تعلق دارند. دامنهٔ `ads.nemodara.ir` فقط `/ads/editor-frame` و `/api/health` را سرو می‌کند؛ سایر مسیرهای GET/HEAD به دامنهٔ اصلی هدایت می‌شوند تا نسخهٔ تکراری سایت ایجاد نشود.
 
 ## Secretهای ضروری
 
@@ -102,6 +102,8 @@ ADS_SLOT_ARTICLE_MID=...
 ADS_EDITOR_ENABLED=true
 ADS_EDITOR_REQUIRE_CROSS_ORIGIN=true
 ADS_EDITOR_FRAME_ORIGIN=https://ads.nemodara.ir
+ADS_EDITOR_TRAFFIC_PERCENT=10
+ADS_EDITOR_LOAD_DELAY_MS=1800
 ADS_SLOT_EDITOR_RAIL=...
 ADS_SLOT_EDITOR_DOCK=...
 ```
@@ -114,6 +116,31 @@ ADS_SLOT_EDITOR_DOCK=...
 4. جایگاه Desktop Rail را روی نمایشگر عریض و Dock را روی موبایل آزمایش کنید.
 5. با DevTools تأیید کنید Publisher Script در Document اصلی `/editor` وجود ندارد.
 6. متن Mermaid، CodeMirror و Local Storage دامنهٔ اصلی نباید از داخل Frame قابل دسترسی باشند.
+7. انتشار را با ۱۰٪ Sessionها آغاز کنید، نه ۱۰۰٪ کاربران.
+
+### برنامهٔ rollout
+
+```text
+روز ۱ تا ۳: ۱۰٪
+روز ۴ تا ۱۰: ۲۵٪
+هفتهٔ دوم: ۵۰٪
+۱۰۰٪: فقط پس از پایداربودن Core Web Vitals، قیف محصول و گزارش ناشر
+```
+
+برای هر مرحله Annotation ثبت کنید و این شاخص‌ها را با بازهٔ قبل مقایسه کنید:
+
+- نرخ رندر موفق
+- ورود به ادیتور و دریافت خروجی
+- زمان تعامل و Share
+- LCP، INP و CLS
+- ad_viewable، blocked و error
+- Impression، Click، RPM و Revenue واقعی پنل ناشر
+
+در صورت مشکل می‌توان درصد را بدون Deploy کاهش داد:
+
+```dotenv
+ADS_EDITOR_TRAFFIC_PERCENT=0
+```
 
 ## بررسی دیسک دائمی
 
@@ -174,15 +201,17 @@ grep -q '%PDF-' /tmp/nemodara.pdf
 
 ```bash
 curl -I 'https://ads.nemodara.ir/ads/editor-frame?slot=editorRail'
+curl -I 'https://ads.nemodara.ir/articles'
 ```
 
 انتظار می‌رود:
 
-- `200 OK`
-- `X-Robots-Tag: noindex`
-- CSP دارای `frame-ancestors https://nemodara.ir`
-- Parent `/editor` در `script-src` دامنهٔ CDN ناشر را مجاز نکرده باشد
-- Parent فقط `ads.nemodara.ir` را در `frame-src` اضافه کرده باشد
+- Frame پاسخ `200 OK` بدهد.
+- Frame دارای `X-Robots-Tag: noindex` باشد.
+- CSP Frame دارای `frame-ancestors https://nemodara.ir` باشد.
+- Parent `/editor` در `script-src` دامنهٔ CDN ناشر را مجاز نکرده باشد.
+- Parent فقط `ads.nemodara.ir` را در `frame-src` اضافه کرده باشد.
+- `/articles` روی ساب‌دامین تبلیغ با `302` به `https://nemodara.ir/articles` هدایت شود.
 
 ## Search Console
 
