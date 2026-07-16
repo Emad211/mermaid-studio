@@ -6,6 +6,7 @@ on:
       - agent/editor-ads-launch-readiness
     paths:
       - tools/finalize-editor-ads-launch.py
+      - tools/harden-editor-ad-host.py
       - .github/workflows/finalize-editor-ads-launch.yml
   pull_request:
     branches:
@@ -48,12 +49,17 @@ jobs:
           ).replace(
               '"""          adSlotViews: 0,\n          adViewable: 0,\n          revenueRial: 0,\n"""',
               '"""        adSlotViews: 0,\n        adViewable: 0,\n        revenueRial: 0,\n"""',
+          ).replace(
+              'ADS_EDITOR_REQUIRE_CROSS_ORIGIN=true\nADS_EDITOR_FRAME_ORIGIN=https://ads.nemodara.ir\n',
+              'ADS_EDITOR_REQUIRE_CROSS_ORIGIN=true\nADS_EDITOR_FRAME_ORIGIN=https://ads.nemodara.ir\nADS_EDITOR_TRAFFIC_PERCENT=25\nADS_EDITOR_LOAD_DELAY_MS=1800\n',
           )
           path.write_text(text, encoding='utf-8')
           PY
 
-      - name: Apply deterministic integration
-        run: python tools/finalize-editor-ads-launch.py
+      - name: Apply deterministic integration and host hardening
+        run: |
+          python tools/finalize-editor-ads-launch.py
+          python tools/harden-editor-ad-host.py
 
       - name: Synchronize lockfile
         run: npm install --package-lock-only --ignore-scripts
@@ -108,6 +114,8 @@ jobs:
             -e ADS_EDITOR_ENABLED=true \
             -e ADS_EDITOR_REQUIRE_CROSS_ORIGIN=true \
             -e ADS_EDITOR_FRAME_ORIGIN=https://ads.nemodara.ir \
+            -e ADS_EDITOR_TRAFFIC_PERCENT=100 \
+            -e ADS_EDITOR_LOAD_DELAY_MS=0 \
             -e ADS_SLOT_EDITOR_RAIL=pos-editor-rail-test \
             -e ADS_SLOT_EDITOR_DOCK=pos-editor-dock-test \
             -e GSC_ENABLED=false \
@@ -119,13 +127,15 @@ jobs:
             if curl -fsS http://127.0.0.1:4321/api/health >/dev/null; then break; fi
             sleep 1
           done
-          curl -fsS http://127.0.0.1:4321/editor > /tmp/editor.html
+          curl -fsS -H 'Host: nemodara.ir' http://127.0.0.1:4321/editor > /tmp/editor.html
           grep -q 'data-ad-slot="editorRail"' /tmp/editor.html
           grep -q 'data-ad-state="reserved"' /tmp/editor.html
           ! grep -q 'cdn.yektanet.com/rg_woebegone' /tmp/editor.html
-          curl -fsS 'http://127.0.0.1:4321/ads/editor-frame?slot=editorRail' > /tmp/editor-ad.html
+          curl -fsS -H 'Host: ads.nemodara.ir' 'http://127.0.0.1:4321/ads/editor-frame?slot=editorRail' > /tmp/editor-ad.html
           grep -q 'pos-editor-rail-test' /tmp/editor-ad.html
-          curl -fsS -u 'admin:ci-only-long-random-password' http://127.0.0.1:4321/api/admin/launch/readiness > /tmp/readiness.json
+          redirect_status=$(curl -sS -o /dev/null -w '%{http_code}' -H 'Host: ads.nemodara.ir' http://127.0.0.1:4321/articles)
+          test "$redirect_status" = '302'
+          curl -fsS -u 'admin:ci-only-long-random-password' -H 'Host: nemodara.ir' http://127.0.0.1:4321/api/admin/launch/readiness > /tmp/readiness.json
           grep -q '"monetizationReady":true' /tmp/readiness.json
           curl -fsS -X POST http://127.0.0.1:4321/api/render \
             -H 'content-type: application/json' \
@@ -137,7 +147,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          rm -f tools/finalize-editor-ads-launch.py .github/workflows/finalize-editor-ads-launch.yml .github/workflows/debug-editor-ads-finalizer.yml
+          rm -f tools/finalize-editor-ads-launch.py tools/harden-editor-ad-host.py .github/workflows/finalize-editor-ads-launch.yml .github/workflows/debug-editor-ads-finalizer.yml
           rmdir tools 2>/dev/null || true
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
