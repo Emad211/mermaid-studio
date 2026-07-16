@@ -46,14 +46,14 @@ function environment(directory) {
 
 const basic = () => `Basic ${Buffer.from(`owner:${PASSWORD}`).toString('base64')}`;
 
-function requestWithHost(server, pathname, host) {
+function requestWithHost(server, pathname, host, headers = {}) {
   return new Promise((resolve, reject) => {
     const request = http.request({
       hostname: '127.0.0.1',
       port: server.port,
       path: pathname,
       method: 'GET',
-      headers: { Host: host, Accept: 'text/html' },
+      headers: { Host: host, Accept: 'text/html', ...headers },
     }, (response) => {
       const chunks = [];
       response.on('data', (chunk) => chunks.push(chunk));
@@ -104,6 +104,35 @@ test('editor ad frame contains only the placement and publisher bootstrap', () =
   assert.match(html, /nemodara-editor-ad/);
   assert.doesNotMatch(html, /CodeMirror|کد Mermaid|textarea id="editor"/);
   assert.equal(renderEditorAdFrame('homeTop', environment('/tmp/unused')), null);
+});
+
+test('server rollout decides the initial editor layout before first paint', async (t) => {
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'nemodara-editor-rollout-'));
+  const env = { ...environment(directory), ADS_EDITOR_TRAFFIC_PERCENT: '25' };
+  const server = await startServer({ port: 0, host: '127.0.0.1', environment: env, logger: { error() {} } });
+  t.after(async () => {
+    await server.close();
+    await fs.rm(directory, { recursive: true, force: true });
+  });
+
+  const included = await requestWithHost(server, '/editor', 'nemodara.ir', { Cookie: 'nemodara_editor_ads_bucket=7' });
+  assert.equal(included.status, 200);
+  assert.match(included.body, /data-ad-slot="editorRail"[^>]*data-ad-state="reserved"/);
+  assert.doesNotMatch(included.headers['set-cookie']?.join?.('') || '', /nemodara_editor_ads_bucket/);
+
+  const excluded = await requestWithHost(server, '/editor', 'nemodara.ir', { Cookie: 'nemodara_editor_ads_bucket=87' });
+  assert.equal(excluded.status, 200);
+  assert.match(excluded.body, /data-ad-slot="editorRail"[^>]*hidden/);
+  assert.doesNotMatch(excluded.body, /data-ad-slot="editorRail"[^>]*data-ad-state="reserved"/);
+
+  const assigned = await requestWithHost(server, '/editor', 'nemodara.ir');
+  const setCookie = Array.isArray(assigned.headers['set-cookie']) ? assigned.headers['set-cookie'][0] : assigned.headers['set-cookie'];
+  assert.match(setCookie || '', /nemodara_editor_ads_bucket=\d{1,2}/);
+  assert.match(setCookie || '', /HttpOnly/);
+  assert.match(setCookie || '', /SameSite=Lax/);
+  const bucket = Number(/nemodara_editor_ads_bucket=(\d{1,2})/.exec(setCookie || '')?.[1]);
+  const reserved = /data-ad-slot="editorRail"[^>]*data-ad-state="reserved"/.test(assigned.body);
+  assert.equal(reserved, bucket < 25);
 });
 
 test('editor page reserves responsive ad inventory while keeping publisher scripts outside the parent DOM', async (t) => {
