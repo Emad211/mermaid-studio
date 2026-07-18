@@ -1,0 +1,47 @@
+name: Diagnose Nemodara editorial browser flows
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nemodara-stage-2-editorial-diagnose
+  cancel-in-progress: true
+
+jobs:
+  editorial:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/editor-ads-launch-readiness
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - name: Reconstruct audited source
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .stage2b/part-*.b64 | base64 --decode | xz --decompress --stdout > /tmp/stage2.patch
+          echo '998d6ecc7404def719b5e5193f09479582ef2168c1073c79ea3c2d27459eab4b  /tmp/stage2.patch' | sha256sum -c -
+          git apply /tmp/stage2.patch
+          npm install --package-lock-only --ignore-scripts
+          npm ci
+          npm run build
+      - name: Editorial pages
+        env:
+          PUPPETEER_NO_SANDBOX: true
+        run: node --test tests/editorial-pages.test.mjs
+      - name: Professional editor
+        env:
+          PUPPETEER_NO_SANDBOX: true
+        run: node --test tests/editor-professional.test.mjs
+      - name: Product growth v3
+        env:
+          PUPPETEER_NO_SANDBOX: true
+        run: node --test tests/product-growth-v3.test.mjs
