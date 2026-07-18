@@ -1,0 +1,119 @@
+-            <article class="panel span-6"><div class="panel-head"><div><h3>درآمد به تفکیک شبکه</h3><p>مقایسه درآمد، Impression، Click و eCPM</p></div></div><div class="table-wrap"><table><thead><tr><th>شبکه</th><th>درآمد</th><th>نمایش</th><th>کلیک</th><th>eCPM</th></tr></thead><tbody id="provider-table"></tbody></table></div></article>
+-            <article class="panel span-6"><div class="panel-head"><div><h3>درآمد به تفکیک جایگاه</h3><p>پیداکردن جایگاه‌های پربازده و کم‌بازده</p></div></div><div class="table-wrap"><table><thead><tr><th>جایگاه</th><th>درآمد</th><th>نمایش</th><th>CTR</th><th>eCPM</th></tr></thead><tbody id="slot-revenue-table"></tbody></table></div></article>
+-            <article class="panel span-6"><div class="panel-head"><div><h3>سلامت جایگاه‌های تبلیغاتی</h3><p>دیدن جایگاه، لود اسکریپت، خطا و ad blocker</p></div></div><div class="table-wrap"><table><thead><tr><th>جایگاه</th><th>دیده‌شدن</th><th>قابل‌دیدن</th><th>Viewability</th><th>لود</th><th>خطا</th><th>مسدود</th></tr></thead><tbody id="ad-slots-table"></tbody></table></div></article>
+-            <article class="panel span-6"><div class="panel-head"><div><h3>سوابق درآمد</h3><p>اعداد گزارش ناشر؛ قابل حذف و جایگزینی</p></div></div><div class="table-wrap"><table><thead><tr><th>تاریخ</th><th>شبکه</th><th>جایگاه</th><th>نمایش</th><th>کلیک</th><th>درآمد</th><th></th></tr></thead><tbody id="revenue-table"></tbody></table></div></article>
++            <article class="panel span-5"><div class="panel-head"><div><h3>ثبت درآمد واقعی</h3><p>هر گزارش پنل را به تاریخ، شبکه و جایگاه متصل کنید.</p></div></div><form id="revenue-form"><div class="form-grid"><label>تاریخ<input id="revenue-date" name="date" type="date" required /></label><label>شبکه<select id="revenue-provider" name="provider"><option value="yektanet">یکتانت</option><option value="tapsell">تپسل</option><option value="other">سایر</option></select></label><label>جایگاه<input id="revenue-slot" name="slot" value="all" maxlength="100" /></label><label>درخواست تبلیغ<input id="revenue-requests" name="requests" type="number" min="0" step="1" value="0" /></label><label>نمایش<input id="revenue-impressions" name="impressions" type="number" min="0" step="1" value="0" /></label><label>نمایش قابل‌دیدن<input id="revenue-viewable-impressions" name="viewableImpressions" type="number" min="0" step="1" value="0" /></label><label>کلیک<input id="revenue-clicks" name="clicks" type="number" min="0" step="1" value="0" /></label><label>درآمد (ریال)<input id="revenue-rial" name="revenueRial" type="number" min="0" step="1" required /></label><label class="wide">یادداشت<input id="revenue-note" name="note" maxlength="240" placeholder="گزارش روزانه یا هفتگی" /></label></div><div class="form-actions"><button class="a-button" type="submit">ثبت درآمد</button><span id="revenue-message" class="form-message"></span></div></form></article>
++            <article class="panel span-6"><div class="panel-head"><div><h3>درآمد به تفکیک شبکه</h3><p>مقایسه درآمد، Impression، Click و eCPM</p></div></div><div class="table-wrap"><table><thead><tr><th>شبکه</th><th>درآمد</th><th>Request</th><th>نمایش</th><th>Fill</th><th>Viewability</th><th>eCPM</th></tr></thead><tbody id="provider-table"></tbody></table></div></article>
++            <article class="panel span-6"><div class="panel-head"><div><h3>درآمد به تفکیک جایگاه</h3><p>پیداکردن جایگاه‌های پربازده و کم‌بازده</p></div></div><div class="table-wrap"><table><thead><tr><th>جایگاه</th><th>درآمد</th><th>Request</th><th>نمایش</th><th>Fill</th><th>Viewability</th><th>eCPM</th></tr></thead><tbody id="slot-revenue-table"></tbody></table></div></article>
++            <article class="panel span-6"><div class="panel-head"><div><h3>سلامت جایگاه‌های تبلیغاتی</h3><p>دیدن جایگاه، لود اسکریپت، خطا و ad blocker</p></div></div><div class="table-wrap"><table><thead><tr><th>جایگاه</th><th>Request داخلی</th><th>ورود به Viewport</th><th>Rendered</th><th>Render rate</th><th>Viewable</th><th>Viewability داخلی</th><th>No fill</th><th>خطا/مسدود</th></tr></thead><tbody id="ad-slots-table"></tbody></table></div></article>
++            <article class="panel span-6"><div class="panel-head"><div><h3>سوابق درآمد</h3><p>اعداد گزارش ناشر؛ قابل حذف و جایگزینی</p></div></div><div class="table-wrap"><table><thead><tr><th>تاریخ</th><th>شبکه</th><th>جایگاه</th><th>Request</th><th>نمایش</th><th>Viewable</th><th>کلیک</th><th>درآمد</th><th></th></tr></thead><tbody id="revenue-table"></tbody></table></div></article>
+           </section>
+         </section>
+ 
+diff --git a/public/js/ads.js b/public/js/ads.js
+index 4be0951..9106fe4 100644
+--- a/public/js/ads.js
++++ b/public/js/ads.js
+@@ -1,4 +1,4 @@
+-const SLOT_SELECTOR = '[data-ad-slot]';
++const SLOT_SELECTOR = '[data-ad-slot]:not([data-editor-ad-slot])';
+ const ENDPOINT = '/api/ads';
+ 
+ function notify(type, slot = 'all') {
+@@ -23,7 +23,30 @@ function applySlotMeta(shell, meta = {}) {
+   if (Number(meta.mobile)) shell.style.setProperty('--ad-min-mobile', `${meta.mobile}px`);
+ }
+ 
+-function mountPlacement(shell, placementId, provider) {
++function watchPlacement(shell, placement, timeoutMs) {
++  const slot = shell.dataset.adSlot || 'unknown';
++  let settled = false;
++  const reportRendered = () => {
++    if (settled || !placement.childNodes.length) return;
++    settled = true;
++    shell.dataset.adState = 'rendered';
++    notify('rendered', slot);
++    observer.disconnect();
++    window.clearTimeout(timer);
++  };
++  const observer = new MutationObserver(reportRendered);
++  observer.observe(placement, { childList: true, subtree: true });
++  const timer = window.setTimeout(() => {
++    if (settled) return;
++    settled = true;
++    shell.dataset.adState = 'no-fill';
++    notify('no-fill', slot);
++    observer.disconnect();
++  }, Math.max(1_000, Number(timeoutMs) || 8_000));
++  return reportRendered;
++}
++
++function mountPlacement(shell, placementId, provider, timeoutMs) {
+   const mount = shell.querySelector('[data-ad-mount]') || shell;
+   const placement = document.createElement('div');
+   placement.id = placementId;
+@@ -31,9 +54,9 @@ function mountPlacement(shell, placementId, provider) {
+   placement.dataset.provider = provider;
+   mount.replaceChildren(placement);
+   shell.hidden = false;
+-  shell.dataset.adState = 'mounted';
+-  notify('mounted', shell.dataset.adSlot || 'unknown');
+-  return shell;
++  shell.dataset.adState = 'requested';
++  notify('request', shell.dataset.adSlot || 'unknown');
++  return { shell, reportRendered: watchPlacement(shell, placement, timeoutMs) };
+ }
+ 
+ function publisherScriptUrl(config) {
+@@ -104,21 +127,22 @@ async function initializeAds() {
+       continue;
+     }
+     applySlotMeta(shell, config.slotMeta?.[name]);
+-    active.push(mountPlacement(shell, placementId, config.provider));
++    active.push(mountPlacement(shell, placementId, config.provider, config.noFillTimeoutMs));
+   }
+   if (!active.length) return;
+   document.documentElement.dataset.adsProvider = config.provider;
+   await afterPageSettles(Number(config.loadDelayMs) || 0);
+   try {
+     await loadScript(config);
+-    active.forEach((slot) => {
+-      slot.dataset.adState = 'loaded';
+-      notify('loaded', slot.dataset.adSlot || 'unknown');
++    active.forEach(({ shell, reportRendered }) => {
++      shell.dataset.adScriptLoaded = 'true';
++      notify('loaded', shell.dataset.adSlot || 'unknown');
++      reportRendered();
+     });
+   } catch {
+-    active.forEach((slot) => {
+-      slot.dataset.adState = navigator.onLine ? 'blocked' : 'error';
+-      notify(navigator.onLine ? 'blocked' : 'error', slot.dataset.adSlot || 'unknown');
++    active.forEach(({ shell }) => {
++      shell.dataset.adState = navigator.onLine ? 'blocked' : 'error';
++      notify(navigator.onLine ? 'blocked' : 'error', shell.dataset.adSlot || 'unknown');
+     });
+   }
+ }
+diff --git a/public/js/analytics-dashboard.js b/public/js/analytics-dashboard.js
+index 5786adb..63f65b3 100644
+--- a/public/js/analytics-dashboard.js
++++ b/public/js/analytics-dashboard.js
+@@ -345,25 +345,26 @@ function renderVitals(vitals) {
+ function renderRevenue(entries) {
+   const body = $('#revenue-table');
+   if (!entries?.length) {
+-    body.innerHTML = emptyRows(7, 'عدد واقعی پنل ناشر هنوز ثبت نشده است.');
++    body.innerHTML = emptyRows(9, 'عدد واقعی پنل ناشر هنوز ثبت نشده است.');
+     return;
+   }
+-  body.innerHTML = entries.map((entry) => `<tr><td>${escapeHtml(entry.date)}</td><td>${escapeHtml(entry.provider)}</td><td>${escapeHtml(entry.slot)}</td><td class="number">${formatNumber(entry.impressions)}</td><td class="number">${formatNumber(entry.clicks)}</td><td class="number">${formatRial(entry.revenueRial)}</td><td><button class="a-button danger delete-revenue" type="button" data-id="${escapeHtml(entry.id)}">حذف</button></td></tr>`).join('');
++  body.innerHTML = entries.map((entry) => `<tr><td>${escapeHtml(entry.date)}</td><td>${escapeHtml(entry.provider)}</td><td>${escapeHtml(entry.slot)}</td><td class="number">${formatNumber(entry.requests)}</td><td class="number">${formatNumber(entry.impressions)}</td><td class="number">${formatNumber(entry.viewableImpressions)}</td><td class="number">${formatNumber(entry.clicks)}</td><td class="number">${formatRial(entry.revenueRial)}</td><td><button class="a-button danger delete-revenue" type="button" data-id="${escapeHtml(entry.id)}">حذف</button></td></tr>`).join('');
+ }
+ 
+ function renderRevenueBreakdown(summary) {
+   const providers = summary.revenue?.byProvider || [];
+-  $('#provider-table').innerHTML = providers.length ? providers.map((row) => `<tr><td>${escapeHtml(row.name)}</td><td class="number">${formatRial(row.revenueRial)}</td><td class="number">${formatNumber(row.impressions)}</td><td class="number">${formatNumber(row.clicks)}</td><td class="number">${formatRial(row.impressions ? row.revenueRial / row.impressions * 1000 : 0)}</td></tr>`).join('') : emptyRows(5);
++  $('#provider-table').innerHTML = providers.length ? providers.map((row) => `<tr><td>${escapeHtml(row.name)}</td><td class="number">${formatRial(row.revenueRial)}</td><td class="number">${formatNumber(row.requests)}</td><td class="number">${formatNumber(row.impressions)}</td><td class="number">${formatPercent(row.requests ? row.impressions / row.requests * 100 : 0)}</td><td class="number">${formatPercent(row.impressions ? row.viewableImpressions / row.impressions * 100 : 0)}</td><td class="number">${formatRial(row.impressions ? row.revenueRial / row.impressions * 1000 : 0)}</td></tr>`).join('') : emptyRows(7);
+   const slots = summary.revenue?.bySlot || [];
+-  $('#slot-revenue-table').innerHTML = slots.length ? slots.map((row) => `<tr><td>${escapeHtml(row.name)}</td><td class="number">${formatRial(row.revenueRial)}</td><td class="number">${formatNumber(row.impressions)}</td><td class="number">${formatPercent(row.impressions ? row.clicks / row.impressions * 100 : 0)}</td><td class="number">${formatRial(row.impressions ? row.revenueRial / row.impressions * 1000 : 0)}</td></tr>`).join('') : emptyRows(5);
