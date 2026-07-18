@@ -1,0 +1,238 @@
+   let config;
+   try {
+-    const response = await fetch(CONFIG_ENDPOINT, { credentials: 'same-origin', cache: 'no-store', headers: { Accept: 'application/json' } });
++    const response = await fetch(CONFIG_ENDPOINT, {
++      credentials: 'same-origin',
++      cache: 'no-store',
++      headers: { Accept: 'application/json' },
++    });
+     if (!response.ok) throw new Error(`ADS_CONFIG_${response.status}`);
+     config = await response.json();
+   } catch {
+-    preserveReservedShell(shells, active, 'error');
++    preserveReservedShell(shells, active, 'config-error');
+     dispatch('error', active.dataset.adSlot || 'editor-config');
+     return;
+   }
+ 
+-  if (!config?.enabled || !config.editor?.enabled || !config.slots?.[active.dataset.adSlot]) {
++  const slot = active.dataset.adSlot;
++  if (!config?.enabled
++    || !config.editor?.enabled
++    || !config.slots?.[slot]
++    || !config.editor?.frameTokens?.[slot]) {
+     preserveReservedShell(shells, active, 'unavailable');
+     return;
+   }
+ 
+-  shells.forEach((shell) => {
+-    const enabled = shell === active;
+-    shell.hidden = !enabled;
+-    if (!enabled) shell.dataset.adState = 'inactive';
+-  });
+-
+-  const slot = active.dataset.adSlot;
++  preserveReservedShell(shells, active, 'reserved');
+   const frame = active.querySelector('[data-editor-ad-frame]');
+   if (!frame) return;
+   const url = frameUrl(config, slot);
+   configureSandbox(frame, url);
+   frame.referrerPolicy = 'origin';
+   active.dataset.adState = 'loading';
+-  observeViewability(active, slot);
++  const markRendered = observeViewability(active, slot);
+ 
+   const expectedOrigin = url.origin === location.origin ? 'null' : url.origin;
+   const onMessage = (event) => {
+@@ -137,8 +150,9 @@ async function initializeEditorAds() {
+     if (expectedOrigin !== 'null' && event.origin !== expectedOrigin) return;
+     const message = event.data;
+     if (!message || message.source !== 'nemodara-editor-ad' || message.slot !== slot) return;
+-    if (!['loaded', 'blocked', 'error'].includes(message.type)) return;
++    if (!['loaded', 'rendered', 'no-fill', 'blocked', 'error'].includes(message.type)) return;
+     active.dataset.adState = message.type;
++    if (message.type === 'rendered') markRendered();
+     dispatch(message.type, slot);
+   };
+   window.addEventListener('message', onMessage);
+diff --git a/public/js/revenue-planner.js b/public/js/revenue-planner.js
+index be61bce..993ee96 100644
+--- a/public/js/revenue-planner.js
++++ b/public/js/revenue-planner.js
+@@ -16,15 +16,14 @@ function calculate() {
+   const fill = Math.max(0, Math.min(100, Number($('#planner-fill')?.value) || 0));
+   const viewability = Math.max(0, Math.min(100, Number($('#planner-viewability')?.value) || 0));
+   const projectedViews = pageviews * (1 + growth / 100);
+-  const qualityFactor = (fill / 100) * (viewability / 100);
+-  const base = projectedViews / 1000 * rpm * qualityFactor;
+-  const conservative = base * 0.7;
+-  const optimistic = base * 1.28;
++  const base = projectedViews / 1000 * rpm;
++  const conservative = base * 0.75;
++  const optimistic = base * 1.25;
+   $('#planner-projected-views').textContent = fa.format(Math.round(projectedViews));
+   $('#planner-conservative').textContent = formatRial(conservative);
+   $('#planner-base').textContent = formatRial(base);
+   $('#planner-optimistic').textContent = formatRial(optimistic);
+-  $('#planner-note').textContent = `مدل بر اساس Page RPM، نرخ پرشدن و Viewability است؛ عدد پنل ناشر معیار نهایی باقی می‌ماند.`;
++  $('#planner-note').textContent = `Page RPM مشاهده‌شده از قبل اثر Fill و Viewability را در خود دارد؛ برای جلوگیری از دوباره‌شماری، درآمد پایه مستقیماً از RPM محاسبه می‌شود. Fill ${fa.format(fill)}٪ و Viewability ${fa.format(viewability)}٪ شاخص‌های تشخیصی‌اند.`;
+ }
+ 
+ async function initialize() {
+@@ -36,7 +35,8 @@ async function initialize() {
+       const summary = await response.json();
+       $('#planner-pageviews').value = Math.max(0, Math.round(Number(summary.totals?.pageviews) || 0));
+       $('#planner-rpm').value = Math.max(0, Math.round(Number(summary.rates?.pageRpmRial) || Number(summary.forecast?.estimatedRpmRial) || 0));
+-      $('#planner-fill').value = Math.round(Number(summary.rates?.fillRate) || 70);
++      $('#planner-fill').value = Math.round(Number(summary.rates?.publisherFillRate) || 70);
++      $('#planner-viewability').value = Math.round(Number(summary.rates?.publisherViewabilityRate) || 70);
+     }
+   } catch {
+     // The planner remains usable with manual values.
+diff --git a/src/core/renderer.js b/src/core/renderer.js
+index 7249567..a3a9049 100644
+--- a/src/core/renderer.js
++++ b/src/core/renderer.js
+@@ -176,7 +176,8 @@ function assertOutputSize(width, height, scale = 1) {
+ 
+ export async function validateDiagram({ serverUrl, code, theme = 'default', timeoutMs = DEFAULT_TIMEOUT_MS }) {
+   const browser = await getBrowser();
+-  const page = await browser.newPage();
++  const context = await browser.createBrowserContext();
++  const page = await context.newPage();
+   const safeTimeout = clamp(timeoutMs, 1_000, 60_000);
+   try {
+     await hardenPage(page, serverUrl, safeTimeout);
+@@ -188,6 +189,7 @@ export async function validateDiagram({ serverUrl, code, theme = 'default', time
+     );
+   } finally {
+     await page.close().catch(() => {});
++    await context.close().catch(() => {});
+   }
+ }
+ 
+@@ -214,7 +216,8 @@ export async function renderDiagram(options) {
+   const safeTimeout = clamp(timeoutMs, 1_000, 60_000);
+   const deviceScale = clamp(scale, 1, 5);
+   const browser = await getBrowser();
+-  const page = await browser.newPage();
++  const context = await browser.createBrowserContext();
++  const page = await context.newPage();
+ 
+   try {
+     await hardenPage(page, serverUrl, safeTimeout);
+@@ -330,5 +333,6 @@ export async function renderDiagram(options) {
+     throw new Error(`Unsupported format: ${format}`);
+   } finally {
+     await page.close().catch(() => {});
++    await context.close().catch(() => {});
+   }
+ }
+diff --git a/src/server/ads.js b/src/server/ads.js
+index f75b106..127afd3 100644
+--- a/src/server/ads.js
++++ b/src/server/ads.js
+@@ -1,3 +1,5 @@
++import { editorAdTokenReady } from './editor-ad-rollout.js';
++
+ /** Configuration helpers for Iranian publisher ad networks. */
+ 
+ const PROVIDERS = new Set(['yektanet', 'tapsell']);
+@@ -113,6 +115,9 @@ export function advertisingConfig(environment = process.env) {
+   const requireCrossOrigin = booleanValue(environment.ADS_EDITOR_REQUIRE_CROSS_ORIGIN, production);
+   const trafficPercent = integerValue(environment.ADS_EDITOR_TRAFFIC_PERCENT, 100, 0, 100);
+   const editorLoadDelayMs = integerValue(environment.ADS_EDITOR_LOAD_DELAY_MS, 1_800, 0, 30_000);
++  const editorNoFillTimeoutMs = integerValue(environment.ADS_EDITOR_NO_FILL_TIMEOUT_MS, 8_000, 1_000, 30_000);
++  const publisherValidated = booleanValue(environment.ADS_PUBLISHER_VALIDATED, false);
++  const tokenReady = editorAdTokenReady(environment);
+   const isolationReady = Boolean(frameOrigin && (!requireCrossOrigin || !siteOrigin || frameOrigin !== siteOrigin));
+ 
+   const slots = { ...rawSlots };
+@@ -124,7 +129,14 @@ export function advertisingConfig(environment = process.env) {
+   const hasPlacement = Object.values(slots).some(Boolean);
+   const enabled = Boolean(booleanValue(environment.ADS_ENABLED) && PROVIDERS.has(provider) && scriptUrl && hasPlacement);
+   const editorHasPlacement = Boolean(slots.editorRail || slots.editorDock);
+-  const editorEnabled = Boolean(enabled && editorRequested && isolationReady && editorHasPlacement && trafficPercent > 0);
++  const editorEnabled = Boolean(
++    enabled
++    && editorRequested
++    && isolationReady
++    && editorHasPlacement
++    && trafficPercent > 0
++    && (!production || tokenReady)
++  );
+ 
+   return {
+     enabled,
+@@ -132,6 +144,7 @@ export function advertisingConfig(environment = process.env) {
+     scriptUrl: enabled ? scriptUrl : null,
+     scriptId: safeDomId(environment.ADS_SCRIPT_ID) || `nemodara-${provider || 'ads'}-script`,
+     loadDelayMs: integerValue(environment.ADS_LOAD_DELAY_MS, 700, 0, 10_000),
++    noFillTimeoutMs: integerValue(environment.ADS_NO_FILL_TIMEOUT_MS, 8_000, 1_000, 30_000),
+     slots,
+     slotMeta: SLOT_META,
+     privacyUrl: '/privacy#advertising',
+@@ -144,6 +157,9 @@ export function advertisingConfig(environment = process.env) {
+       isolationReady,
+       trafficPercent,
+       loadDelayMs: editorLoadDelayMs,
++      noFillTimeoutMs: editorNoFillTimeoutMs,
++      publisherValidated,
++      tokenReady,
+     },
+   };
+ }
+@@ -212,6 +228,8 @@ export function renderEditorAdFrame(slotName, environment = process.env) {
+     scriptUrl: config.scriptUrl,
+     scriptId: `${config.scriptId}-${slot}`.slice(0, 180),
+     placementId,
++    parentOrigin: safeOrigin(environment.SITE_URL, { httpsOnly: environment.NODE_ENV === 'production' }),
++    noFillTimeoutMs: config.editor.noFillTimeoutMs,
+   };
+ 
+   return `<!doctype html>
+@@ -223,7 +241,7 @@ export function renderEditorAdFrame(slotName, environment = process.env) {
+   <meta name="referrer" content="origin" />
+   <title>تبلیغات نمودارا</title>
+   <style>
+-    *{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:transparent;color:#6f7a72;font-family:Tahoma,Arial,sans-serif}body{display:grid;place-items:stretch}.placement{width:100%;height:100%;min-height:48px;display:grid;place-items:center}.placement:empty::before{content:'در حال دریافت تبلیغ…';font-size:10px;color:#7d877f}.placement[data-ready='true']::before{content:none}
++    *{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:transparent;color:#6f7a72;font-family:Tahoma,Arial,sans-serif}body{display:grid;place-items:stretch}.placement{width:100%;height:100%;min-height:48px;display:grid;place-items:center}.placement:empty::before{content:'در حال دریافت تبلیغ…';font-size:10px;color:#7d877f}.placement[data-ready='true']::before{content:none}.placement[data-empty='true']::before{content:'تبلیغی برای نمایش موجود نیست'}
+   </style>
+ </head>
+ <body>
+@@ -231,8 +249,28 @@ export function renderEditorAdFrame(slotName, environment = process.env) {
+   <script>
+     (() => {
+       const config = ${inlineJson(payload)};
+-      const report = (type) => parent.postMessage({ source: config.source, slot: config.slot, type }, '*');
++      const targetOrigin = config.parentOrigin || location.origin;
++      const report = (type) => parent.postMessage({ source: config.source, slot: config.slot, type }, targetOrigin);
+       const mount = document.getElementById(config.placementId);
++      let rendered = false;
++      let settled = false;
++      const reportRendered = () => {
++        if (rendered || !mount.childNodes.length) return;
++        rendered = true;
++        settled = true;
++        mount.dataset.ready = 'true';
++        report('rendered');
++        observer.disconnect();
++      };
++      const observer = new MutationObserver(reportRendered);
++      observer.observe(mount, { childList: true, subtree: true });
++      const noFillTimer = setTimeout(() => {
++        if (settled || rendered) return;
++        settled = true;
++        mount.dataset.empty = 'true';
++        report('no-fill');
++        observer.disconnect();
++      }, config.noFillTimeoutMs);
+       if (config.provider === 'yektanet') {
+         window.yektanetAnalyticsObject = window.yektanetAnalyticsObject || 'yektanet';
+         const objectName = window.yektanetAnalyticsObject;
+@@ -255,12 +293,18 @@ export function renderEditorAdFrame(slotName, environment = process.env) {
+         script.async = true;
+         script.referrerPolicy = 'origin';
+         script.addEventListener('load', () => {
+-          mount.dataset.ready = 'true';
++
