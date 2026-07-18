@@ -1,0 +1,267 @@
+diff --git a/.env.example b/.env.example
+index c24073d..2542417 100644
+--- a/.env.example
++++ b/.env.example
+@@ -13,6 +13,8 @@ PORT=4321
+ TRUST_PROXY=true
+ FORCE_HSTS=false
+ NO_OPEN=1
++# Optional stable cache-busting identifier, e.g. a Git commit SHA.
++ASSET_VERSION=
+ 
+ # Privacy-first first-party analytics and protected revenue dashboard.
+ ANALYTICS_ENABLED=true
+@@ -23,6 +25,8 @@ ANALYTICS_RETENTION_DAYS=400
+ ANALYTICS_ESTIMATED_RPM_RIAL=0
+ ANALYTICS_RATE_WINDOW_MS=60000
+ ANALYTICS_RATE_MAX=240
++ANALYTICS_SEARCH_MAX_ROWS=100000
++ANALYTICS_REVENUE_MAX_ENTRIES=20000
+ ANALYTICS_COUNTRY_HEADER=
+ ANALYTICS_ADMIN_USER=admin
+ # Required: generate a unique value, for example with: openssl rand -base64 32
+@@ -36,6 +40,8 @@ RENDER_RATE_MAX=30
+ RENDER_CONCURRENCY=2
+ RENDER_QUEUE_MAX=20
+ JSON_BODY_LIMIT=256kb
++# Keep disabled in production so Mermaid source is never placed in URLs/logs.
++RENDER_GET_ENABLED=false
+ 
+ # Chromium
+ # The official container runs as a non-root user, with a read-only filesystem,
+@@ -47,11 +53,14 @@ PUPPETEER_NO_SANDBOX=true
+ # Iranian publisher advertising. Nothing is loaded until every required value
+ # is configured. Copy the exact script URL and placement IDs from your own panel.
+ ADS_ENABLED=false
++# Set true only after testing real placements and receiving publisher approval.
++ADS_PUBLISHER_VALIDATED=false
+ ADS_PROVIDER=yektanet
+ ADS_SCRIPT_URL=
+ ADS_SCRIPT_ID=
+ ADS_ALLOWED_ORIGINS=
+ ADS_LOAD_DELAY_MS=700
++ADS_NO_FILL_TIMEOUT_MS=8000
+ ADS_SLOT_HOME_TOP=
+ ADS_SLOT_HOME_INLINE=
+ ADS_SLOT_TEMPLATES_TOP=
+@@ -70,6 +79,10 @@ ADS_SLOT_ARTICLE_END=
+ ADS_EDITOR_ENABLED=false
+ ADS_EDITOR_REQUIRE_CROSS_ORIGIN=true
+ ADS_EDITOR_FRAME_ORIGIN=https://ads.nemodara.ir
++# Optional dedicated secret; ANALYTICS_HASH_SECRET is used as a secure fallback.
++ADS_EDITOR_TOKEN_SECRET=
++ADS_EDITOR_TOKEN_TTL_SECONDS=300
++ADS_EDITOR_NO_FILL_TIMEOUT_MS=8000
+ ADS_EDITOR_TRAFFIC_PERCENT=25
+ ADS_EDITOR_LOAD_DELAY_MS=1800
+ ADS_SLOT_EDITOR_RAIL=
+@@ -88,8 +101,10 @@ GSC_SERVICE_ACCOUNT_B64=
+ GSC_ROW_LIMIT=25000
+ GSC_MAX_ROWS=100000
+ GSC_SEARCH_TYPE=web
++GSC_TIMEOUT_MS=15000
+ 
+ # Optional IndexNow submission. The key is served at /<key>.txt when enabled.
+ INDEXNOW_ENABLED=false
+ INDEXNOW_KEY=
+ INDEXNOW_ENDPOINT=https://api.indexnow.org/indexnow
++INDEXNOW_TIMEOUT_MS=10000
+diff --git a/.env.local.example b/.env.local.example
+index 90701c1..25302af 100644
+--- a/.env.local.example
++++ b/.env.local.example
+@@ -25,6 +25,7 @@ RENDER_RATE_MAX=120
+ RENDER_CONCURRENCY=2
+ RENDER_QUEUE_MAX=20
+ JSON_BODY_LIMIT=256kb
++RENDER_GET_ENABLED=true
+ SEO_AUDIT_TIMEOUT_MS=12000
+ 
+ # The local stack intentionally keeps all external integrations disabled.
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index c5e33c7..2c1862f 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -18,31 +18,42 @@ env:
+ jobs:
+   test:
+     runs-on: ubuntu-latest
+-    timeout-minutes: 35
++    timeout-minutes: 45
+     steps:
+       - uses: actions/checkout@v7
+       - uses: actions/setup-node@v6
+         with:
+           node-version: 24
+           cache: npm
+-      - run: npm ci
+-      - run: npm run build
+-      - run: npm test
+-      - run: npm run smoke:production
+-      - name: Reject high-severity production dependency vulnerabilities
+-        run: npm audit --omit=dev --audit-level=high
++      - name: Install from the locked dependency graph
++        run: npm ci
++      - name: Build vendored browser assets
++        run: npm run build
++      - name: Run source, security, release, API and browser tests
++        run: npm test
++      - name: Run the production process smoke test
++        run: npm run smoke:production
++      - name: Reject every known dependency vulnerability
++        run: |
++          npm audit --audit-level=low
++          npm audit --omit=dev --audit-level=low
+       - name: Validate production Docker Compose configuration
+         shell: bash
+         run: |
++          set -euo pipefail
+           cp .env.example .env
+-          sed -i 's|^DOMAIN=.*|DOMAIN=diagram.example.com|' .env
+-          sed -i 's|^SITE_URL=.*|SITE_URL=https://diagram.example.com|' .env
++          sed -i 's|^DOMAIN=.*|DOMAIN=nemodara.ir|' .env
++          sed -i 's|^SITE_URL=.*|SITE_URL=https://nemodara.ir|' .env
++          sed -i 's|^TRUST_PROXY=.*|TRUST_PROXY=true|' .env
+           sed -i 's|^ANALYTICS_ADMIN_PASSWORD=.*|ANALYTICS_ADMIN_PASSWORD=ci-only-long-random-password|' .env
+           sed -i 's|^ANALYTICS_HASH_SECRET=.*|ANALYTICS_HASH_SECRET=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef|' .env
++          sed -i 's|^ADS_EDITOR_FRAME_ORIGIN=.*|ADS_EDITOR_FRAME_ORIGIN=https://ads.nemodara.ir|' .env
++          sed -i 's|^RENDER_GET_ENABLED=.*|RENDER_GET_ENABLED=false|' .env
+           docker compose config --quiet
+       - name: Validate local Docker scripts and Compose configuration
+         shell: bash
+         run: |
++          set -euo pipefail
+           cp .env.local.example .env.local
+           sed -i 's|^ANALYTICS_ADMIN_PASSWORD=.*|ANALYTICS_ADMIN_PASSWORD=ci-only-long-random-password|' .env.local
+           sed -i 's|^ANALYTICS_HASH_SECRET=.*|ANALYTICS_HASH_SECRET=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef|' .env.local
+@@ -55,59 +66,171 @@ jobs:
+   container:
+     needs: test
+     runs-on: ubuntu-latest
+-    timeout-minutes: 50
++    timeout-minutes: 60
+     steps:
+       - uses: actions/checkout@v7
+-      - name: Build production image
+-        run: docker build --pull --tag mermaid-studio:ci .
+-      - name: Smoke-test production container with persistent analytics volume
++      - name: Build the production image
++        run: docker build --pull --tag nemodara:ci .
++      - name: Smoke-test the hardened production contract
+         shell: bash
+         run: |
+           set -euo pipefail
+-          docker volume create mermaid-studio-ci-analytics >/dev/null
+-          docker run -d --name mermaid-studio-ci \
++          container=nemodara-ci
++          volume=nemodara-ci-analytics
++          docker volume create "$volume" >/dev/null
++          docker run -d --name "$container" \
+             -p 127.0.0.1:4321:4321 \
+-            -e SITE_URL=https://diagram.example.com \
++            -e NODE_ENV=production \
++            -e SITE_URL=https://nemodara.ir \
++            -e SITE_NAME=نمودارا \
++            -e TRUST_PROXY=true \
+             -e ANALYTICS_ENABLED=true \
+             -e ANALYTICS_DATA_DIR=/data/analytics \
++            -e ANALYTICS_TIME_ZONE=UTC \
+             -e ANALYTICS_ADMIN_USER=admin \
+             -e ANALYTICS_ADMIN_PASSWORD=ci-only-long-random-password \
+             -e ANALYTICS_HASH_SECRET=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef \
+-            -v mermaid-studio-ci-analytics:/data/analytics \
+-            mermaid-studio:ci
+-          trap 'docker logs mermaid-studio-ci || true; docker rm -f mermaid-studio-ci >/dev/null 2>&1 || true; docker volume rm mermaid-studio-ci-analytics >/dev/null 2>&1 || true' EXIT
+-          for attempt in $(seq 1 90); do
+-            if curl -fsS http://127.0.0.1:4321/api/health >/dev/null; then break; fi
++            -e ADS_ENABLED=true \
++            -e ADS_PUBLISHER_VALIDATED=true \
++            -e ADS_PROVIDER=yektanet \
++            -e ADS_SCRIPT_URL=https://cdn.yektanet.com/rg_woebegone/scripts_v3/test/rg.complete.js \
++            -e ADS_SCRIPT_ID=ua-script-ci \
++            -e ADS_ALLOWED_ORIGINS=https://cdn.yektanet.com,https://*.yektanet.com \
++            -e ADS_SLOT_HOME_INLINE=pos-home-inline-ci \
++            -e ADS_EDITOR_ENABLED=true \
++            -e ADS_EDITOR_REQUIRE_CROSS_ORIGIN=true \
++            -e ADS_EDITOR_FRAME_ORIGIN=https://ads.nemodara.ir \
++            -e ADS_EDITOR_TOKEN_TTL_SECONDS=300 \
++            -e ADS_EDITOR_TRAFFIC_PERCENT=100 \
++            -e ADS_EDITOR_LOAD_DELAY_MS=0 \
++            -e ADS_SLOT_EDITOR_RAIL=pos-editor-rail-ci \
++            -e ADS_SLOT_EDITOR_DOCK=pos-editor-dock-ci \
++            -e RENDER_GET_ENABLED=false \
++            -e GSC_ENABLED=false \
++            -e INDEXNOW_ENABLED=false \
++            -v "$volume":/data/analytics \
++            nemodara:ci
++          cleanup() {
++            docker logs "$container" || true
++            docker rm -f "$container" >/dev/null 2>&1 || true
++            docker volume rm "$volume" >/dev/null 2>&1 || true
++          }
++          trap cleanup EXIT
++
++          for attempt in $(seq 1 120); do
++            if curl -fsS -H 'Host: nemodara.ir' http://127.0.0.1:4321/api/health >/dev/null; then
++              break
++            fi
+             sleep 1
+           done
+-          curl -fsS http://127.0.0.1:4321/api/health
+-          curl -fsS http://127.0.0.1:4321/ >/dev/null
+-          curl -fsS http://127.0.0.1:4321/editor >/dev/null
+-          curl -fsS http://127.0.0.1:4321/templates >/dev/null
+-          curl -fsS http://127.0.0.1:4321/learn >/dev/null
+-          curl -fsS http://127.0.0.1:4321/learn/sequence-diagram-mermaid >/dev/null
+-          curl -fsS http://127.0.0.1:4321/sitemap.xml | grep -q '/learn/flowchart-mermaid'
++
++          curl -fsS -H 'Host: nemodara.ir' http://127.0.0.1:4321/api/health \
++            | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const x=JSON.parse(s);if(x.ok!==true||!x.version||Object.keys(x).sort().join(",")!=="ok,version")process.exit(1)})'
++
++          curl -fsS -D /tmp/landing.headers -H 'Host: nemodara.ir' http://127.0.0.1:4321/ -o /tmp/landing.html
++          grep -qi 's-maxage=300' /tmp/landing.headers
++          grep -q 'نمودارا' /tmp/landing.html
++
++          curl -fsS -D /tmp/editor.headers -c /tmp/editor.cookies -H 'Host: nemodara.ir' http://127.0.0.1:4321/editor -o /tmp/editor.html
++          grep -qi 'no-store' /tmp/editor.headers
++          grep -qi '^vary:.*Cookie' /tmp/editor.headers
++          grep -q 'data-ad-slot="editorRail"' /tmp/editor.html
++          ! grep -q 'cdn.yektanet.com/rg_woebegone' /tmp/editor.html
++          ! grep -i 'script-src[^;]*cdn.yektanet.com' /tmp/editor.headers
++          grep -i 'frame-src[^;]*https://ads.nemodara.ir' /tmp/editor.headers
++          grep -q '__Host-nemodara_editor_ads_bucket=' /tmp/editor.headers
++
++          curl -fsS -H 'Host: nemodara.ir' http://127.0.0.1:4321/api/ads -o /tmp/ads.json
++          token=$(node -e 'const x=require("/tmp/ads.json");const t=x.editor?.frameTokens?.editorRail;if(!t)process.exit(1);process.stdout.write(t)')
++
++          direct_status=$(curl -sS -o /tmp/frame-direct.json -w '%{http_code}' \
++            -H 'Host: ads.nemodara.ir' \
++            -H 'Sec-Fetch-Dest: document' \
++            -H 'Sec-Fetch-Site: none' \
++            "http://127.0.0.1:4321/ads/editor-frame?slot=editorRail&token=$token")
++          test "$direct_status" = '403'
++
++          missing_status=$(curl -sS -o /tmp/frame-missing.json -w '%{http_code}' \
++            -H 'Host: ads.nemodara.ir' \
++            -H 'Sec-Fetch-Dest: iframe' \
++            -H 'Sec-Fetch-Site: same-site' \
++            -H 'Referer: https://nemodara.ir/editor' \
++            'http://127.0.0.1:4321/ads/editor-frame?slot=editorRail')
++          test "$missing_status" = '403'
++
++          curl -fsS -D /tmp/frame.headers \
++            -H 'Host: ads.nemodara.ir' \
++            -H 'Sec-Fetch-Dest: iframe' \
++            -H 'Sec-Fetch-Site: same-site' \
++            -H 'Referer: https://nemodara.ir/editor' \
++            "http://127.0.0.1:4321/ads/editor-frame?slot=editorRail&token=$token" \
++            -o /tmp/frame.html
++          grep -q 'pos-editor-rail-ci' /tmp/frame.html
++          grep -qi 'no-store' /tmp/frame.headers
++          grep -i 'frame-ancestors[^;]*https://nemodara.ir' /tmp/frame.headers
++          grep -qi 'x-robots-tag: noindex' /tmp/frame.headers
++
++          redirected=$(curl -sS -o /dev/null -w '%{http_code} %{redirect_url}' -H 'Host: ads.nemodara.ir' http://127.0.0.1:4321/articles)
++          test "$redirected" = '302 https://nemodara.ir/articles'
++
++
