@@ -4,6 +4,7 @@ import crypto from 'node:crypto';
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const SCOPE = 'https://www.googleapis.com/auth/webmasters.readonly';
 const API_ROOT = 'https://www.googleapis.com/webmasters/v3/sites';
+const TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
 
 export class SearchConsoleError extends Error {
   constructor(status, code, message) {
@@ -65,6 +66,7 @@ export function searchConsoleConfig(environment = process.env) {
     credentialsBase64,
     rowLimit: integerValue(environment.GSC_ROW_LIMIT, 25_000, 100, 25_000),
     maxRows: integerValue(environment.GSC_MAX_ROWS, 100_000, 1_000, 500_000),
+    timeoutMs: integerValue(environment.GSC_TIMEOUT_MS, 15_000, 2_000, 60_000),
     searchType: ['web', 'image', 'video', 'news', 'discover', 'googleNews'].includes(String(environment.GSC_SEARCH_TYPE || 'web'))
       ? String(environment.GSC_SEARCH_TYPE || 'web')
       : 'web',
@@ -81,13 +83,13 @@ async function credentials(config) {
   } catch (error) {
     throw new SearchConsoleError(503, 'GSC_CREDENTIALS_INVALID', `Search Console credentials could not be loaded: ${error.message}`);
   }
-  if (!parsed?.client_email || !parsed?.private_key) {
-    throw new SearchConsoleError(503, 'GSC_CREDENTIALS_INCOMPLETE', 'Service account credentials must include client_email and private_key.');
+  if (parsed?.type !== 'service_account' || !parsed?.client_email || !parsed?.private_key) {
+    throw new SearchConsoleError(503, 'GSC_CREDENTIALS_INCOMPLETE', 'Credentials must be a Google service_account JSON with client_email and private_key.');
   }
   return {
     clientEmail: String(parsed.client_email),
     privateKey: String(parsed.private_key).replace(/\\n/g, '\n'),
-    tokenUri: String(parsed.token_uri || 'https://oauth2.googleapis.com/token'),
+    tokenUri: TOKEN_ENDPOINT,
   };
 }
 
@@ -110,14 +112,24 @@ async function accessToken(config) {
     throw new SearchConsoleError(503, 'GSC_PRIVATE_KEY_INVALID', `The service account private key is invalid: ${error.message}`);
   }
   const assertion = `${unsigned}.${base64url(signature)}`;
-  const response = await fetch(account.tokenUri, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-      assertion,
-    }),
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), config.timeoutMs);
+  let response;
+  try {
+    response = await fetch(account.tokenUri, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+        assertion,
+      }),
+      signal: controller.signal,
+    });
+  } catch (error) {
+    throw new SearchConsoleError(504, 'GSC_TOKEN_TIMEOUT', `Google token request failed: ${error.message}`);
+  } finally {
+    clearTimeout(timeout);
+  }
   const body = await response.json().catch(() => ({}));
   if (!response.ok || !body.access_token) {
     throw new SearchConsoleError(502, 'GSC_TOKEN_FAILED', body.error_description || body.error || `Google token endpoint returned ${response.status}.`);
@@ -155,23 +167,33 @@ export async function fetchSearchConsoleRows({ environment = process.env, from, 
   const allRows = [];
   let startRow = 0;
   while (allRows.length < config.maxRows) {
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify({
-        startDate,
-        endDate,
-        dimensions: ['date', 'query', 'page'],
-        type: config.searchType,
-        dataState: 'final',
-        rowLimit: Math.min(config.rowLimit, config.maxRows - allRows.length),
-        startRow,
-      }),
-    });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), config.timeoutMs);
+    let response;
+    try {
+      response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          startDate,
+          endDate,
+          dimensions: ['date', 'query', 'page'],
+          type: config.searchType,
+          dataState: 'final',
+          rowLimit: Math.min(config.rowLimit, config.maxRows - allRows.length),
+          startRow,
+        }),
+        signal: controller.signal,
+      });
+    } catch (error) {
+      throw new SearchConsoleError(504, 'GSC_QUERY_TIMEOUT', `Search Console request failed: ${error.message}`);
+    } finally {
+      clearTimeout(timeout);
+    }
     const body = await response.json().catch(() => ({}));
     if (!response.ok) {
       const message = body.error?.message || `Search Console API returned ${response.status}.`;

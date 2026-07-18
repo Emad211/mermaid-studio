@@ -35,6 +35,7 @@ test('valid Yektanet-style configuration exposes only public placement data', ()
   assert.equal(config.slots.homeTop, 'pos-article-display-card-100');
   assert.equal(config.slots.learnInline, 'pos-article-display-card-200');
   assert.equal(config.slots.templatesTop, '');
+  assert.equal(config.editor.enabled, false);
   assert.equal(config.privacyUrl, '/privacy#advertising');
 });
 
@@ -68,12 +69,29 @@ test('CSP origins are normalized, deduplicated and restricted to HTTPS', () => {
   assert.deepEqual(sources, ['https://cdn.example.com', 'https://*.example.com']);
 });
 
-
-test('browser loader keeps the Yektanet bootstrap contract and editor is not an ad slot', async () => {
-  const browserSource = await readFile(new URL('../public/js/ads.js', import.meta.url), 'utf8');
+test('browser loaders preserve Yektanet bootstrap while editor ads stay in an isolated frame', async () => {
+  const contentLoader = await readFile(new URL('../public/js/ads.js', import.meta.url), 'utf8');
+  const editorLoader = await readFile(new URL('../public/js/editor-ads.js', import.meta.url), 'utf8');
+  const editorHtml = await readFile(new URL('../public/index.html', import.meta.url), 'utf8');
   const serverSource = await readFile(new URL('../src/server/ads.js', import.meta.url), 'utf8');
-  assert.match(browserSource, /yektanetAnalyticsObject/);
-  assert.match(browserSource, /dataset\.analyticsobject/);
-  assert.match(browserSource, /data-ad-slot/);
-  assert.doesNotMatch(serverSource, /ADS_SLOT_EDITOR/);
+
+  assert.match(contentLoader, /yektanetAnalyticsObject/);
+  assert.match(contentLoader, /dataset\.analyticsobject/);
+  assert.match(contentLoader, /data-ad-slot/);
+
+  assert.match(serverSource, /ADS_SLOT_EDITOR_RAIL/);
+  assert.match(serverSource, /ADS_SLOT_EDITOR_DOCK/);
+  assert.match(serverSource, /ADS_EDITOR_FRAME_ORIGIN/);
+  assert.match(serverSource, /renderEditorAdFrame/);
+
+  assert.match(editorLoader, /data-editor-ad-frame/);
+  assert.match(editorLoader, /allow-popups-to-escape-sandbox/);
+  assert.match(editorLoader, /mstudio:ad/);
+  assert.doesNotMatch(editorLoader, /yektanetAnalyticsObject/);
+
+  assert.match(editorHtml, /data-ad-slot="editorRail"/);
+  assert.match(editorHtml, /data-ad-slot="editorDock"/);
+  assert.match(editorHtml, /\/js\/editor-ads\.js/);
+  assert.doesNotMatch(editorHtml, /\/js\/ads\.js/);
+  assert.doesNotMatch(editorHtml, /cdn\.yektanet/);
 });

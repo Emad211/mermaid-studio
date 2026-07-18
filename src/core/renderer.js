@@ -176,7 +176,8 @@ function assertOutputSize(width, height, scale = 1) {
 
 export async function validateDiagram({ serverUrl, code, theme = 'default', timeoutMs = DEFAULT_TIMEOUT_MS }) {
   const browser = await getBrowser();
-  const page = await browser.newPage();
+  const context = await browser.createBrowserContext();
+  const page = await context.newPage();
   const safeTimeout = clamp(timeoutMs, 1_000, 60_000);
   try {
     await hardenPage(page, serverUrl, safeTimeout);
@@ -188,6 +189,7 @@ export async function validateDiagram({ serverUrl, code, theme = 'default', time
     );
   } finally {
     await page.close().catch(() => {});
+    await context.close().catch(() => {});
   }
 }
 
@@ -214,7 +216,8 @@ export async function renderDiagram(options) {
   const safeTimeout = clamp(timeoutMs, 1_000, 60_000);
   const deviceScale = clamp(scale, 1, 5);
   const browser = await getBrowser();
-  const page = await browser.newPage();
+  const context = await browser.createBrowserContext();
+  const page = await context.newPage();
 
   try {
     await hardenPage(page, serverUrl, safeTimeout);
@@ -330,5 +333,6 @@ export async function renderDiagram(options) {
     throw new Error(`Unsupported format: ${format}`);
   } finally {
     await page.close().catch(() => {});
+    await context.close().catch(() => {});
   }
 }

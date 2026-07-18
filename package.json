@@ -1,7 +1,7 @@
 {
   "name": "mermaid-studio",
-  "version": "1.7.0",
-  "description": "Nemodara: a professional Persian Mermaid editor, tested editorial magazine, CLS-safe advertising and content revenue operations.",
+  "version": "1.9.0",
+  "description": "Nemodara: a launch-ready Persian Mermaid editor with cross-origin isolated editor ads, revenue analytics and deep technical SEO.",
   "type": "module",
   "bin": {
     "mermaid-studio": "bin/cli.js",
@@ -13,16 +13,18 @@
     "serve:public": "node bin/cli.js serve --host 0.0.0.0 --no-open",
     "render": "node bin/cli.js render",
     "build": "node scripts/build-vendor.mjs",
-    "check": "node --check public/js/app.js && node --check public/js/exporter.js && node --check public/js/editor.js && node --check public/js/templates.js && node --check public/js/ads.js && node --check public/js/analytics.js && node --check public/js/analytics-dashboard.js && node --check public/js/svg-safety.js && node --check public/js/share.js && node --check public/js/mermaid-runtime.js && node --check public/js/headless.js && node --check public/js/site-shell.js && node --check src/server/app.js && node --check src/server/ads.js && node --check src/server/analytics.js && node --check src/server/seo.js && node --check src/server/site-shell.js && node --check src/server/learn-content.js && node --check src/server/guards.js && node --check src/core/renderer.js && node --check src/server/admin-store.js && node --check src/server/growth-insights.js && node --check src/server/seo-audit.js && node --check src/server/search-console.js && node --check src/server/indexnow.js && node --check scripts/docker-local-smoke.mjs && node --check public/js/editor-experience.js && node --check public/js/content-admin.js && node --check public/js/revenue-planner.js && node --check src/server/article-content.js && node --check src/server/content-registry.js && node --check src/server/content-operations.js",
+    "check": "node --check public/js/app.js && node --check public/js/exporter.js && node --check public/js/editor.js && node --check public/js/templates.js && node --check public/js/ads.js && node --check public/js/analytics.js && node --check public/js/analytics-dashboard.js && node --check public/js/svg-safety.js && node --check public/js/share.js && node --check public/js/mermaid-runtime.js && node --check public/js/headless.js && node --check public/js/site-shell.js && node --check src/server/app.js && node --check src/server/ads.js && node --check src/server/analytics.js && node --check src/server/seo.js && node --check src/server/site-shell.js && node --check src/server/learn-content.js && node --check src/server/guards.js && node --check src/core/renderer.js && node --check src/server/admin-store.js && node --check src/server/growth-insights.js && node --check src/server/seo-audit.js && node --check src/server/search-console.js && node --check src/server/indexnow.js && node --check scripts/docker-local-smoke.mjs && node --check public/js/editor-experience.js && node --check public/js/content-admin.js && node --check public/js/revenue-planner.js && node --check src/server/article-content.js && node --check src/server/content-registry.js && node --check src/server/content-operations.js && node --check public/js/editor-ads.js && node --check src/server/launch-readiness.js && node --check src/server/editor-ad-rollout.js",
     "test:security": "node --test tests/security.test.mjs",
-    "test:product": "node --test tests/browser.test.mjs tests/admin-browser.test.mjs tests/editorial-pages.test.mjs tests/editor-professional.test.mjs tests/product-growth-v3.test.mjs tests/localization.test.mjs tests/ads.test.mjs tests/analytics.test.mjs tests/seo.test.mjs tests/admin-control-center.test.mjs && node tests/product.mjs",
+    "test:product": "node --test tests/browser.test.mjs tests/admin-browser.test.mjs tests/editorial-pages.test.mjs tests/editor-professional.test.mjs tests/product-growth-v3.test.mjs tests/editor-ads-launch.test.mjs tests/editor-ads-browser.test.mjs tests/localization.test.mjs tests/ads.test.mjs tests/analytics.test.mjs tests/seo.test.mjs tests/admin-control-center.test.mjs && node tests/product.mjs",
     "test:analytics": "node --test tests/analytics.test.mjs tests/seo.test.mjs",
-    "test": "npm run check && npm run test:product && node tests/run.mjs",
+    "test": "npm run check && npm run test:security && npm run test:release && npm run test:product && node tests/run.mjs",
     "postinstall": "node scripts/build-vendor.mjs",
     "test:ads": "node --test tests/ads.test.mjs",
     "smoke:production": "node scripts/smoke-production.mjs",
     "test:admin": "node --test tests/admin-control-center.test.mjs tests/admin-browser.test.mjs",
-    "test:growth-v3": "node --test tests/product-growth-v3.test.mjs tests/editor-professional.test.mjs"
+    "test:growth-v3": "node --test tests/product-growth-v3.test.mjs tests/editor-professional.test.mjs",
+    "test:editor-ads": "node --test tests/editor-ads-launch.test.mjs tests/editor-ads-browser.test.mjs",
+    "test:release": "node --test tests/release-hardening.test.mjs"
   },
   "keywords": [
     "mermaid",
@@ -54,7 +56,11 @@
     "content-brief",
     "ad-revenue",
     "command-palette",
-    "diagram-as-code"
+    "diagram-as-code",
+    "editor-ads",
+    "cross-origin-isolation",
+    "ad-viewability",
+    "launch-readiness"
   ],
   "author": "Emad211",
   "license": "MIT",
@@ -73,12 +79,15 @@
     "codemirror": "^5.65.19",
     "commander": "^12.1.0",
     "express": "^4.21.2",
-    "mermaid": "^11.4.1",
+    "mermaid": "11.16.0",
     "open": "^10.1.0",
     "pako": "^2.1.0",
-    "puppeteer": "^23.11.1"
+    "puppeteer": "24.31.0"
   },
   "devDependencies": {
-    "esbuild": "^0.24.2"
+    "esbuild": "0.28.1"
+  },
+  "overrides": {
+    "dompurify": "3.4.12"
   }
 }

@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="/css/styles.css?v=%V%" />
     <link rel="stylesheet" href="/css/persian.css?v=%V%" />
     <link rel="stylesheet" href="/css/editor-experience.css?v=%V%" />
+    <link rel="stylesheet" href="/css/editor-ads.css?v=%V%" />
   </head>
   <body>
     <header class="toolbar">
@@ -61,6 +62,7 @@
       <button type="button" data-mobile-pane="preview" aria-pressed="false">پیش‌نمایش</button>
     </nav>
 
+    <div class="editor-stage-layout">
     <main class="workspace" id="workspace">
       <section class="pane editor-pane">
         <div class="editor-header">
@@ -109,6 +111,17 @@
         </div>
       </section>
     </main>
+
+      <aside class="editor-ad-shell editor-ad-shell--rail" data-editor-ad-slot data-ad-slot="editorRail" hidden aria-label="تبلیغات ادیتور">
+        <div class="editor-ad-shell__head"><span>تبلیغات</span><a href="/privacy#advertising" target="_blank" rel="noopener">حریم خصوصی</a></div>
+        <div class="editor-ad-shell__frame-wrap"><span class="editor-ad-shell__state">فضای تبلیغ از محیط کد جداست.</span><iframe data-editor-ad-frame title="تبلیغات در کنار ادیتور" loading="lazy"></iframe></div>
+      </aside>
+    </div>
+
+    <aside class="editor-ad-shell editor-ad-shell--dock" data-editor-ad-slot data-ad-slot="editorDock" hidden aria-label="تبلیغات ادیتور">
+      <div class="editor-ad-shell__head"><span>تبلیغات</span><a href="/privacy#advertising" target="_blank" rel="noopener">حریم خصوصی</a></div>
+      <div class="editor-ad-shell__frame-wrap"><span class="editor-ad-shell__state">فضای تبلیغ از محیط کد جداست.</span><iframe data-editor-ad-frame title="تبلیغات زیر ادیتور" loading="lazy"></iframe></div>
+    </aside>
 
     <aside id="drawer" class="drawer">
       <div class="drawer-head">
@@ -248,5 +261,6 @@
     </script>
     <script type="module" src="/js/app.js?v=%V%"></script>
     <script type="module" src="/js/editor-experience.js?v=%V%"></script>
+    <script type="module" src="/js/editor-ads.js?v=%V%"></script>
   </body>
 </html>

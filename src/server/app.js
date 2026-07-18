@@ -22,10 +22,16 @@ import {
   normalizeRenderRequest,
   positiveInteger,
 } from './guards.js';
-import { advertisingConfig, advertisingCspSources, prepareAdvertisingHtml } from './ads.js';
+import { advertisingConfig, advertisingCspSources, editorFrameCspSources, prepareAdvertisingHtml, renderEditorAdFrame } from './ads.js';
 import { AnalyticsError, createAnalyticsService } from './analytics.js';
 import { createAdminStore } from './admin-store.js';
 import { buildGrowthReport, previousRange } from './growth-insights.js';
+import { buildLaunchReadiness } from './launch-readiness.js';
+import {
+  createEditorAdFrameToken,
+  editorAdRollout,
+  verifyEditorAdFrameToken,
+} from './editor-ad-rollout.js';
 import { runSeoAudit } from './seo-audit.js';
 import { searchConsoleConfig, syncSearchConsole } from './search-console.js';
 import { indexNowConfig, submitIndexNow } from './indexnow.js';
@@ -52,7 +58,7 @@ const NODE_MODULES = path.join(ROOT, 'node_modules');
 const require = createRequire(import.meta.url);
 const pkg = require('../../package.json');
 
-const BUILD = `${pkg.version}.${Date.now().toString(36)}`;
+const BUILD = String(process.env.ASSET_VERSION || pkg.version).replace(/[^A-Za-z0-9._-]/g, '') || pkg.version;
 const LANDING_HTML = path.join(PUBLIC_DIR, 'landing.html');
 const EDITOR_HTML = path.join(PUBLIC_DIR, 'index.html');
 const TEMPLATES_HTML = path.join(PUBLIC_DIR, 'templates.html');
@@ -127,7 +133,9 @@ function advertisingAllowed(pathname) {
 
 function contentSecurityPolicy(req, environment, inlineHashes = []) {
   const adSources = advertisingAllowed(req.path) ? advertisingCspSources(environment) : [];
+  const editorFrames = req.path === '/editor' ? editorFrameCspSources(environment) : [];
   const external = adSources.length ? ` ${adSources.join(' ')}` : '';
+  const frameExternal = editorFrames.length ? ` ${editorFrames.join(' ')}` : '';
   return [
     "default-src 'self'",
     "base-uri 'none'",
@@ -139,10 +147,39 @@ function contentSecurityPolicy(req, environment, inlineHashes = []) {
     `img-src 'self' data: blob:${external}`,
     `font-src 'self' data:${external}`,
     `connect-src 'self'${external}`,
-    `frame-src 'self'${external}`,
+    `frame-src 'self'${frameExternal}${external}`,
     "media-src 'none'",
     "worker-src 'self' blob:",
     "manifest-src 'self'",
+  ].join('; ');
+}
+
+function safeHttpsOrigin(value) {
+  try {
+    const url = new URL(String(value || ''));
+    return url.protocol === 'https:' ? url.origin : '';
+  } catch {
+    return '';
+  }
+}
+
+function editorAdFramePolicy(environment, inlineHashes = []) {
+  const sources = advertisingCspSources(environment);
+  const external = sources.length ? ` ${sources.join(' ')}` : '';
+  const parentOrigin = safeHttpsOrigin(environment.SITE_URL) || "'self'";
+  return [
+    "default-src 'none'",
+    "base-uri 'none'",
+    "object-src 'none'",
+    `frame-ancestors ${parentOrigin}`,
+    "form-action 'none'",
+    `script-src 'self'${external}${inlineHashes.length ? ` ${inlineHashes.join(' ')}` : ''}`,
+    `style-src 'unsafe-inline'${external}`,
+    `img-src data: blob:${external}`,
+    `font-src data:${external}`,
+    `connect-src${external || " 'none'"}`,
+    `frame-src${external || " 'none'"}`,
+    `media-src${external || " 'none'"}`,
   ].join('; ');
 }
 
@@ -173,7 +210,7 @@ function injectAnalyticsScript(html, pathname, analytics) {
   return html.replace('</body>', `  <script type="module" src="/js/analytics.js?v=${BUILD}"></script>\n</body>`);
 }
 
-function prepareHtml(req, source, { pathname = req.path, seo = true, track = true } = {}, state) {
+function prepareHtml(req, source, { pathname = req.path, seo = true, track = true, editorAdsEligible = true } = {}, state) {
   let html = applySiteShell(source, pathname).split('%V%').join(BUILD);
   let meta = null;
   if (seo) {
@@ -181,7 +218,7 @@ function prepareHtml(req, source, { pathname = req.path, seo = true, track = tru
     html = enhanced.html;
     meta = enhanced.meta;
   }
-  if (advertisingAllowed(pathname)) html = prepareAdvertisingHtml(html, state.environment);
+  if (advertisingAllowed(pathname) || pathname === '/editor') html = prepareAdvertisingHtml(html, state.environment, { editorEligible: editorAdsEligible });
   if (track) html = injectAnalyticsScript(html, pathname, state.analytics);
   const hashes = inlineScriptHashes(html);
   return { html, meta, hashes };
@@ -194,10 +231,17 @@ function sendHtml(req, res, filePath, options, state) {
 
 function sendHtmlSource(req, res, source, options, state) {
   const prepared = prepareHtml(req, source, options, state);
+  const privateDocument = req.path === '/editor'
+    || req.path === '/headless'
+    || req.path.startsWith('/admin/')
+    || prepared.meta?.robots?.startsWith('noindex');
   res.setHeader('Content-Security-Policy', contentSecurityPolicy(req, state.environment, prepared.hashes));
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.setHeader('Content-Language', 'fa-IR');
-  res.setHeader('Cache-Control', 'no-store, max-age=0');
+  res.setHeader('Cache-Control', privateDocument
+    ? 'no-store, max-age=0'
+    : 'public, max-age=0, s-maxage=300, stale-while-revalidate=86400');
+  if (req.path === '/editor') res.append('Vary', 'Cookie');
   if (prepared.meta?.canonical) res.setHeader('Link', `<${prepared.meta.canonical}>; rel="canonical"`);
   if (prepared.meta?.robots?.startsWith('noindex')) res.setHeader('X-Robots-Tag', prepared.meta.robots);
   res.send(prepared.html);
@@ -261,6 +305,24 @@ function requireSameOrigin(req, _res, next) {
   return next();
 }
 
+function requireRenderGetEnabled(req, _res, next) {
+  const environment = req.app.locals.environment || process.env;
+  const enabled = envBoolean(environment, 'RENDER_GET_ENABLED');
+  if (enabled || environment.NODE_ENV !== 'production') return next();
+  return next(new HttpError(405, 'RENDER_GET_DISABLED', 'Use POST /api/render so Mermaid source is not placed in a URL.'));
+}
+
+function rejectCrossSiteEvent(req, _res, next) {
+  const fetchSite = String(req.get('Sec-Fetch-Site') || '').toLowerCase();
+  const origin = req.get('Origin');
+  if (fetchSite === 'cross-site') return next(new HttpError(403, 'CROSS_SITE_ANALYTICS_EVENT', 'Cross-site analytics events are not allowed.'));
+  if (origin) {
+    const expected = `${req.protocol}://${req.get('host')}`;
+    if (origin !== expected) return next(new HttpError(403, 'ANALYTICS_ORIGIN_MISMATCH', 'Analytics origin mismatch.'));
+  }
+  return next();
+}
+
 function noTrackRequest(req, analytics) {
   if (!analytics.config.respectDnt) return false;
   return req.get('DNT') === '1' || req.get('Sec-GPC') === '1';
@@ -285,9 +347,30 @@ export function createApp({ environment = process.env, logger = console } = {}) 
   app.locals.analytics = state.analytics;
   app.locals.seo = state.seo;
   app.locals.adminStore = state.adminStore;
+  app.locals.environment = environment;
 
   if (envBoolean(environment, 'TRUST_PROXY')) app.set('trust proxy', 1);
   app.use(securityHeaders(environment));
+
+  const editorAdvertising = advertisingConfig(environment);
+  const primarySiteOrigin = safeHttpsOrigin(environment.SITE_URL);
+  let editorFrameHostname = '';
+  try {
+    editorFrameHostname = new URL(editorAdvertising.editor.frameOrigin || '').hostname.toLowerCase();
+  } catch {
+    editorFrameHostname = '';
+  }
+  if (editorFrameHostname) {
+    app.use((req, res, next) => {
+      const requestHostname = String(req.hostname || '').toLowerCase();
+      if (requestHostname !== editorFrameHostname) return next();
+      if (req.path === '/ads/editor-frame' || req.path === '/api/health') return next();
+      if (['GET', 'HEAD'].includes(req.method) && primarySiteOrigin) {
+        return res.redirect(302, `${primarySiteOrigin}${req.originalUrl}`);
+      }
+      return next(new HttpError(404, 'EDITOR_AD_HOST_ROUTE_NOT_FOUND', 'This host only serves the isolated advertising frame.'));
+    });
+  }
 
   app.use((req, res, next) => {
     if (!['GET', 'HEAD'].includes(req.method)) return next();
@@ -308,7 +391,42 @@ export function createApp({ environment = process.env, logger = console } = {}) 
     res.setHeader('Cache-Control', 'no-store');
     res.json(state.analytics.publicConfig());
   });
-  app.post('/api/analytics/event', analyticsEventLimit, express.json({ limit: '8kb', strict: true }), async (req, res, next) => {
+
+  app.get('/ads/editor-frame', (req, res, next) => {
+    try {
+      const config = advertisingConfig(environment);
+      if (environment.NODE_ENV === 'production' && config.editor.frameOrigin) {
+        const expectedHostname = new URL(config.editor.frameOrigin).hostname.toLowerCase();
+        if (String(req.hostname || '').toLowerCase() !== expectedHostname) {
+          throw new HttpError(404, 'EDITOR_AD_FRAME_HOST_MISMATCH', 'The advertising frame is only available on its configured host.');
+        }
+        const destination = String(req.get('Sec-Fetch-Dest') || '').toLowerCase();
+        const fetchSite = String(req.get('Sec-Fetch-Site') || '').toLowerCase();
+        let referrerOrigin = '';
+        try { referrerOrigin = new URL(String(req.get('Referer') || '')).origin; } catch { /* ignored */ }
+        if (destination !== 'iframe' || !['same-site', 'same-origin'].includes(fetchSite) || referrerOrigin !== primarySiteOrigin) {
+          throw new HttpError(403, 'EDITOR_AD_FRAME_FORBIDDEN', 'The advertising frame must be embedded by the primary editor.');
+        }
+      }
+      if (!verifyEditorAdFrameToken(String(req.query.token || ''), String(req.query.slot || ''), environment)) {
+        throw new HttpError(403, 'EDITOR_AD_FRAME_TOKEN_INVALID', 'The advertising frame token is missing, invalid, or expired.');
+      }
+      const html = renderEditorAdFrame(req.query.slot, environment);
+      if (!html) throw new HttpError(404, 'EDITOR_AD_NOT_CONFIGURED', 'Editor advertising frame is not configured.');
+      const hashes = inlineScriptHashes(html);
+      res.removeHeader('X-Frame-Options');
+      res.removeHeader('Cross-Origin-Opener-Policy');
+      res.setHeader('Content-Security-Policy', editorAdFramePolicy(environment, hashes));
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-store, max-age=0');
+      res.setHeader('Referrer-Policy', 'origin');
+      res.setHeader('X-Robots-Tag', 'noindex, nofollow, noarchive');
+      res.send(html);
+    } catch (error) {
+      next(error);
+    }
+  });
+  app.post('/api/analytics/event', analyticsEventLimit, rejectCrossSiteEvent, express.json({ limit: '8kb', strict: true }), async (req, res, next) => {
     try {
       if (!state.analytics.publicConfig().enabled || noTrackRequest(req, state.analytics)) return res.status(204).end();
       await state.analytics.record(req.body, req);
@@ -339,7 +457,7 @@ export function createApp({ environment = process.env, logger = console } = {}) 
       next(error);
     }
   });
-  app.post('/api/admin/analytics/revenue', adminLimit, adminAuth, express.json({ limit: '256kb', strict: true }), async (req, res, next) => {
+  app.post('/api/admin/analytics/revenue', adminLimit, adminAuth, requireSameOrigin, express.json({ limit: '256kb', strict: true }), async (req, res, next) => {
     try {
       const entries = await state.analytics.addRevenue(req.body?.entries ?? req.body);
       res.status(201).json({ ok: true, entries });
@@ -347,7 +465,7 @@ export function createApp({ environment = process.env, logger = console } = {}) 
       next(error);
     }
   });
-  app.delete('/api/admin/analytics/revenue/:id', adminLimit, adminAuth, async (req, res, next) => {
+  app.delete('/api/admin/analytics/revenue/:id', adminLimit, adminAuth, requireSameOrigin, async (req, res, next) => {
     try {
       await state.analytics.deleteRevenue(req.params.id);
       res.status(204).end();
@@ -355,7 +473,7 @@ export function createApp({ environment = process.env, logger = console } = {}) 
       next(error);
     }
   });
-  app.post('/api/admin/analytics/search', adminLimit, adminAuth, express.json({ limit: '2mb', strict: true }), async (req, res, next) => {
+  app.post('/api/admin/analytics/search', adminLimit, adminAuth, requireSameOrigin, express.json({ limit: '2mb', strict: true }), async (req, res, next) => {
     try {
       const imported = await state.analytics.importSearch(req.body?.rows, req.body?.defaultDate);
       res.status(201).json({ ok: true, imported });
@@ -497,6 +615,28 @@ export function createApp({ environment = process.env, logger = console } = {}) 
     }
   });
 
+
+  app.get('/api/admin/launch/readiness', adminLimit, adminAuth, async (_req, res, next) => {
+    try {
+      const persisted = await state.adminStore.integrationStatus();
+      const gsc = searchConsoleConfig(environment);
+      const indexNow = indexNowConfig(environment);
+      const storage = await state.analytics.storageProbe();
+      res.json(buildLaunchReadiness({
+        environment,
+        seo: state.seo,
+        analytics: { ...state.analytics.health(), storageWritable: storage.writable, storageError: storage.error },
+        advertising: advertisingConfig(environment),
+        integrations: {
+          searchConsole: { configured: gsc.enabled, last: persisted.services?.searchConsole || null },
+          indexNow: { configured: indexNow.enabled, last: persisted.services?.indexNow || null },
+        },
+      }));
+    } catch (error) {
+      next(error);
+    }
+  });
+
   app.post('/api/admin/seo/search-console/sync', adminLimit, adminAuth, requireSameOrigin, express.json({ limit: '16kb', strict: true }), async (req, res, next) => {
     try {
       const result = await syncSearchConsole({
@@ -556,7 +696,10 @@ export function createApp({ environment = process.env, logger = console } = {}) 
   app.use('/vendor-build', express.static(path.join(PUBLIC_DIR, 'vendor-build'), { setHeaders: vendorHeaders }));
 
   app.get('/', (req, res) => sendHtml(req, res, LANDING_HTML, { pathname: '/' }, state));
-  app.get('/editor', (req, res) => sendHtml(req, res, EDITOR_HTML, { pathname: '/editor' }, state));
+  app.get('/editor', (req, res) => {
+    const rollout = editorAdRollout(req, res, advertisingConfig(environment), environment);
+    return sendHtml(req, res, EDITOR_HTML, { pathname: '/editor', editorAdsEligible: rollout.eligible }, state);
+  });
   app.get('/templates', (req, res) => sendHtml(req, res, TEMPLATES_HTML, { pathname: '/templates' }, state));
   app.get('/learn', (req, res) => sendHtml(req, res, LEARN_HTML, { pathname: '/learn' }, state));
   app.get('/learn/:slug', (req, res, next) => {
@@ -613,14 +756,25 @@ export function createApp({ environment = process.env, logger = console } = {}) 
 
   app.get('/api/health', (_req, res) => {
     res.setHeader('Cache-Control', 'no-store');
+    res.json({ ok: true, version: pkg.version });
+  });
+  app.get('/api/admin/health', adminLimit, adminAuth, (_req, res) => {
+    res.setHeader('Cache-Control', 'no-store');
     res.json({ ok: true, version: pkg.version, render: renderGate.stats(), analytics: state.analytics.health() });
   });
   app.get('/api/version', (_req, res) => res.json({ name: pkg.name, version: pkg.version }));
   app.get('/api/meta', (_req, res) => res.json(metadata()));
   app.get('/api/examples', (_req, res) => res.json(metadata()));
-  app.get('/api/ads', (_req, res) => {
+  app.get('/api/ads', (req, res) => {
     res.setHeader('Cache-Control', 'no-store');
-    res.json(advertisingConfig(environment));
+    const config = advertisingConfig(environment);
+    const frameTokens = {};
+    if (config.editor.enabled) {
+      for (const slot of ['editorRail', 'editorDock']) {
+        if (config.slots[slot]) frameTokens[slot] = createEditorAdFrameToken(slot, environment);
+      }
+    }
+    res.json({ ...config, editor: { ...config.editor, frameTokens } });
   });
 
   const normalize = (source) => normalizeRenderRequest(source, {
@@ -640,7 +794,7 @@ export function createApp({ environment = process.env, logger = console } = {}) 
       next(error);
     }
   });
-  app.get('/api/render', renderRateLimit, async (req, res, next) => {
+  app.get('/api/render', requireRenderGetEnabled, renderRateLimit, async (req, res, next) => {
     try {
       const options = normalize({ ...req.query, code: decodeQueryCode(req.query) });
       const result = await renderGate.run(() => renderDiagram({ serverUrl: internalServerUrl(req), ...options }));

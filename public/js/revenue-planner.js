@@ -16,15 +16,14 @@ function calculate() {
   const fill = Math.max(0, Math.min(100, Number($('#planner-fill')?.value) || 0));
   const viewability = Math.max(0, Math.min(100, Number($('#planner-viewability')?.value) || 0));
   const projectedViews = pageviews * (1 + growth / 100);
-  const qualityFactor = (fill / 100) * (viewability / 100);
-  const base = projectedViews / 1000 * rpm * qualityFactor;
-  const conservative = base * 0.7;
-  const optimistic = base * 1.28;
+  const base = projectedViews / 1000 * rpm;
+  const conservative = base * 0.75;
+  const optimistic = base * 1.25;
   $('#planner-projected-views').textContent = fa.format(Math.round(projectedViews));
   $('#planner-conservative').textContent = formatRial(conservative);
   $('#planner-base').textContent = formatRial(base);
   $('#planner-optimistic').textContent = formatRial(optimistic);
-  $('#planner-note').textContent = `مدل بر اساس Page RPM، نرخ پرشدن و Viewability است؛ عدد پنل ناشر معیار نهایی باقی می‌ماند.`;
+  $('#planner-note').textContent = `Page RPM مشاهده‌شده از قبل اثر Fill و Viewability را در خود دارد؛ برای جلوگیری از دوباره‌شماری، درآمد پایه مستقیماً از RPM محاسبه می‌شود. Fill ${fa.format(fill)}٪ و Viewability ${fa.format(viewability)}٪ شاخص‌های تشخیصی‌اند.`;
 }
 
 async function initialize() {
@@ -36,7 +35,8 @@ async function initialize() {
       const summary = await response.json();
       $('#planner-pageviews').value = Math.max(0, Math.round(Number(summary.totals?.pageviews) || 0));
       $('#planner-rpm').value = Math.max(0, Math.round(Number(summary.rates?.pageRpmRial) || Number(summary.forecast?.estimatedRpmRial) || 0));
-      $('#planner-fill').value = Math.round(Number(summary.rates?.fillRate) || 70);
+      $('#planner-fill').value = Math.round(Number(summary.rates?.publisherFillRate) || 70);
+      $('#planner-viewability').value = Math.round(Number(summary.rates?.publisherViewabilityRate) || 70);
     }
   } catch {
     // The planner remains usable with manual values.

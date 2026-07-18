@@ -182,25 +182,62 @@ function observeEditor() {
 function observeAdSlots() {
   const slots = [...document.querySelectorAll('[data-ad-slot]')];
   if (!slots.length || !('IntersectionObserver' in window)) return;
-  const seen = new WeakSet();
+  const viewed = new WeakSet();
+  const viewable = new WeakSet();
+  const timers = new WeakMap();
+  const cancel = (slot) => {
+    const timer = timers.get(slot);
+    if (timer) window.clearTimeout(timer);
+    timers.delete(slot);
+  };
   const observer = new IntersectionObserver((entries) => {
     for (const entry of entries) {
-      if (!entry.isIntersecting || entry.intersectionRatio < 0.25 || seen.has(entry.target)) continue;
-      seen.add(entry.target);
-      send('ad_slot_view', { slot: entry.target.dataset.adSlot || 'unknown' });
-      observer.unobserve(entry.target);
+      const slot = entry.target;
+      const name = slot.dataset.adSlot || 'unknown';
+      if (entry.isIntersecting && entry.intersectionRatio >= 0.25 && !viewed.has(slot)) {
+        viewed.add(slot);
+        send('ad_slot_view', { slot: name });
+      }
+      const rendered = slot.dataset.adState === 'rendered' || slot.dataset.adRendered === 'true';
+      const eligible = rendered
+        && entry.isIntersecting
+        && entry.intersectionRatio >= 0.5
+        && document.visibilityState === 'visible';
+      if (!eligible) {
+        cancel(slot);
+        continue;
+      }
+      if (viewable.has(slot) || timers.has(slot)) continue;
+      timers.set(slot, window.setTimeout(() => {
+        timers.delete(slot);
+        const stillRendered = slot.dataset.adState === 'rendered' || slot.dataset.adRendered === 'true';
+        if (!stillRendered || document.visibilityState !== 'visible' || viewable.has(slot)) return;
+        viewable.add(slot);
+        send('ad_viewable', { slot: name });
+      }, 1_000));
     }
-  }, { threshold: [0.25] });
+  }, { threshold: [0, 0.25, 0.5, 1] });
   slots.forEach((slot) => observer.observe(slot));
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') slots.forEach(cancel);
+  });
 }
 
 window.addEventListener('mstudio:ad', (event) => {
   const detail = event.detail || {};
   const eventName = {
+    request: 'ad_request',
     loaded: 'ad_script_loaded',
+    rendered: 'ad_rendered',
+    'no-fill': 'ad_no_fill',
+    viewable: 'ad_viewable',
     error: 'ad_script_error',
     blocked: 'ad_blocked',
   }[detail.type];
+  if (detail.type === 'rendered') {
+    const shell = [...document.querySelectorAll('[data-ad-slot]')].find((item) => item.dataset.adSlot === detail.slot);
+    if (shell) shell.dataset.adRendered = 'true';
+  }
   if (eventName) send(eventName, { slot: detail.slot || 'all' });
 });
 
@@ -212,7 +249,7 @@ window.mstudioAnalytics = Object.freeze({
 
 const EVENT_ALLOWLIST = new Set([
   'editor_open', 'render_success', 'render_error', 'export', 'copy_svg', 'share',
-  'template_open', 'ad_slot_view', 'ad_script_loaded', 'ad_script_error', 'ad_blocked',
+  'template_open', 'ad_request', 'ad_slot_view', 'ad_viewable', 'ad_rendered', 'ad_no_fill', 'ad_script_loaded', 'ad_script_error', 'ad_blocked',
 ]);
 
 async function initialize() {

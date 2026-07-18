@@ -33,9 +33,19 @@ assert.ok(adminPassword.length >= 12, 'ANALYTICS_ADMIN_PASSWORD must be configur
 const healthResponse = await expectStatus('/api/health');
 const health = await healthResponse.json();
 assert.equal(health.ok, true);
-assert.equal(health.analytics?.adminConfigured, true);
-assert.equal(health.analytics?.persistentHashSecret, true);
-log(`health endpoint is ready (version ${health.version || 'unknown'})`);
+assert.equal(typeof health.version, 'string');
+assert.deepEqual(Object.keys(health).sort(), ['ok', 'version']);
+log(`public health endpoint is minimal and ready (version ${health.version || 'unknown'})`);
+
+await expectStatus('/api/admin/health', 401, { redirect: 'manual' });
+const operationalHealthResponse = await expectStatus('/api/admin/health', 200, {
+  headers: { Authorization: authorization },
+});
+const operationalHealth = await operationalHealthResponse.json();
+assert.equal(operationalHealth.ok, true);
+assert.equal(operationalHealth.analytics?.adminConfigured, true);
+assert.equal(operationalHealth.analytics?.persistentHashSecret, true);
+log('protected operational health exposes analytics readiness to administrators');
 
 for (const route of ['/', '/editor', '/templates', '/learn', '/articles', '/privacy', '/terms']) {
   const response = await expectStatus(route);
@@ -66,7 +76,7 @@ log('third-party advertising is disabled in the local stack');
 
 const analyticsEvent = await expectStatus('/api/analytics/event', 204, {
   method: 'POST',
-  headers: { 'Content-Type': 'application/json', 'User-Agent': 'Mermaid Studio Local Smoke Test' },
+  headers: { 'Content-Type': 'application/json', 'User-Agent': 'Nemodara Local Smoke Test' },
   body: JSON.stringify({ event: 'page_view', session: `local-smoke-${Date.now()}`, path: '/', referrer: 'direct' }),
 });
 assert.equal(await analyticsEvent.text(), '');

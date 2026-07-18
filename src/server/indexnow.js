@@ -14,6 +14,12 @@ function booleanValue(value, fallback = false) {
   return ['1', 'true', 'yes', 'on'].includes(String(value).toLowerCase());
 }
 
+function integerValue(value, fallback, min, max) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return fallback;
+  return Math.min(max, Math.max(min, Math.round(number)));
+}
+
 function siteOrigin(value) {
   try {
     const url = new URL(String(value || ''));
@@ -39,6 +45,7 @@ export function indexNowConfig(environment = process.env) {
     key: KEY_RE.test(key) ? key : '',
     siteUrl,
     endpoint,
+    timeoutMs: integerValue(environment.INDEXNOW_TIMEOUT_MS, 10_000, 2_000, 60_000),
   };
 }
 
@@ -61,11 +68,21 @@ export async function submitIndexNow({ environment = process.env, urls }) {
   }
 
   const keyLocation = `${config.siteUrl}/${config.key}.txt`;
-  const response = await fetch(config.endpoint, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json; charset=utf-8', Accept: 'application/json,text/plain' },
-    body: JSON.stringify({ host, key: config.key, keyLocation, urlList: unique }),
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), config.timeoutMs);
+  let response;
+  try {
+    response = await fetch(config.endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json; charset=utf-8', Accept: 'application/json,text/plain' },
+      body: JSON.stringify({ host, key: config.key, keyLocation, urlList: unique }),
+      signal: controller.signal,
+    });
+  } catch (error) {
+    throw new IndexNowError(504, 'INDEXNOW_TIMEOUT', `IndexNow request failed: ${error.message}`);
+  } finally {
+    clearTimeout(timeout);
+  }
   const responseText = await response.text().catch(() => '');
   if (![200, 202].includes(response.status)) {
     throw new IndexNowError(response.status === 429 ? 429 : 502, 'INDEXNOW_SUBMIT_FAILED', `IndexNow returned ${response.status}${responseText ? `: ${responseText.slice(0, 240)}` : ''}.`);
