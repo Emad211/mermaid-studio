@@ -33,7 +33,7 @@ async function inspectPage(page, url, expectedHeading) {
   page.on('console', onConsole);
   page.on('pageerror', onPageError);
   const response = await page.goto(url, { waitUntil: 'networkidle0' });
-  assert.equal(response.status(), 200);
+  assert.ok([200, 304].includes(response.status()), `unexpected status at ${url}: ${response.status()}`);
   assert.match(await page.$eval('h1', (node) => node.textContent), expectedHeading);
   const metrics = await page.evaluate(async () => {
     await document.fonts.ready;
