@@ -1,0 +1,81 @@
+name: Diagnose Nemodara rollout cookie
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nemodara-stage-2-cookie-diagnose
+  cancel-in-progress: true
+
+jobs:
+  cookie:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/editor-ads-launch-readiness
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - name: Reconstruct audited source
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .stage2b/part-*.b64 | base64 --decode | xz --decompress --stdout > /tmp/stage2.patch
+          echo '998d6ecc7404def719b5e5193f09479582ef2168c1073c79ea3c2d27459eab4b  /tmp/stage2.patch' | sha256sum -c -
+          git apply /tmp/stage2.patch
+          npm install --package-lock-only --ignore-scripts
+          npm ci
+          npm run build
+      - name: Capture production editor response
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs/promises';
+          import http from 'node:http';
+          import os from 'node:os';
+          import path from 'node:path';
+          import { startServer } from './src/server/app.js';
+          const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'nemodara-cookie-probe-'));
+          const environment = {
+            NODE_ENV: 'production', SITE_URL: 'https://nemodara.ir', SITE_NAME: 'نمودارا', HOST: '127.0.0.1', TRUST_PROXY: 'true',
+            ANALYTICS_ENABLED: 'true', ANALYTICS_DATA_DIR: directory, ANALYTICS_TIME_ZONE: 'UTC',
+            ANALYTICS_ADMIN_USER: 'admin', ANALYTICS_ADMIN_PASSWORD: 'security-test-password-0123456789',
+            ANALYTICS_HASH_SECRET: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+            ADS_ENABLED: 'true', ADS_PUBLISHER_VALIDATED: 'true', ADS_PROVIDER: 'yektanet',
+            ADS_SCRIPT_URL: 'https://cdn.yektanet.com/rg_woebegone/scripts_v3/test/rg.complete.js', ADS_SCRIPT_ID: 'ua-script-cookie-probe',
+            ADS_ALLOWED_ORIGINS: 'https://cdn.yektanet.com,https://*.yektanet.com', ADS_SLOT_HOME_INLINE: 'pos-home-inline-probe',
+            ADS_EDITOR_ENABLED: 'true', ADS_EDITOR_REQUIRE_CROSS_ORIGIN: 'true', ADS_EDITOR_FRAME_ORIGIN: 'https://ads.nemodara.ir',
+            ADS_EDITOR_TOKEN_TTL_SECONDS: '60', ADS_EDITOR_TRAFFIC_PERCENT: '100', ADS_EDITOR_LOAD_DELAY_MS: '0',
+            ADS_SLOT_EDITOR_RAIL: 'pos-editor-rail-probe', ADS_SLOT_EDITOR_DOCK: 'pos-editor-dock-probe', RENDER_GET_ENABLED: 'false',
+            GSC_ENABLED: 'false', INDEXNOW_ENABLED: 'false',
+          };
+          const server = await startServer({ port: 0, host: '127.0.0.1', environment, logger: { error() {} } });
+          const result = await new Promise((resolve, reject) => {
+            const req = http.request({ hostname: '127.0.0.1', port: server.port, path: '/editor', headers: { Host: 'nemodara.ir' } }, (res) => {
+              res.resume();
+              res.on('end', () => resolve({ status: res.statusCode, cookies: res.headers['set-cookie'] || [] }));
+            });
+            req.on('error', reject); req.end();
+          });
+          await server.close(); await fs.rm(directory, { recursive: true, force: true });
+          await fs.writeFile('/tmp/cookie-probe.json', JSON.stringify(result));
+          NODE
+      - name: Editor response is successful
+        run: node -e "const x=require('/tmp/cookie-probe.json');if(x.status!==200)process.exit(1)"
+      - name: Cookie has secure host prefix
+        run: node -e "const x=require('/tmp/cookie-probe.json');const c=(x.cookies||[]).join(';');if(!/__Host-nemodara_editor_ads_bucket=\d{1,2}/.test(c))process.exit(1)"
+      - name: Cookie is Secure
+        run: node -e "const x=require('/tmp/cookie-probe.json');if(!/Secure/i.test((x.cookies||[]).join(';')))process.exit(1)"
+      - name: Cookie is HttpOnly
+        run: node -e "const x=require('/tmp/cookie-probe.json');if(!/HttpOnly/i.test((x.cookies||[]).join(';')))process.exit(1)"
+      - name: Cookie is SameSite Lax
+        run: node -e "const x=require('/tmp/cookie-probe.json');if(!/SameSite=Lax/i.test((x.cookies||[]).join(';')))process.exit(1)"
+      - name: Cookie has no Domain attribute
+        run: node -e "const x=require('/tmp/cookie-probe.json');if(/Domain=/i.test((x.cookies||[]).join(';')))process.exit(1)"
