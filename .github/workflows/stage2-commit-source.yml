@@ -47,31 +47,24 @@ jobs:
           npm run check
           npm run test:security
           npm run test:release
-      - name: Remove every temporary stage-2 transport and diagnostic file
+      - name: Prepare a source-only commit
         shell: bash
         run: |
           set -euo pipefail
+          # GitHub's Actions token must not create/update/delete workflow files.
+          git checkout HEAD -- .github/workflows/ci.yml
           rm -rf .stage2 .stage2b .stage2fix
-          rm -f .github/workflows/stage2-finalize.yml \
-            .github/workflows/stage2-finalize-v2.yml \
-            .github/workflows/stage2-commit-source.yml \
-            .github/workflows/stage2-diagnose.yml \
-            .github/workflows/stage2-security-diagnose.yml \
-            .github/workflows/stage2-cookie-diagnose.yml \
-            .github/workflows/stage2-editorial-diagnose.yml \
-            .github/workflows/stage2-editorial-log.yml \
-            .env .env.local
+          rm -f .env .env.local
           test ! -e .stage2
           test ! -e .stage2b
           test ! -e .stage2fix
-          test ! -e .github/workflows/stage2-finalize.yml
-          test ! -e .github/workflows/stage2-finalize-v2.yml
-      - name: Commit the clean validated source
+      - name: Commit the validated non-workflow source
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
+          test -z "$(git diff --cached --name-only | grep '^\.github/workflows/' || true)"
           git commit -m 'Harden editor ads, revenue accounting and production boundaries'
           git push origin HEAD:agent/editor-ads-launch-readiness
