@@ -4,7 +4,8 @@ on:
   push:
     branches: [agent/editor-ads-launch-readiness]
     paths:
-      - .stage2fix/**
+      - tests/security.test.mjs
+      - tests/release-hardening.test.mjs
       - .github/workflows/stage2-finalize-v2.yml
   pull_request:
     branches: [main]
@@ -31,7 +32,7 @@ jobs:
           node-version: 24
           cache: npm
 
-      - name: Reconstruct exact source and apply deterministic correction
+      - name: Reconstruct exact audited source
         shell: bash
         run: |
           set -euo pipefail
@@ -44,7 +45,6 @@ jobs:
           echo '998d6ecc7404def719b5e5193f09479582ef2168c1073c79ea3c2d27459eab4b  /tmp/stage2.patch' | sha256sum -c -
           git apply --check /tmp/stage2.patch
           git apply /tmp/stage2.patch
-          node .stage2fix/apply.mjs
 
       - name: Clean install and build
         env:
