@@ -60,6 +60,34 @@ test('admin growth control center works in desktop and mobile browsers', { timeo
   assert.match(await page.$eval('h1', (node) => node.textContent), /مرکز کنترل درآمد/);
   assert.equal(await page.$eval('[data-view-panel="overview"]', (node) => node.classList.contains('is-active')), true);
 
+  const sidebarSignature = () => page.evaluate(() => {
+    const sidebar = document.querySelector('.admin-sidebar').getBoundingClientRect();
+    return {
+      width: sidebar.width,
+      brandNote: document.querySelector('.admin-brand small').textContent.trim(),
+      nav: [...document.querySelectorAll('.admin-nav-item')].map((node) => ({
+        label: node.querySelector('b').textContent.trim(),
+        note: node.querySelector('small').textContent.trim(),
+        height: node.getBoundingClientRect().height,
+      })),
+      links: [...document.querySelectorAll('.sidebar-links a')].map((node) => node.textContent.trim()),
+    };
+  });
+  const analyticsSidebar = await sidebarSignature();
+  await Promise.all([
+    page.waitForNavigation({ waitUntil: 'networkidle0' }),
+    page.click('.admin-nav-item[href="/admin/content"]'),
+  ]);
+  assert.match(await page.$eval('h1', (node) => node.textContent), /اتاق عملیات محتوا/);
+  const contentSidebar = await sidebarSignature();
+  assert.deepEqual(contentSidebar, analyticsSidebar, 'Admin sidebar must remain identical between analytics and content operations.');
+  assert.equal(await page.$eval('.admin-nav-item[aria-current="page"] b', (node) => node.textContent.trim()), 'عملیات محتوا');
+  await Promise.all([
+    page.waitForNavigation({ waitUntil: 'networkidle0' }),
+    page.click('.admin-nav-item[href="/admin/analytics#overview"]'),
+  ]);
+  await page.waitForFunction(() => document.querySelector('#dashboard-status')?.classList.contains('ok'), { timeout: 30_000 });
+
   await page.click('[data-admin-view="audit"]');
   await page.waitForFunction(() => document.querySelector('[data-view-panel="audit"]')?.classList.contains('is-active'));
   await page.click('#run-seo-audit');

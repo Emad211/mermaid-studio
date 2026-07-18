@@ -40,6 +40,7 @@ import { getEditorialArticle, renderArticlesIndex, renderEditorialArticle } from
 import { contentInventory } from './content-registry.js';
 import { buildContentOperations } from './content-operations.js';
 import { applySiteShell } from './site-shell.js';
+import { applyAdminShell } from './admin-shell.js';
 import {
   canonicalRedirect,
   enhanceHtml,
@@ -223,7 +224,7 @@ function injectAnalyticsScript(html, pathname, analytics) {
 }
 
 function prepareHtml(req, source, { pathname = req.path, seo = true, track = true, editorAdsEligible = true } = {}, state) {
-  let html = applySiteShell(source, pathname)
+  let html = applyAdminShell(applySiteShell(source, pathname), pathname)
     .split('%V%').join(BUILD)
     .split('%MERMAID_V%').join(MERMAID_VERSION);
   let meta = null;
