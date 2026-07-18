@@ -208,3 +208,19 @@ test('public content is CDN-cacheable while editor remains private and publisher
   assert.doesNotMatch(editor.headers['content-security-policy'] || '', /script-src[^;]*cdn\.yektanet\.com/);
   assert.match(editor.headers['content-security-policy'] || '', /frame-src[^;]*https:\/\/ads\.nemodara\.ir/);
 });
+
+test('Mermaid entrypoint is versioned and an unversioned request must revalidate', async (t) => {
+  const { server } = await fixture(t);
+  const editor = await request(server, '/editor');
+  const versionedImport = editor.body.match(/\/vendor\/mermaid\/mermaid\.esm\.min\.mjs\?v=([A-Za-z0-9._-]+)/);
+  assert.ok(versionedImport, 'Editor import map must include the installed Mermaid version.');
+
+  const unversioned = await request(server, '/vendor/mermaid/mermaid.esm.min.mjs');
+  assert.equal(unversioned.status, 200);
+  assert.match(unversioned.headers['cache-control'] || '', /must-revalidate/);
+  assert.doesNotMatch(unversioned.headers['cache-control'] || '', /immutable/);
+
+  const versioned = await request(server, `/vendor/mermaid/mermaid.esm.min.mjs?v=${versionedImport[1]}`);
+  assert.equal(versioned.status, 200);
+  assert.match(versioned.headers['cache-control'] || '', /immutable/);
+});

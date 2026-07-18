@@ -23,6 +23,16 @@
   </head>
   <body>
     <div id="container"></div>
-    <script type="module" src="/js/headless.js"></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "/js/mermaid-runtime.js": "/js/mermaid-runtime.js?v=%V%",
+          "/js/svg-safety.js": "/js/svg-safety.js?v=%V%",
+          "/vendor-build/layout-elk.mjs": "/vendor-build/layout-elk.mjs?v=%V%",
+          "/vendor/mermaid/mermaid.esm.min.mjs": "/vendor/mermaid/mermaid.esm.min.mjs?v=%MERMAID_V%"
+        }
+      }
+    </script>
+    <script type="module" src="/js/headless.js?v=%V%"></script>
   </body>
 </html>

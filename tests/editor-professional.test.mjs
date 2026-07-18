@@ -24,8 +24,13 @@ test('Nemodara editor exposes commands, diagnostics and a focused mobile workflo
 
   const page = await browser.newPage();
   const errors = [];
+  const mermaidEntrypoints = [];
   page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
   page.on('pageerror', (error) => errors.push(error.message));
+  page.on('request', (request) => {
+    const url = new URL(request.url());
+    if (url.pathname === '/vendor/mermaid/mermaid.esm.min.mjs') mermaidEntrypoints.push(url);
+  });
   await page.setViewport({ width: 1440, height: 960, deviceScaleFactor: 1 });
   await page.goto(`${server.url}/editor`, { waitUntil: 'networkidle0' });
   await page.waitForFunction(() => Boolean(window.nemodaraEditor));
@@ -34,6 +39,8 @@ test('Nemodara editor exposes commands, diagnostics and a focused mobile workflo
     window.addEventListener('nemodara:diagnostic', () => { window.__diagnosticCount += 1; });
   });
   assert.match(await page.title(), /نمودارا/);
+  assert.ok(mermaidEntrypoints.length > 0, 'Mermaid entrypoint must be requested');
+  assert.ok(mermaidEntrypoints.every((url) => url.searchParams.has('v')), `Mermaid entrypoint must be versioned: ${mermaidEntrypoints.join(', ')}`);
   assert.equal(await page.$eval('#save-state', (node) => node.textContent.includes('ذخیره')), true);
   await page.setViewport({ width: 1280, height: 900, deviceScaleFactor: 1 });
   const toolbarLayout = await page.evaluate(() => {

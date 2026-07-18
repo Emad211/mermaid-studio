@@ -57,8 +57,10 @@ const PUBLIC_DIR = path.join(ROOT, 'public');
 const NODE_MODULES = path.join(ROOT, 'node_modules');
 const require = createRequire(import.meta.url);
 const pkg = require('../../package.json');
+const mermaidPkg = JSON.parse(fs.readFileSync(path.join(NODE_MODULES, 'mermaid', 'package.json'), 'utf8'));
 
 const BUILD = String(process.env.ASSET_VERSION || pkg.version).replace(/[^A-Za-z0-9._-]/g, '') || pkg.version;
+const MERMAID_VERSION = String(mermaidPkg.version || '').replace(/[^A-Za-z0-9._-]/g, '') || 'current';
 const LANDING_HTML = path.join(PUBLIC_DIR, 'landing.html');
 const EDITOR_HTML = path.join(PUBLIC_DIR, 'index.html');
 const TEMPLATES_HTML = path.join(PUBLIC_DIR, 'templates.html');
@@ -101,6 +103,16 @@ function javascriptType(res, filePath) {
 function vendorHeaders(res, filePath) {
   javascriptType(res, filePath);
   res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+}
+
+function mermaidVendorHeaders(res, filePath) {
+  javascriptType(res, filePath);
+  const requestVersion = String(res.req?.query?.v || '');
+  const isChunk = filePath.includes(`${path.sep}chunks${path.sep}`);
+  res.setHeader('Cache-Control', isChunk || requestVersion === MERMAID_VERSION
+    ? 'public, max-age=31536000, immutable'
+    : 'public, max-age=0, must-revalidate');
   res.setHeader('X-Content-Type-Options', 'nosniff');
 }
 
@@ -211,7 +223,9 @@ function injectAnalyticsScript(html, pathname, analytics) {
 }
 
 function prepareHtml(req, source, { pathname = req.path, seo = true, track = true, editorAdsEligible = true } = {}, state) {
-  let html = applySiteShell(source, pathname).split('%V%').join(BUILD);
+  let html = applySiteShell(source, pathname)
+    .split('%V%').join(BUILD)
+    .split('%MERMAID_V%').join(MERMAID_VERSION);
   let meta = null;
   if (seo) {
     const enhanced = enhanceHtml(html, pathname, state.seo);
@@ -686,7 +700,7 @@ export function createApp({ environment = process.env, logger = console } = {}) 
     maxQueue: positiveInteger(environment.RENDER_QUEUE_MAX, 20, 0, 1_000),
   });
 
-  app.use('/vendor/mermaid', express.static(path.join(NODE_MODULES, 'mermaid', 'dist'), { setHeaders: vendorHeaders }));
+  app.use('/vendor/mermaid', express.static(path.join(NODE_MODULES, 'mermaid', 'dist'), { setHeaders: mermaidVendorHeaders }));
   app.use('/vendor/codemirror', express.static(path.join(NODE_MODULES, 'codemirror'), { setHeaders: vendorHeaders }));
   app.use('/vendor/katex', express.static(path.join(NODE_MODULES, 'katex', 'dist'), { setHeaders: vendorHeaders }));
   app.use('/vendor/pako', express.static(path.join(NODE_MODULES, 'pako', 'dist'), { setHeaders: vendorHeaders }));
