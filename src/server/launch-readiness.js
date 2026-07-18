@@ -83,9 +83,9 @@ export function buildLaunchReadiness({ environment = process.env, seo, analytics
     check(
       'analytics-storage',
       'ذخیره‌سازی آنالیتیکس سالم است',
-      analytics?.lastError ? 'blocker' : 'pass',
+      analytics?.storageWritable === false || analytics?.lastError ? 'blocker' : 'pass',
       10,
-      analytics?.lastError || 'خطای نوشتن یا خواندن گزارش نشده است.',
+      analytics?.storageError || analytics?.lastError || 'نوشتن و حذف فایل آزمایشی روی دیسک موفق بود.',
       'دسترسی نوشتن روی /data/analytics و سلامت دیسک دائمی را بررسی کنید.',
     ),
     check(
@@ -111,6 +111,30 @@ export function buildLaunchReadiness({ environment = process.env, seo, analytics
       14,
       editorOrigin ? `Frame origin: ${editorOrigin}` : 'Origin جداگانه برای iframe تبلیغ تعریف نشده است.',
       'ads.nemodara.ir را به همان App متصل و ADS_EDITOR_FRAME_ORIGIN=https://ads.nemodara.ir تنظیم کنید.',
+    ),
+    check(
+      'editor-ad-token',
+      'Token امضاشدهٔ iframe تبلیغ',
+      advertising?.editor?.tokenReady ? 'pass' : advertising?.editor?.requested ? 'blocker' : 'warning',
+      10,
+      advertising?.editor?.tokenReady ? 'Token کوتاه‌عمر به Slot، Origin و زمان انقضا متصل است.' : 'Secret امضای Frame یا Originهای لازم کامل نیستند.',
+      'ADS_EDITOR_TOKEN_SECRET یا ANALYTICS_HASH_SECRET پایدار و Originهای سایت/Frame را تنظیم کنید.',
+    ),
+    check(
+      'publisher-validation',
+      'تأیید معماری توسط ناشر',
+      advertising?.editor?.publisherValidated ? 'pass' : advertising?.editor?.enabled ? 'blocker' : 'warning',
+      8,
+      advertising?.editor?.publisherValidated ? 'Placementهای واقعی و استفاده از iframe با ناشر تأیید شده‌اند.' : 'تأیید یکتانت یا تپسل برای اجرای Placement در iframe ثبت نشده است.',
+      'پس از تست شناسه‌های واقعی و پاسخ ناشر، ADS_PUBLISHER_VALIDATED=true تنظیم کنید.',
+    ),
+    check(
+      'render-get-privacy',
+      'حریم خصوصی API رندر',
+      environment.NODE_ENV !== 'production' || !booleanValue(environment.RENDER_GET_ENABLED) ? 'pass' : 'blocker',
+      7,
+      environment.NODE_ENV !== 'production' || !booleanValue(environment.RENDER_GET_ENABLED) ? 'کد Mermaid در Production داخل Query String قرار نمی‌گیرد.' : 'GET Renderer در Production فعال است و می‌تواند کد را وارد URL و Log کند.',
+      'RENDER_GET_ENABLED=false نگه دارید و برای رندر از POST استفاده کنید.',
     ),
     check(
       'editor-ad-rollout',
@@ -154,7 +178,7 @@ export function buildLaunchReadiness({ environment = process.env, seo, analytics
     score,
     grade: score >= 92 ? 'A' : score >= 82 ? 'B' : score >= 70 ? 'C' : score >= 55 ? 'D' : 'F',
     ready: blockers.length === 0,
-    monetizationReady: Boolean(advertising?.enabled && advertising?.editor?.enabled && contentSlots.length),
+    monetizationReady: Boolean(advertising?.enabled && advertising?.editor?.enabled && advertising?.editor?.publisherValidated && contentSlots.length),
     checks,
     counts: { blockers: blockers.length, warnings: warnings.length, passed: checks.filter((item) => item.status === 'pass').length },
     summary: blockers.length

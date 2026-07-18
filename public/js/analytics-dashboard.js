@@ -345,25 +345,26 @@ function renderVitals(vitals) {
 function renderRevenue(entries) {
   const body = $('#revenue-table');
   if (!entries?.length) {
-    body.innerHTML = emptyRows(7, 'عدد واقعی پنل ناشر هنوز ثبت نشده است.');
+    body.innerHTML = emptyRows(9, 'عدد واقعی پنل ناشر هنوز ثبت نشده است.');
     return;
   }
-  body.innerHTML = entries.map((entry) => `<tr><td>${escapeHtml(entry.date)}</td><td>${escapeHtml(entry.provider)}</td><td>${escapeHtml(entry.slot)}</td><td class="number">${formatNumber(entry.impressions)}</td><td class="number">${formatNumber(entry.clicks)}</td><td class="number">${formatRial(entry.revenueRial)}</td><td><button class="a-button danger delete-revenue" type="button" data-id="${escapeHtml(entry.id)}">حذف</button></td></tr>`).join('');
+  body.innerHTML = entries.map((entry) => `<tr><td>${escapeHtml(entry.date)}</td><td>${escapeHtml(entry.provider)}</td><td>${escapeHtml(entry.slot)}</td><td class="number">${formatNumber(entry.requests)}</td><td class="number">${formatNumber(entry.impressions)}</td><td class="number">${formatNumber(entry.viewableImpressions)}</td><td class="number">${formatNumber(entry.clicks)}</td><td class="number">${formatRial(entry.revenueRial)}</td><td><button class="a-button danger delete-revenue" type="button" data-id="${escapeHtml(entry.id)}">حذف</button></td></tr>`).join('');
 }
 
 function renderRevenueBreakdown(summary) {
   const providers = summary.revenue?.byProvider || [];
-  $('#provider-table').innerHTML = providers.length ? providers.map((row) => `<tr><td>${escapeHtml(row.name)}</td><td class="number">${formatRial(row.revenueRial)}</td><td class="number">${formatNumber(row.impressions)}</td><td class="number">${formatNumber(row.clicks)}</td><td class="number">${formatRial(row.impressions ? row.revenueRial / row.impressions * 1000 : 0)}</td></tr>`).join('') : emptyRows(5);
+  $('#provider-table').innerHTML = providers.length ? providers.map((row) => `<tr><td>${escapeHtml(row.name)}</td><td class="number">${formatRial(row.revenueRial)}</td><td class="number">${formatNumber(row.requests)}</td><td class="number">${formatNumber(row.impressions)}</td><td class="number">${formatPercent(row.requests ? row.impressions / row.requests * 100 : 0)}</td><td class="number">${formatPercent(row.impressions ? row.viewableImpressions / row.impressions * 100 : 0)}</td><td class="number">${formatRial(row.impressions ? row.revenueRial / row.impressions * 1000 : 0)}</td></tr>`).join('') : emptyRows(7);
   const slots = summary.revenue?.bySlot || [];
-  $('#slot-revenue-table').innerHTML = slots.length ? slots.map((row) => `<tr><td>${escapeHtml(row.name)}</td><td class="number">${formatRial(row.revenueRial)}</td><td class="number">${formatNumber(row.impressions)}</td><td class="number">${formatPercent(row.impressions ? row.clicks / row.impressions * 100 : 0)}</td><td class="number">${formatRial(row.impressions ? row.revenueRial / row.impressions * 1000 : 0)}</td></tr>`).join('') : emptyRows(5);
+  $('#slot-revenue-table').innerHTML = slots.length ? slots.map((row) => `<tr><td>${escapeHtml(row.name)}</td><td class="number">${formatRial(row.revenueRial)}</td><td class="number">${formatNumber(row.requests)}</td><td class="number">${formatNumber(row.impressions)}</td><td class="number">${formatPercent(row.requests ? row.impressions / row.requests * 100 : 0)}</td><td class="number">${formatPercent(row.impressions ? row.viewableImpressions / row.impressions * 100 : 0)}</td><td class="number">${formatRial(row.impressions ? row.revenueRial / row.impressions * 1000 : 0)}</td></tr>`).join('') : emptyRows(7);
 }
 
 function renderAdSlots(rows) {
   const body = $('#ad-slots-table');
   body.innerHTML = rows?.length ? rows.map((row) => {
+    const renderRate = Number(row.views) ? Number(row.rendered || 0) / Number(row.views) * 100 : 0;
     const viewability = Number(row.views) ? Number(row.viewable || 0) / Number(row.views) * 100 : 0;
-    return `<tr><td>${escapeHtml(row.name)}</td><td class="number">${formatNumber(row.views)}</td><td class="number">${formatNumber(row.viewable)}</td><td class="number">${formatPercent(viewability)}</td><td class="number">${formatNumber(row.loaded)}</td><td class="number">${formatNumber(row.errors)}</td><td class="number">${formatNumber(row.blocked)}</td></tr>`;
-  }).join('') : emptyRows(7, 'تبلیغات هنوز فعال نشده یا جایگاهی دیده نشده است.');
+    return `<tr><td>${escapeHtml(row.name)}</td><td class="number">${formatNumber(row.requests)}</td><td class="number">${formatNumber(row.views)}</td><td class="number">${formatNumber(row.rendered)}</td><td class="number">${formatPercent(renderRate)}</td><td class="number">${formatNumber(row.viewable)}</td><td class="number">${formatPercent(viewability)}</td><td class="number">${formatNumber(row.noFill)}</td><td class="number">${formatNumber(Number(row.errors || 0) + Number(row.blocked || 0))}</td></tr>`;
+  }).join('') : emptyRows(9, 'تبلیغات هنوز فعال نشده یا جایگاهی دیده نشده است.');
 }
 
 function renderLaunchReadiness(report) {
@@ -515,12 +516,12 @@ function renderRevenueView(summary) {
   $('#metric-ecpm').textContent = formatRial(rates.ecpmRial, true);
   $('#metric-cpc').textContent = formatRial(rates.cpcRial, true);
   $('#metric-ad-ctr').textContent = formatPercent(rates.ctr);
-  $('#metric-fill-rate').textContent = formatPercent(rates.fillRate);
+  $('#metric-fill-rate').textContent = formatPercent(rates.publisherFillRate);
+  $('#metric-publisher-viewability').textContent = formatPercent(rates.publisherViewabilityRate);
   $('#metric-session-rpm').textContent = formatRial(rates.sessionRpmRial, true);
   const editorSlots = (summary.adSlots || []).filter((row) => String(row.name).startsWith('editor'));
   const editorViews = editorSlots.reduce((sum, row) => sum + Number(row.views || 0), 0);
   const editorViewable = editorSlots.reduce((sum, row) => sum + Number(row.viewable || 0), 0);
-  $('#metric-editor-viewable').textContent = formatNumber(editorViewable);
   $('#metric-editor-viewability').textContent = formatPercent(editorViews ? editorViewable / editorViews * 100 : 0);
   renderRevenueBreakdown(summary);
   renderAdSlots(summary.adSlots);
@@ -615,7 +616,7 @@ async function loadDashboard() {
       api('/api/admin/seo/audits?limit=40'),
       api('/api/admin/integrations/status'),
       api('/api/admin/goals'),
-      api('/api/health'),
+      api('/api/admin/health'),
       api('/api/admin/launch/readiness'),
     ]);
     growthReport = growth;
@@ -684,7 +685,7 @@ function searchRowsFromCsv(text, defaultDate) {
 $('#revenue-form').addEventListener('submit', async (event) => {
   event.preventDefault();
   const form = new FormData(event.currentTarget);
-  const entry = { date: form.get('date'), provider: form.get('provider'), slot: form.get('slot'), impressions: Number(form.get('impressions')) || 0, clicks: Number(form.get('clicks')) || 0, revenueRial: Number(form.get('revenueRial')) || 0, note: form.get('note'), source: 'dashboard' };
+  const entry = { date: form.get('date'), provider: form.get('provider'), slot: form.get('slot'), requests: Number(form.get('requests')) || 0, impressions: Number(form.get('impressions')) || 0, viewableImpressions: Number(form.get('viewableImpressions')) || 0, clicks: Number(form.get('clicks')) || 0, revenueRial: Number(form.get('revenueRial')) || 0, note: form.get('note'), source: 'dashboard' };
   setMessage('#revenue-message', 'در حال ثبت…');
   try {
     await api('/api/admin/analytics/revenue', { method: 'POST', body: JSON.stringify({ entries: [entry] }) });

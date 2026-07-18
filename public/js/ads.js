@@ -1,4 +1,4 @@
-const SLOT_SELECTOR = '[data-ad-slot]';
+const SLOT_SELECTOR = '[data-ad-slot]:not([data-editor-ad-slot])';
 const ENDPOINT = '/api/ads';
 
 function notify(type, slot = 'all') {
@@ -23,7 +23,30 @@ function applySlotMeta(shell, meta = {}) {
   if (Number(meta.mobile)) shell.style.setProperty('--ad-min-mobile', `${meta.mobile}px`);
 }
 
-function mountPlacement(shell, placementId, provider) {
+function watchPlacement(shell, placement, timeoutMs) {
+  const slot = shell.dataset.adSlot || 'unknown';
+  let settled = false;
+  const reportRendered = () => {
+    if (settled || !placement.childNodes.length) return;
+    settled = true;
+    shell.dataset.adState = 'rendered';
+    notify('rendered', slot);
+    observer.disconnect();
+    window.clearTimeout(timer);
+  };
+  const observer = new MutationObserver(reportRendered);
+  observer.observe(placement, { childList: true, subtree: true });
+  const timer = window.setTimeout(() => {
+    if (settled) return;
+    settled = true;
+    shell.dataset.adState = 'no-fill';
+    notify('no-fill', slot);
+    observer.disconnect();
+  }, Math.max(1_000, Number(timeoutMs) || 8_000));
+  return reportRendered;
+}
+
+function mountPlacement(shell, placementId, provider, timeoutMs) {
   const mount = shell.querySelector('[data-ad-mount]') || shell;
   const placement = document.createElement('div');
   placement.id = placementId;
@@ -31,9 +54,9 @@ function mountPlacement(shell, placementId, provider) {
   placement.dataset.provider = provider;
   mount.replaceChildren(placement);
   shell.hidden = false;
-  shell.dataset.adState = 'mounted';
-  notify('mounted', shell.dataset.adSlot || 'unknown');
-  return shell;
+  shell.dataset.adState = 'requested';
+  notify('request', shell.dataset.adSlot || 'unknown');
+  return { shell, reportRendered: watchPlacement(shell, placement, timeoutMs) };
 }
 
 function publisherScriptUrl(config) {
@@ -104,21 +127,22 @@ async function initializeAds() {
       continue;
     }
     applySlotMeta(shell, config.slotMeta?.[name]);
-    active.push(mountPlacement(shell, placementId, config.provider));
+    active.push(mountPlacement(shell, placementId, config.provider, config.noFillTimeoutMs));
   }
   if (!active.length) return;
   document.documentElement.dataset.adsProvider = config.provider;
   await afterPageSettles(Number(config.loadDelayMs) || 0);
   try {
     await loadScript(config);
-    active.forEach((slot) => {
-      slot.dataset.adState = 'loaded';
-      notify('loaded', slot.dataset.adSlot || 'unknown');
+    active.forEach(({ shell, reportRendered }) => {
+      shell.dataset.adScriptLoaded = 'true';
+      notify('loaded', shell.dataset.adSlot || 'unknown');
+      reportRendered();
     });
   } catch {
-    active.forEach((slot) => {
-      slot.dataset.adState = navigator.onLine ? 'blocked' : 'error';
-      notify(navigator.onLine ? 'blocked' : 'error', slot.dataset.adSlot || 'unknown');
+    active.forEach(({ shell }) => {
+      shell.dataset.adState = navigator.onLine ? 'blocked' : 'error';
+      notify(navigator.onLine ? 'blocked' : 'error', shell.dataset.adSlot || 'unknown');
     });
   }
 }

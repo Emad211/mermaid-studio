@@ -27,7 +27,11 @@ import { AnalyticsError, createAnalyticsService } from './analytics.js';
 import { createAdminStore } from './admin-store.js';
 import { buildGrowthReport, previousRange } from './growth-insights.js';
 import { buildLaunchReadiness } from './launch-readiness.js';
-import { editorAdRollout } from './editor-ad-rollout.js';
+import {
+  createEditorAdFrameToken,
+  editorAdRollout,
+  verifyEditorAdFrameToken,
+} from './editor-ad-rollout.js';
 import { runSeoAudit } from './seo-audit.js';
 import { searchConsoleConfig, syncSearchConsole } from './search-console.js';
 import { indexNowConfig, submitIndexNow } from './indexnow.js';
@@ -54,7 +58,7 @@ const NODE_MODULES = path.join(ROOT, 'node_modules');
 const require = createRequire(import.meta.url);
 const pkg = require('../../package.json');
 
-const BUILD = `${pkg.version}.${Date.now().toString(36)}`;
+const BUILD = String(process.env.ASSET_VERSION || pkg.version).replace(/[^A-Za-z0-9._-]/g, '') || pkg.version;
 const LANDING_HTML = path.join(PUBLIC_DIR, 'landing.html');
 const EDITOR_HTML = path.join(PUBLIC_DIR, 'index.html');
 const TEMPLATES_HTML = path.join(PUBLIC_DIR, 'templates.html');
@@ -227,10 +231,17 @@ function sendHtml(req, res, filePath, options, state) {
 
 function sendHtmlSource(req, res, source, options, state) {
   const prepared = prepareHtml(req, source, options, state);
+  const privateDocument = req.path === '/editor'
+    || req.path === '/headless'
+    || req.path.startsWith('/admin/')
+    || prepared.meta?.robots?.startsWith('noindex');
   res.setHeader('Content-Security-Policy', contentSecurityPolicy(req, state.environment, prepared.hashes));
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.setHeader('Content-Language', 'fa-IR');
-  res.setHeader('Cache-Control', 'no-store, max-age=0');
+  res.setHeader('Cache-Control', privateDocument
+    ? 'no-store, max-age=0'
+    : 'public, max-age=0, s-maxage=300, stale-while-revalidate=86400');
+  if (req.path === '/editor') res.append('Vary', 'Cookie');
   if (prepared.meta?.canonical) res.setHeader('Link', `<${prepared.meta.canonical}>; rel="canonical"`);
   if (prepared.meta?.robots?.startsWith('noindex')) res.setHeader('X-Robots-Tag', prepared.meta.robots);
   res.send(prepared.html);
@@ -294,6 +305,24 @@ function requireSameOrigin(req, _res, next) {
   return next();
 }
 
+function requireRenderGetEnabled(req, _res, next) {
+  const environment = req.app.locals.environment || process.env;
+  const enabled = envBoolean(environment, 'RENDER_GET_ENABLED');
+  if (enabled || environment.NODE_ENV !== 'production') return next();
+  return next(new HttpError(405, 'RENDER_GET_DISABLED', 'Use POST /api/render so Mermaid source is not placed in a URL.'));
+}
+
+function rejectCrossSiteEvent(req, _res, next) {
+  const fetchSite = String(req.get('Sec-Fetch-Site') || '').toLowerCase();
+  const origin = req.get('Origin');
+  if (fetchSite === 'cross-site') return next(new HttpError(403, 'CROSS_SITE_ANALYTICS_EVENT', 'Cross-site analytics events are not allowed.'));
+  if (origin) {
+    const expected = `${req.protocol}://${req.get('host')}`;
+    if (origin !== expected) return next(new HttpError(403, 'ANALYTICS_ORIGIN_MISMATCH', 'Analytics origin mismatch.'));
+  }
+  return next();
+}
+
 function noTrackRequest(req, analytics) {
   if (!analytics.config.respectDnt) return false;
   return req.get('DNT') === '1' || req.get('Sec-GPC') === '1';
@@ -318,6 +347,7 @@ export function createApp({ environment = process.env, logger = console } = {}) 
   app.locals.analytics = state.analytics;
   app.locals.seo = state.seo;
   app.locals.adminStore = state.adminStore;
+  app.locals.environment = environment;
 
   if (envBoolean(environment, 'TRUST_PROXY')) app.set('trust proxy', 1);
   app.use(securityHeaders(environment));
@@ -370,6 +400,16 @@ export function createApp({ environment = process.env, logger = console } = {}) 
         if (String(req.hostname || '').toLowerCase() !== expectedHostname) {
           throw new HttpError(404, 'EDITOR_AD_FRAME_HOST_MISMATCH', 'The advertising frame is only available on its configured host.');
         }
+        const destination = String(req.get('Sec-Fetch-Dest') || '').toLowerCase();
+        const fetchSite = String(req.get('Sec-Fetch-Site') || '').toLowerCase();
+        let referrerOrigin = '';
+        try { referrerOrigin = new URL(String(req.get('Referer') || '')).origin; } catch { /* ignored */ }
+        if (destination !== 'iframe' || !['same-site', 'same-origin'].includes(fetchSite) || referrerOrigin !== primarySiteOrigin) {
+          throw new HttpError(403, 'EDITOR_AD_FRAME_FORBIDDEN', 'The advertising frame must be embedded by the primary editor.');
+        }
+      }
+      if (!verifyEditorAdFrameToken(String(req.query.token || ''), String(req.query.slot || ''), environment)) {
+        throw new HttpError(403, 'EDITOR_AD_FRAME_TOKEN_INVALID', 'The advertising frame token is missing, invalid, or expired.');
       }
       const html = renderEditorAdFrame(req.query.slot, environment);
       if (!html) throw new HttpError(404, 'EDITOR_AD_NOT_CONFIGURED', 'Editor advertising frame is not configured.');
@@ -386,7 +426,7 @@ export function createApp({ environment = process.env, logger = console } = {}) 
       next(error);
     }
   });
-  app.post('/api/analytics/event', analyticsEventLimit, express.json({ limit: '8kb', strict: true }), async (req, res, next) => {
+  app.post('/api/analytics/event', analyticsEventLimit, rejectCrossSiteEvent, express.json({ limit: '8kb', strict: true }), async (req, res, next) => {
     try {
       if (!state.analytics.publicConfig().enabled || noTrackRequest(req, state.analytics)) return res.status(204).end();
       await state.analytics.record(req.body, req);
@@ -417,7 +457,7 @@ export function createApp({ environment = process.env, logger = console } = {}) 
       next(error);
     }
   });
-  app.post('/api/admin/analytics/revenue', adminLimit, adminAuth, express.json({ limit: '256kb', strict: true }), async (req, res, next) => {
+  app.post('/api/admin/analytics/revenue', adminLimit, adminAuth, requireSameOrigin, express.json({ limit: '256kb', strict: true }), async (req, res, next) => {
     try {
       const entries = await state.analytics.addRevenue(req.body?.entries ?? req.body);
       res.status(201).json({ ok: true, entries });
@@ -425,7 +465,7 @@ export function createApp({ environment = process.env, logger = console } = {}) 
       next(error);
     }
   });
-  app.delete('/api/admin/analytics/revenue/:id', adminLimit, adminAuth, async (req, res, next) => {
+  app.delete('/api/admin/analytics/revenue/:id', adminLimit, adminAuth, requireSameOrigin, async (req, res, next) => {
     try {
       await state.analytics.deleteRevenue(req.params.id);
       res.status(204).end();
@@ -433,7 +473,7 @@ export function createApp({ environment = process.env, logger = console } = {}) 
       next(error);
     }
   });
-  app.post('/api/admin/analytics/search', adminLimit, adminAuth, express.json({ limit: '2mb', strict: true }), async (req, res, next) => {
+  app.post('/api/admin/analytics/search', adminLimit, adminAuth, requireSameOrigin, express.json({ limit: '2mb', strict: true }), async (req, res, next) => {
     try {
       const imported = await state.analytics.importSearch(req.body?.rows, req.body?.defaultDate);
       res.status(201).json({ ok: true, imported });
@@ -581,10 +621,11 @@ export function createApp({ environment = process.env, logger = console } = {}) 
       const persisted = await state.adminStore.integrationStatus();
       const gsc = searchConsoleConfig(environment);
       const indexNow = indexNowConfig(environment);
+      const storage = await state.analytics.storageProbe();
       res.json(buildLaunchReadiness({
         environment,
         seo: state.seo,
-        analytics: state.analytics.health(),
+        analytics: { ...state.analytics.health(), storageWritable: storage.writable, storageError: storage.error },
         advertising: advertisingConfig(environment),
         integrations: {
           searchConsole: { configured: gsc.enabled, last: persisted.services?.searchConsole || null },
@@ -715,14 +756,25 @@ export function createApp({ environment = process.env, logger = console } = {}) 
 
   app.get('/api/health', (_req, res) => {
     res.setHeader('Cache-Control', 'no-store');
+    res.json({ ok: true, version: pkg.version });
+  });
+  app.get('/api/admin/health', adminLimit, adminAuth, (_req, res) => {
+    res.setHeader('Cache-Control', 'no-store');
     res.json({ ok: true, version: pkg.version, render: renderGate.stats(), analytics: state.analytics.health() });
   });
   app.get('/api/version', (_req, res) => res.json({ name: pkg.name, version: pkg.version }));
   app.get('/api/meta', (_req, res) => res.json(metadata()));
   app.get('/api/examples', (_req, res) => res.json(metadata()));
-  app.get('/api/ads', (_req, res) => {
+  app.get('/api/ads', (req, res) => {
     res.setHeader('Cache-Control', 'no-store');
-    res.json(advertisingConfig(environment));
+    const config = advertisingConfig(environment);
+    const frameTokens = {};
+    if (config.editor.enabled) {
+      for (const slot of ['editorRail', 'editorDock']) {
+        if (config.slots[slot]) frameTokens[slot] = createEditorAdFrameToken(slot, environment);
+      }
+    }
+    res.json({ ...config, editor: { ...config.editor, frameTokens } });
   });
 
   const normalize = (source) => normalizeRenderRequest(source, {
@@ -742,7 +794,7 @@ export function createApp({ environment = process.env, logger = console } = {}) 
       next(error);
     }
   });
-  app.get('/api/render', renderRateLimit, async (req, res, next) => {
+  app.get('/api/render', requireRenderGetEnabled, renderRateLimit, async (req, res, next) => {
     try {
       const options = normalize({ ...req.query, code: decodeQueryCode(req.query) });
       const result = await renderGate.run(() => renderDiagram({ serverUrl: internalServerUrl(req), ...options }));

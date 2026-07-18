@@ -27,6 +27,7 @@ function environment(directory) {
     ANALYTICS_ADMIN_PASSWORD: PASSWORD,
     ANALYTICS_HASH_SECRET: SECRET,
     ADS_ENABLED: 'true',
+    ADS_PUBLISHER_VALIDATED: 'true',
     ADS_PROVIDER: 'yektanet',
     ADS_SCRIPT_URL: SCRIPT,
     ADS_SCRIPT_ID: 'ua-script-editor-test',
@@ -155,21 +156,30 @@ test('editor page reserves responsive ad inventory while keeping publisher scrip
   assert.match(csp, /frame-src[^;]*https:\/\/ads\.nemodara\.ir/);
   assert.doesNotMatch(csp, /script-src[^;]*cdn\.yektanet\.com/);
 
-  const frame = await fetch(`${server.url}/ads/editor-frame?slot=editorRail`);
+  const adConfigResponse = await fetch(`${server.url}/api/ads`);
+  assert.equal(adConfigResponse.status, 200);
+  const adConfig = await adConfigResponse.json();
+  const railToken = adConfig.editor.frameTokens.editorRail;
+  assert.match(railToken, /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/);
+
+  const direct = await fetch(`${server.url}/ads/editor-frame?slot=editorRail`);
+  assert.equal(direct.status, 403);
+
+  const frame = await fetch(`${server.url}/ads/editor-frame?slot=editorRail&token=${encodeURIComponent(railToken)}`);
   assert.equal(frame.status, 200);
   assert.equal(frame.headers.get('x-frame-options'), null);
   assert.match(frame.headers.get('content-security-policy') || '', /frame-ancestors[^;]*https:\/\/nemodara\.ir/);
   assert.match(frame.headers.get('content-security-policy') || '', /script-src[^;]*cdn\.yektanet\.com/);
   assert.match(await frame.text(), /pos-editor-rail-test/);
 
-  const unknown = await fetch(`${server.url}/ads/editor-frame?slot=homeTop`);
-  assert.equal(unknown.status, 404);
+  const unknown = await fetch(`${server.url}/ads/editor-frame?slot=homeTop&token=${encodeURIComponent(railToken)}`);
+  assert.equal(unknown.status, 403);
 
   const adHostContent = await requestWithHost(server, '/articles', 'ads.nemodara.ir');
   assert.equal(adHostContent.status, 302);
   assert.equal(adHostContent.headers.location, 'https://nemodara.ir/articles');
 
-  const adHostFrame = await requestWithHost(server, '/ads/editor-frame?slot=editorRail', 'ads.nemodara.ir');
+  const adHostFrame = await requestWithHost(server, `/ads/editor-frame?slot=editorRail&token=${encodeURIComponent(railToken)}`, 'ads.nemodara.ir');
   assert.equal(adHostFrame.status, 200);
   assert.match(adHostFrame.body, /pos-editor-rail-test/);
 
@@ -197,14 +207,16 @@ test('viewable editor inventory is stored separately from payable publisher impr
     get(name) { return this.headers[String(name).toLowerCase()]; },
   };
   await service.record({ event: 'page_view', session: 'one', path: '/editor' }, req);
+  await service.record({ event: 'ad_request', session: 'one', path: '/editor', slot: 'editorRail' }, req);
   await service.record({ event: 'ad_slot_view', session: 'one', path: '/editor', slot: 'editorRail' }, req);
+  await service.record({ event: 'ad_rendered', session: 'one', path: '/editor', slot: 'editorRail' }, req);
   await service.record({ event: 'ad_viewable', session: 'one', path: '/editor', slot: 'editorRail' }, req);
   await service.record({ event: 'ad_script_loaded', session: 'one', path: '/editor', slot: 'editorRail' }, req);
 
   const today = new Date().toISOString().slice(0, 10);
   const summary = await service.summary({ from: today, to: today });
   const slot = summary.adSlots.find((item) => item.name === 'editorRail');
-  assert.deepEqual(slot, { name: 'editorRail', views: 1, viewable: 1, loaded: 1, errors: 0, blocked: 0 });
+  assert.deepEqual(slot, { name: 'editorRail', requests: 1, views: 1, viewable: 1, rendered: 1, noFill: 0, loaded: 1, errors: 0, blocked: 0 });
   assert.equal(summary.totals.impressions, 0, 'first-party viewability must not be reported as publisher impressions');
 });
 

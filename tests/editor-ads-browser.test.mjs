@@ -34,17 +34,19 @@ function environment(directory) {
 
 async function preparePage(browser, viewport) {
   const page = await browser.newPage();
+  page.adFrameRequests = [];
   await page.setViewport({ ...viewport, deviceScaleFactor: 1 });
   await page.setRequestInterception(true);
   page.on('request', async (request) => {
     const url = new URL(request.url());
     if (url.hostname !== 'ads.test') return request.continue();
+    page.adFrameRequests.push(request.url());
     const slot = url.searchParams.get('slot') || 'unknown';
     return request.respond({
       status: 200,
       contentType: 'text/html; charset=utf-8',
       headers: { 'X-Robots-Tag': 'noindex,nofollow' },
-      body: `<!doctype html><html><body style="margin:0"><div id="mock-ad" style="width:100%;height:100%;background:#e7eee9">${slot}</div><script>parent.postMessage({source:'nemodara-editor-ad',slot:${JSON.stringify(slot)},type:'loaded'},'*')</script></body></html>`,
+      body: `<!doctype html><html><body style="margin:0"><div id="mock-ad" style="width:100%;height:100%;background:#e7eee9">${slot}</div><script>parent.postMessage({source:'nemodara-editor-ad',slot:${JSON.stringify(slot)},type:'loaded'},'*');parent.postMessage({source:'nemodara-editor-ad',slot:${JSON.stringify(slot)},type:'rendered'},'*')</script></body></html>`,
     });
   });
   return page;
@@ -72,7 +74,7 @@ test('isolated editor advertising preserves professional desktop and mobile layo
   desktop.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
   desktop.on('pageerror', (error) => errors.push(error.message));
   await desktop.goto(`${server.url}/editor`, { waitUntil: 'networkidle0' });
-  await desktop.waitForFunction(() => document.querySelector('[data-ad-slot="editorRail"]')?.dataset.adState === 'loaded');
+  await desktop.waitForFunction(() => document.querySelector('[data-ad-slot="editorRail"]')?.dataset.adState === 'rendered');
 
   const desktopLayout = await desktop.evaluate(() => {
     const rect = (selector) => {
@@ -104,7 +106,7 @@ test('isolated editor advertising preserves professional desktop and mobile layo
   mobile.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
   mobile.on('pageerror', (error) => errors.push(error.message));
   await mobile.goto(`${server.url}/editor`, { waitUntil: 'networkidle0' });
-  await mobile.waitForFunction(() => document.querySelector('[data-ad-slot="editorDock"]')?.dataset.adState === 'loaded');
+  await mobile.waitForFunction(() => document.querySelector('[data-ad-slot="editorDock"]')?.dataset.adState === 'rendered');
 
   const mobileLayout = await mobile.evaluate(() => {
     const rect = (selector) => {
@@ -129,6 +131,25 @@ test('isolated editor advertising preserves professional desktop and mobile layo
   assert.ok(mobileLayout.stage.height >= 400, JSON.stringify(mobileLayout));
   assert.ok(mobileLayout.bodyWidth <= mobileLayout.viewportWidth + 2, JSON.stringify(mobileLayout));
   assert.equal(mobileLayout.parentPublisherScripts, 0);
+
+  const compact = await preparePage(browser, { width: 320, height: 568 });
+  compact.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
+  compact.on('pageerror', (error) => errors.push(error.message));
+  await compact.goto(`${server.url}/editor`, { waitUntil: 'networkidle0' });
+  const compactLayout = await compact.evaluate(() => ({
+    railHidden: document.querySelector('[data-ad-slot="editorRail"]')?.hidden,
+    dockHidden: document.querySelector('[data-ad-slot="editorDock"]')?.hidden,
+    railState: document.querySelector('[data-ad-slot="editorRail"]')?.dataset.adState,
+    dockState: document.querySelector('[data-ad-slot="editorDock"]')?.dataset.adState,
+    bodyWidth: document.body.scrollWidth,
+    viewportWidth: window.innerWidth,
+  }));
+  assert.equal(compactLayout.railHidden, true);
+  assert.equal(compactLayout.dockHidden, true);
+  assert.equal(compactLayout.railState, 'viewport-ineligible');
+  assert.equal(compactLayout.dockState, 'viewport-ineligible');
+  assert.equal(compact.adFrameRequests.length, 0, JSON.stringify(compact.adFrameRequests));
+  assert.ok(compactLayout.bodyWidth <= compactLayout.viewportWidth + 2, JSON.stringify(compactLayout));
 
   assert.deepEqual(errors, []);
 });

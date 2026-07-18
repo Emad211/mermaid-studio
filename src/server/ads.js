@@ -1,3 +1,5 @@
+import { editorAdTokenReady } from './editor-ad-rollout.js';
+
 /** Configuration helpers for Iranian publisher ad networks. */
 
 const PROVIDERS = new Set(['yektanet', 'tapsell']);
@@ -113,6 +115,9 @@ export function advertisingConfig(environment = process.env) {
   const requireCrossOrigin = booleanValue(environment.ADS_EDITOR_REQUIRE_CROSS_ORIGIN, production);
   const trafficPercent = integerValue(environment.ADS_EDITOR_TRAFFIC_PERCENT, 100, 0, 100);
   const editorLoadDelayMs = integerValue(environment.ADS_EDITOR_LOAD_DELAY_MS, 1_800, 0, 30_000);
+  const editorNoFillTimeoutMs = integerValue(environment.ADS_EDITOR_NO_FILL_TIMEOUT_MS, 8_000, 1_000, 30_000);
+  const publisherValidated = booleanValue(environment.ADS_PUBLISHER_VALIDATED, false);
+  const tokenReady = editorAdTokenReady(environment);
   const isolationReady = Boolean(frameOrigin && (!requireCrossOrigin || !siteOrigin || frameOrigin !== siteOrigin));
 
   const slots = { ...rawSlots };
@@ -124,7 +129,14 @@ export function advertisingConfig(environment = process.env) {
   const hasPlacement = Object.values(slots).some(Boolean);
   const enabled = Boolean(booleanValue(environment.ADS_ENABLED) && PROVIDERS.has(provider) && scriptUrl && hasPlacement);
   const editorHasPlacement = Boolean(slots.editorRail || slots.editorDock);
-  const editorEnabled = Boolean(enabled && editorRequested && isolationReady && editorHasPlacement && trafficPercent > 0);
+  const editorEnabled = Boolean(
+    enabled
+    && editorRequested
+    && isolationReady
+    && editorHasPlacement
+    && trafficPercent > 0
+    && (!production || tokenReady)
+  );
 
   return {
     enabled,
@@ -132,6 +144,7 @@ export function advertisingConfig(environment = process.env) {
     scriptUrl: enabled ? scriptUrl : null,
     scriptId: safeDomId(environment.ADS_SCRIPT_ID) || `nemodara-${provider || 'ads'}-script`,
     loadDelayMs: integerValue(environment.ADS_LOAD_DELAY_MS, 700, 0, 10_000),
+    noFillTimeoutMs: integerValue(environment.ADS_NO_FILL_TIMEOUT_MS, 8_000, 1_000, 30_000),
     slots,
     slotMeta: SLOT_META,
     privacyUrl: '/privacy#advertising',
@@ -144,6 +157,9 @@ export function advertisingConfig(environment = process.env) {
       isolationReady,
       trafficPercent,
       loadDelayMs: editorLoadDelayMs,
+      noFillTimeoutMs: editorNoFillTimeoutMs,
+      publisherValidated,
+      tokenReady,
     },
   };
 }
@@ -212,6 +228,8 @@ export function renderEditorAdFrame(slotName, environment = process.env) {
     scriptUrl: config.scriptUrl,
     scriptId: `${config.scriptId}-${slot}`.slice(0, 180),
     placementId,
+    parentOrigin: safeOrigin(environment.SITE_URL, { httpsOnly: environment.NODE_ENV === 'production' }),
+    noFillTimeoutMs: config.editor.noFillTimeoutMs,
   };
 
   return `<!doctype html>
@@ -223,7 +241,7 @@ export function renderEditorAdFrame(slotName, environment = process.env) {
   <meta name="referrer" content="origin" />
   <title>تبلیغات نمودارا</title>
   <style>
-    *{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:transparent;color:#6f7a72;font-family:Tahoma,Arial,sans-serif}body{display:grid;place-items:stretch}.placement{width:100%;height:100%;min-height:48px;display:grid;place-items:center}.placement:empty::before{content:'در حال دریافت تبلیغ…';font-size:10px;color:#7d877f}.placement[data-ready='true']::before{content:none}
+    *{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:transparent;color:#6f7a72;font-family:Tahoma,Arial,sans-serif}body{display:grid;place-items:stretch}.placement{width:100%;height:100%;min-height:48px;display:grid;place-items:center}.placement:empty::before{content:'در حال دریافت تبلیغ…';font-size:10px;color:#7d877f}.placement[data-ready='true']::before{content:none}.placement[data-empty='true']::before{content:'تبلیغی برای نمایش موجود نیست'}
   </style>
 </head>
 <body>
@@ -231,8 +249,28 @@ export function renderEditorAdFrame(slotName, environment = process.env) {
   <script>
     (() => {
       const config = ${inlineJson(payload)};
-      const report = (type) => parent.postMessage({ source: config.source, slot: config.slot, type }, '*');
+      const targetOrigin = config.parentOrigin || location.origin;
+      const report = (type) => parent.postMessage({ source: config.source, slot: config.slot, type }, targetOrigin);
       const mount = document.getElementById(config.placementId);
+      let rendered = false;
+      let settled = false;
+      const reportRendered = () => {
+        if (rendered || !mount.childNodes.length) return;
+        rendered = true;
+        settled = true;
+        mount.dataset.ready = 'true';
+        report('rendered');
+        observer.disconnect();
+      };
+      const observer = new MutationObserver(reportRendered);
+      observer.observe(mount, { childList: true, subtree: true });
+      const noFillTimer = setTimeout(() => {
+        if (settled || rendered) return;
+        settled = true;
+        mount.dataset.empty = 'true';
+        report('no-fill');
+        observer.disconnect();
+      }, config.noFillTimeoutMs);
       if (config.provider === 'yektanet') {
         window.yektanetAnalyticsObject = window.yektanetAnalyticsObject || 'yektanet';
         const objectName = window.yektanetAnalyticsObject;
@@ -255,12 +293,18 @@ export function renderEditorAdFrame(slotName, environment = process.env) {
         script.async = true;
         script.referrerPolicy = 'origin';
         script.addEventListener('load', () => {
-          mount.dataset.ready = 'true';
           report('loaded');
+          reportRendered();
         }, { once: true });
-        script.addEventListener('error', () => report(navigator.onLine ? 'blocked' : 'error'), { once: true });
+        script.addEventListener('error', () => {
+          clearTimeout(noFillTimer);
+          settled = true;
+          report(navigator.onLine ? 'blocked' : 'error');
+        }, { once: true });
         document.head.appendChild(script);
       } catch {
+        clearTimeout(noFillTimer);
+        settled = true;
         report('error');
       }
     })();
