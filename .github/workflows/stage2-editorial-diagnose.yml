@@ -33,10 +33,14 @@ jobs:
           npm install --package-lock-only --ignore-scripts
           npm ci
           npm run build
-      - name: Editorial pages
+      - name: Editorial desktop and mobile experience
         env:
           PUPPETEER_NO_SANDBOX: true
-        run: node --test tests/editorial-pages.test.mjs
+        run: node --test --test-name-pattern='landing, learning hub and long-form article' tests/editorial-pages.test.mjs
+      - name: Editorial SEO metadata and sitemap
+        env:
+          PUPPETEER_NO_SANDBOX: true
+        run: node --test --test-name-pattern='SEO metadata and sitemap' tests/editorial-pages.test.mjs
       - name: Professional editor
         env:
           PUPPETEER_NO_SANDBOX: true
