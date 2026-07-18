@@ -7,13 +7,15 @@ on:
     paths:
       - .stage2b/**
       - .github/workflows/stage2-finalize.yml
+  pull_request:
+    branches: [main]
 
 permissions:
   contents: write
 
 concurrency:
   group: nemodara-stage-2-finalize
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   finalize:
