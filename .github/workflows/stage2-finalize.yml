@@ -1,0 +1,206 @@
+name: Finalize Nemodara stage 2 release candidate
+
+on:
+  push:
+    branches:
+      - agent/editor-ads-launch-readiness
+    paths:
+      - .stage2b/**
+      - .github/workflows/stage2-finalize.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: nemodara-stage-2-finalize
+  cancel-in-progress: false
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/editor-ads-launch-readiness
+          fetch-depth: 0
+          persist-credentials: true
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Reconstruct and verify the audited patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(find .stage2b -maxdepth 1 -name 'part-*.b64' -type f | wc -l)" = "8"
+          cat .stage2b/part-*.b64 > /tmp/stage2.payload.b64
+          echo '20c88f8e938efbbc915543ce8a834bcff47df2eeb182cc9669d76b3be7b4b429  /tmp/stage2.payload.b64' | sha256sum -c -
+          base64 --decode /tmp/stage2.payload.b64 > /tmp/stage2.patch.xz
+          echo '9d9b99e128b599aaacbaa294c47f1aa13de5dfc2a3376c7908f352ba8ead0328  /tmp/stage2.patch.xz' | sha256sum -c -
+          xz --decompress --stdout /tmp/stage2.patch.xz > /tmp/stage2.patch
+          echo '998d6ecc7404def719b5e5193f09479582ef2168c1073c79ea3c2d27459eab4b  /tmp/stage2.patch' | sha256sum -c -
+          git apply --check /tmp/stage2.patch
+          git apply /tmp/stage2.patch
+
+      - name: Rebuild the dependency lock and install cleanly
+        shell: bash
+        env:
+          PUPPETEER_NO_SANDBOX: true
+        run: |
+          set -euo pipefail
+          npm install --package-lock-only --ignore-scripts
+          npm ci
+          npm run build
+
+      - name: Run the complete source, security, release and browser suite
+        env:
+          PUPPETEER_NO_SANDBOX: true
+        run: |
+          npm test
+          npm run smoke:production
+          npm audit --audit-level=low
+          npm audit --omit=dev --audit-level=low
+
+      - name: Validate production and local Compose contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp .env.example .env
+          sed -i 's|^DOMAIN=.*|DOMAIN=nemodara.ir|' .env
+          sed -i 's|^SITE_URL=.*|SITE_URL=https://nemodara.ir|' .env
+          sed -i 's|^TRUST_PROXY=.*|TRUST_PROXY=true|' .env
+          sed -i 's|^ANALYTICS_ADMIN_PASSWORD=.*|ANALYTICS_ADMIN_PASSWORD=ci-only-long-random-password|' .env
+          sed -i 's|^ANALYTICS_HASH_SECRET=.*|ANALYTICS_HASH_SECRET=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef|' .env
+          sed -i 's|^ADS_EDITOR_FRAME_ORIGIN=.*|ADS_EDITOR_FRAME_ORIGIN=https://ads.nemodara.ir|' .env
+          sed -i 's|^RENDER_GET_ENABLED=.*|RENDER_GET_ENABLED=false|' .env
+          docker compose config --quiet
+
+          cp .env.local.example .env.local
+          sed -i 's|^ANALYTICS_ADMIN_PASSWORD=.*|ANALYTICS_ADMIN_PASSWORD=ci-only-long-random-password|' .env.local
+          sed -i 's|^ANALYTICS_HASH_SECRET=.*|ANALYTICS_HASH_SECRET=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef|' .env.local
+          docker compose --env-file .env.local -f compose.local.yaml config --quiet
+
+      - name: Build and smoke-test the production Docker image
+        shell: bash
+        run: |
+          set -euo pipefail
+          image=nemodara:stage2-ci
+          container=nemodara-stage2-ci
+          volume=nemodara-stage2-analytics
+          docker build --pull --tag "$image" .
+          docker volume create "$volume" >/dev/null
+          docker run -d --name "$container" \
+            -p 127.0.0.1:4321:4321 \
+            -e NODE_ENV=production \
+            -e SITE_URL=https://nemodara.ir \
+            -e SITE_NAME=نمودارا \
+            -e TRUST_PROXY=true \
+            -e ANALYTICS_ENABLED=true \
+            -e ANALYTICS_DATA_DIR=/data/analytics \
+            -e ANALYTICS_TIME_ZONE=UTC \
+            -e ANALYTICS_ADMIN_USER=admin \
+            -e ANALYTICS_ADMIN_PASSWORD=ci-only-long-random-password \
+            -e ANALYTICS_HASH_SECRET=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef \
+            -e ADS_ENABLED=true \
+            -e ADS_PUBLISHER_VALIDATED=true \
+            -e ADS_PROVIDER=yektanet \
+            -e ADS_SCRIPT_URL=https://cdn.yektanet.com/rg_woebegone/scripts_v3/test/rg.complete.js \
+            -e ADS_SCRIPT_ID=ua-script-stage2 \
+            -e ADS_ALLOWED_ORIGINS=https://cdn.yektanet.com,https://*.yektanet.com \
+            -e ADS_SLOT_HOME_INLINE=pos-home-inline-stage2 \
+            -e ADS_EDITOR_ENABLED=true \
+            -e ADS_EDITOR_REQUIRE_CROSS_ORIGIN=true \
+            -e ADS_EDITOR_FRAME_ORIGIN=https://ads.nemodara.ir \
+            -e ADS_EDITOR_TOKEN_TTL_SECONDS=300 \
+            -e ADS_EDITOR_TRAFFIC_PERCENT=100 \
+            -e ADS_EDITOR_LOAD_DELAY_MS=0 \
+            -e ADS_SLOT_EDITOR_RAIL=pos-editor-rail-stage2 \
+            -e ADS_SLOT_EDITOR_DOCK=pos-editor-dock-stage2 \
+            -e RENDER_GET_ENABLED=false \
+            -e GSC_ENABLED=false \
+            -e INDEXNOW_ENABLED=false \
+            -v "$volume":/data/analytics \
+            "$image"
+
+          cleanup() {
+            docker logs "$container" || true
+            docker rm -f "$container" >/dev/null 2>&1 || true
+            docker volume rm "$volume" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+
+          for attempt in $(seq 1 120); do
+            if curl -fsS -H 'Host: nemodara.ir' http://127.0.0.1:4321/api/health >/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+
+          curl -fsS -H 'Host: nemodara.ir' http://127.0.0.1:4321/api/health \
+            | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const x=JSON.parse(s);if(x.ok!==true||!x.version)process.exit(1)})'
+
+          curl -fsS -D /tmp/editor.headers -H 'Host: nemodara.ir' http://127.0.0.1:4321/editor -o /tmp/editor.html
+          grep -qi 'no-store' /tmp/editor.headers
+          grep -q 'data-ad-slot="editorRail"' /tmp/editor.html
+          ! grep -q 'cdn.yektanet.com/rg_woebegone' /tmp/editor.html
+
+          curl -fsS -H 'Host: nemodara.ir' http://127.0.0.1:4321/api/ads -o /tmp/ads.json
+          token=$(node -e 'const x=require("/tmp/ads.json");const t=x.editor?.frameTokens?.editorRail;if(!t)process.exit(1);process.stdout.write(t)')
+
+          direct_status=$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H 'Host: ads.nemodara.ir' \
+            -H 'Sec-Fetch-Dest: document' \
+            -H 'Sec-Fetch-Site: none' \
+            "http://127.0.0.1:4321/ads/editor-frame?slot=editorRail&token=$token")
+          test "$direct_status" = '403'
+
+          curl -fsS \
+            -H 'Host: ads.nemodara.ir' \
+            -H 'Sec-Fetch-Dest: iframe' \
+            -H 'Sec-Fetch-Site: same-site' \
+            -H 'Referer: https://nemodara.ir/editor' \
+            "http://127.0.0.1:4321/ads/editor-frame?slot=editorRail&token=$token" \
+            -o /tmp/frame.html
+          grep -q 'pos-editor-rail-stage2' /tmp/frame.html
+
+          get_status=$(curl -sS -o /tmp/get-render.json -w '%{http_code}' \
+            -H 'Host: nemodara.ir' \
+            'http://127.0.0.1:4321/api/render?code=flowchart%20TD%3B%20A--%3EB&format=svg')
+          test "$get_status" = '405'
+
+          render() {
+            format=$1
+            output=$2
+            curl -fsS -X POST http://127.0.0.1:4321/api/render \
+              -H 'Host: nemodara.ir' \
+              -H 'content-type: application/json' \
+              --data "{\"code\":\"flowchart TD; A-->B\",\"format\":\"$format\"}" \
+              --output "$output"
+          }
+          render svg /tmp/diagram.svg
+          render png /tmp/diagram.png
+          render webp /tmp/diagram.webp
+          render pdf /tmp/diagram.pdf
+          grep -q '<svg' /tmp/diagram.svg
+          node -e "const f=require('fs');if(f.readFileSync('/tmp/diagram.png').subarray(0,8).toString('hex')!=='89504e470d0a1a0a')process.exit(1)"
+          node -e "const f=require('fs');if(f.readFileSync('/tmp/diagram.webp').subarray(0,4).toString('ascii')!=='RIFF')process.exit(1)"
+          grep -q '%PDF-' /tmp/diagram.pdf
+
+          curl -fsS -u 'admin:ci-only-long-random-password' -H 'Host: nemodara.ir' \
+            http://127.0.0.1:4321/api/admin/launch/readiness | grep -q 'analytics-storage'
+
+      - name: Commit only the fully validated source
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .stage2 .stage2b
+          rm -f .github/workflows/stage2-finalize.yml .env .env.local
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          test -z "$(git diff --cached --name-only | grep -E '^\.stage2|stage2-finalize' || true)"
+          git commit -m 'Harden editor ads, revenue accounting and production boundaries'
+          git push origin HEAD:agent/editor-ads-launch-readiness
