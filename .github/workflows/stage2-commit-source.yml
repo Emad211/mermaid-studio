@@ -5,21 +5,18 @@ on:
     branches: [agent/editor-ads-launch-readiness]
     paths:
       - .github/workflows/stage2-commit-source.yml
-  pull_request:
-    branches: [main]
 
 permissions:
   contents: write
 
 concurrency:
-  group: nemodara-stage-2-finalize
-  cancel-in-progress: true
+  group: nemodara-stage-2-source-commit
+  cancel-in-progress: false
 
 jobs:
   commit:
-    if: github.event_name == 'push' || github.event.pull_request.head.ref == 'agent/editor-ads-launch-readiness'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v7
         with:
@@ -40,7 +37,6 @@ jobs:
           echo '998d6ecc7404def719b5e5193f09479582ef2168c1073c79ea3c2d27459eab4b  /tmp/stage2.patch' | sha256sum -c -
           git apply --check /tmp/stage2.patch
           git apply /tmp/stage2.patch
-          node .stage2fix/apply.mjs
           npm install --package-lock-only --ignore-scripts
           npm ci
           npm run build
@@ -51,14 +47,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # GitHub's Actions token must not create/update/delete workflow files.
+          # The Actions token must not create, update or delete workflow files.
           git checkout HEAD -- .github/workflows/ci.yml
           rm -rf .stage2 .stage2b .stage2fix
           rm -f .env .env.local
           test ! -e .stage2
           test ! -e .stage2b
           test ! -e .stage2fix
-      - name: Commit the validated non-workflow source
+      - name: Commit validated non-workflow source
         shell: bash
         run: |
           set -euo pipefail
