@@ -1,0 +1,55 @@
+name: Capture Nemodara editorial failure log
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nemodara-stage-2-editorial-log
+  cancel-in-progress: true
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: agent/editor-ads-launch-readiness
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - name: Reconstruct audited source
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .stage2b/part-*.b64 | base64 --decode | xz --decompress --stdout > /tmp/stage2.patch
+          git apply /tmp/stage2.patch
+          npm install --package-lock-only --ignore-scripts
+          npm ci
+          npm run build
+      - name: Capture editorial browser test output
+        id: editorial
+        continue-on-error: true
+        shell: bash
+        env:
+          PUPPETEER_NO_SANDBOX: true
+        run: |
+          set +e
+          node --test --test-name-pattern='landing, learning hub and long-form article' tests/editorial-pages.test.mjs > /tmp/editorial-test.log 2>&1
+          status=$?
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          cat /tmp/editorial-test.log
+          exit 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nemodara-stage2-editorial-log
+          path: /tmp/editorial-test.log
+          retention-days: 2
+      - name: Preserve failure status
+        shell: bash
+        run: test '${{ steps.editorial.outputs.status }}' = '0'
