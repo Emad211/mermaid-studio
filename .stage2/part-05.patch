@@ -1,0 +1,230 @@
+           report('loaded');
++          reportRendered();
++        }, { once: true });
++        script.addEventListener('error', () => {
++          clearTimeout(noFillTimer);
++          settled = true;
++          report(navigator.onLine ? 'blocked' : 'error');
+         }, { once: true });
+-        script.addEventListener('error', () => report(navigator.onLine ? 'blocked' : 'error'), { once: true });
+         document.head.appendChild(script);
+       } catch {
++        clearTimeout(noFillTimer);
++        settled = true;
+         report('error');
+       }
+     })();
+diff --git a/src/server/analytics.js b/src/server/analytics.js
+index 79cbf46..57c823a 100644
+--- a/src/server/analytics.js
++++ b/src/server/analytics.js
+@@ -12,8 +12,11 @@ const EVENT_NAMES = new Set([
+   'copy_svg',
+   'share',
+   'template_open',
++  'ad_request',
+   'ad_slot_view',
+   'ad_viewable',
++  'ad_rendered',
++  'ad_no_fill',
+   'ad_script_loaded',
+   'ad_script_error',
+   'ad_blocked',
+@@ -330,8 +333,18 @@ function normalizeRevenueEntry(input) {
+   const provider = safeText(input.provider, 30).toLowerCase();
+   if (!PROVIDERS.has(provider)) throw new AnalyticsError(400, 'INVALID_REVENUE_PROVIDER', 'Unsupported revenue provider.');
+   const impressions = Math.round(clamp(input.impressions, 0, 1_000_000_000_000, 0));
++  const requests = input.requests === undefined || input.requests === null || input.requests === ''
++    ? impressions
++    : Math.round(clamp(input.requests, 0, 1_000_000_000_000, 0));
++  const viewableImpressions = Math.round(clamp(input.viewableImpressions, 0, 1_000_000_000_000, 0));
+   const clicks = Math.round(clamp(input.clicks, 0, 1_000_000_000_000, 0));
+-  if (impressions > 0 && clicks > impressions) {
++  if (requests > 0 && impressions > requests) {
++    throw new AnalyticsError(400, 'INVALID_REVENUE_IMPRESSIONS', 'Impressions cannot exceed ad requests.');
++  }
++  if (viewableImpressions > impressions) {
++    throw new AnalyticsError(400, 'INVALID_REVENUE_VIEWABILITY', 'Viewable impressions cannot exceed impressions.');
++  }
++  if (clicks > impressions) {
+     throw new AnalyticsError(400, 'INVALID_REVENUE_CLICKS', 'Clicks cannot exceed impressions.');
+   }
+   return {
+@@ -339,7 +352,9 @@ function normalizeRevenueEntry(input) {
+     date,
+     provider,
+     slot: safeKey(input.slot || 'all', 100) || 'all',
++    requests,
+     impressions,
++    viewableImpressions,
+     clicks,
+     revenueRial: Math.round(clamp(input.revenueRial, 0, 10_000_000_000_000_000, 0)),
+     note: safeText(input.note, 240),
+@@ -444,6 +459,21 @@ class AnalyticsService {
+     };
+   }
+ 
++  async storageProbe() {
++    if (!this.config.enabled) return { writable: false, error: 'Analytics is disabled.' };
++    const filename = path.join(this.config.dataDir, `.write-probe-${process.pid}-${crypto.randomUUID()}`);
++    try {
++      await this.init();
++      await fs.writeFile(filename, 'ok', { encoding: 'utf8', mode: 0o600, flag: 'wx' });
++      await fs.unlink(filename);
++      return { writable: true, error: null };
++    } catch (error) {
++      await fs.unlink(filename).catch(() => {});
++      this.lastError = error?.message || String(error);
++      return { writable: false, error: this.lastError };
++    }
++  }
++
+   enqueue(task) {
+     const result = this.operation.catch(() => {}).then(task);
+     this.operation = result.catch((error) => {
+@@ -638,12 +668,15 @@ class AnalyticsService {
+       }
+ 
+       if (payload.event.startsWith('ad_') && payload.slot) {
+-        data.adSlots[payload.slot] ||= { views: 0, viewable: 0, loaded: 0, errors: 0, blocked: 0 };
++        data.adSlots[payload.slot] ||= { requests: 0, views: 0, viewable: 0, rendered: 0, noFill: 0, loaded: 0, errors: 0, blocked: 0 };
++        if (payload.event === 'ad_request') data.adSlots[payload.slot].requests += 1;
+         if (payload.event === 'ad_slot_view') {
+           data.adSlots[payload.slot].views += 1;
+           ensurePage(data.pages, payload.path).adSlotViews += 1;
+         }
+         if (payload.event === 'ad_viewable') data.adSlots[payload.slot].viewable += 1;
++        if (payload.event === 'ad_rendered') data.adSlots[payload.slot].rendered += 1;
++        if (payload.event === 'ad_no_fill') data.adSlots[payload.slot].noFill += 1;
+         if (payload.event === 'ad_script_loaded') data.adSlots[payload.slot].loaded += 1;
+         if (payload.event === 'ad_script_error') data.adSlots[payload.slot].errors += 1;
+         if (payload.event === 'ad_blocked') data.adSlots[payload.slot].blocked += 1;
+@@ -800,10 +833,15 @@ class AnalyticsService {
+         exportSessions: 0,
+         shareSessions: 0,
+         exports: 0,
++        adRequests: 0,
+         adSlotViews: 0,
++        adRendered: 0,
++        adNoFill: 0,
+         adViewable: 0,
+         revenueRial: 0,
++        requests: 0,
+         impressions: 0,
++        viewableImpressions: 0,
+         clicks: 0,
+         searchClicks: 0,
+         searchImpressions: 0,
+@@ -828,7 +866,7 @@ class AnalyticsService {
+           pages[page].adSlotViews += finite(stats.adSlotViews);
+         }
+         for (const [slot, stats] of Object.entries(value.adSlots || {})) {
+-          adSlots[slot] ||= { views: 0, viewable: 0, loaded: 0, errors: 0, blocked: 0 };
++          adSlots[slot] ||= { requests: 0, views: 0, viewable: 0, rendered: 0, noFill: 0, loaded: 0, errors: 0, blocked: 0 };
+           for (const key of Object.keys(adSlots[slot])) adSlots[slot][key] += finite(stats[key]);
+         }
+         for (const metric of Object.keys(vitalSamples)) vitalSamples[metric].push(...(value.vitals?.[metric] || []));
+@@ -843,7 +881,10 @@ class AnalyticsService {
+           exportSessions: finite(value.totals.exportSessions),
+           shareSessions: finite(value.totals.shareSessions),
+           exports: Object.values(value.exports || {}).reduce((sum, number) => sum + finite(number), 0),
++          adRequests: Object.values(value.adSlots || {}).reduce((sum, stats) => sum + finite(stats.requests), 0),
+           adSlotViews: Object.values(value.adSlots || {}).reduce((sum, stats) => sum + finite(stats.views), 0),
++          adRendered: Object.values(value.adSlots || {}).reduce((sum, stats) => sum + finite(stats.rendered), 0),
++          adNoFill: Object.values(value.adSlots || {}).reduce((sum, stats) => sum + finite(stats.noFill), 0),
+           adViewable: Object.values(value.adSlots || {}).reduce((sum, stats) => sum + finite(stats.viewable), 0),
+         });
+       }
+@@ -855,23 +896,31 @@ class AnalyticsService {
+     const revenueByProvider = {};
+     const revenueBySlot = {};
+     let actualRevenueRial = 0;
++    let requests = 0;
+     let impressions = 0;
++    let viewableImpressions = 0;
+     let clicks = 0;
+     for (const entry of revenueEntries) {
+       actualRevenueRial += finite(entry.revenueRial);
++      requests += finite(entry.requests);
+       impressions += finite(entry.impressions);
++      viewableImpressions += finite(entry.viewableImpressions);
+       clicks += finite(entry.clicks);
+-      revenueByProvider[entry.provider] ||= { revenueRial: 0, impressions: 0, clicks: 0 };
+-      revenueBySlot[entry.slot] ||= { revenueRial: 0, impressions: 0, clicks: 0 };
++      revenueByProvider[entry.provider] ||= { revenueRial: 0, requests: 0, impressions: 0, viewableImpressions: 0, clicks: 0 };
++      revenueBySlot[entry.slot] ||= { revenueRial: 0, requests: 0, impressions: 0, viewableImpressions: 0, clicks: 0 };
+       for (const target of [revenueByProvider[entry.provider], revenueBySlot[entry.slot]]) {
+         target.revenueRial += finite(entry.revenueRial);
++        target.requests += finite(entry.requests);
+         target.impressions += finite(entry.impressions);
++        target.viewableImpressions += finite(entry.viewableImpressions);
+         target.clicks += finite(entry.clicks);
+       }
+       const daily = dailyMap.get(entry.date);
+       if (daily) {
+         daily.revenueRial += finite(entry.revenueRial);
++        daily.requests = finite(daily.requests) + finite(entry.requests);
+         daily.impressions += finite(entry.impressions);
++        daily.viewableImpressions = finite(daily.viewableImpressions) + finite(entry.viewableImpressions);
+         daily.clicks += finite(entry.clicks);
+       }
+     }
+@@ -915,7 +964,10 @@ class AnalyticsService {
+     })).sort((a, b) => b.clicks - a.clicks || b.impressions - a.impressions).slice(0, 50);
+ 
+     const totalExports = Object.values(exportsByFormat).reduce((sum, number) => sum + finite(number), 0);
++    const totalAdRequests = Object.values(adSlots).reduce((sum, stats) => sum + finite(stats.requests), 0);
+     const totalAdSlotViews = Object.values(adSlots).reduce((sum, stats) => sum + finite(stats.views), 0);
++    const totalAdRendered = Object.values(adSlots).reduce((sum, stats) => sum + finite(stats.rendered), 0);
++    const totalAdNoFill = Object.values(adSlots).reduce((sum, stats) => sum + finite(stats.noFill), 0);
+     const totalAdViewable = Object.values(adSlots).reduce((sum, stats) => sum + finite(stats.viewable), 0);
+     const totalRenders = finite(events.render_success) + finite(events.render_error);
+     const estimatedRevenueRial = Math.round((totals.pageviews * this.config.estimatedRpmRial) / 1_000);
+@@ -944,11 +996,16 @@ class AnalyticsService {
+       totals: {
+         ...totals,
+         exports: totalExports,
++        adRequests: totalAdRequests,
+         adSlotViews: totalAdSlotViews,
++        adRendered: totalAdRendered,
++        adNoFill: totalAdNoFill,
+         adViewable: totalAdViewable,
+         actualRevenueRial,
+         estimatedRevenueRial,
++        requests,
+         impressions,
++        viewableImpressions,
+         clicks,
+         searchClicks,
+         searchImpressions,
+@@ -964,8 +1021,11 @@ class AnalyticsService {
+         ctr: impressions ? (clicks / impressions) * 100 : 0,
+         cpcRial: clicks ? actualRevenueRial / clicks : 0,
+         ecpmRial: impressions ? (actualRevenueRial / impressions) * 1_000 : 0,
+-        fillRate: totalAdSlotViews ? (impressions / totalAdSlotViews) * 100 : 0,
+-        viewabilityRate: totalAdSlotViews ? (totalAdViewable / totalAdSlotViews) * 100 : 0,
++        publisherFillRate: requests ? (impressions / requests) * 100 : 0,
++        publisherViewabilityRate: impressions ? (viewableImpressions / impressions) * 100 : 0,
++        internalRenderRate: totalAdSlotViews ? (totalAdRendered / totalAdSlotViews) * 100 : 0,
++        internalViewabilityRate: totalAdSlotViews ? (totalAdViewable / totalAdSlotViews) * 100 : 0,
++        internalNoFillRate: totalAdRequests ? (totalAdNoFill / totalAdRequests) * 100 : 0,
+         searchCtr: searchImpressions ? (searchClicks / searchImpressions) * 100 : 0,
+         averageSearchPosition: weightedPosition / Math.max(1, searchImpressions),
+       },
+@@ -998,11 +1058,16 @@ class AnalyticsService {
+ 
+   async csv(options) {
+     const summary = await this.summary(options);
+-    const header = [
+-      'date', 'pageviews', 'sessions', 'visitors', 'engaged_sessions', 'engagement_seconds',
+-      'exports', 'ad_slot_views', 'ad_viewable', 'revenue_rial', 'impressions', 'clicks', 'search_clicks', 'search_impressions',
++    const columns = [
++      ['date', 'date'], ['pageviews', 'pageviews'], ['sessions', 'sessions'], ['visitors', 'visitors'],
++      ['engaged_sessions', 'engagedSessions'], ['engagement_seconds', 'engagementSeconds'], ['exports', 'exports'],
++      ['ad_requests', 'adRequests'], ['ad_slot_views', 'adSlotViews'], ['ad_rendered', 'adRendered'],
++      ['ad_no_fill', 'adNoFill'], ['ad_viewable', 'adViewable'], ['revenue_rial', 'revenueRial'],
++      ['requests', 'requests'], ['impressions', 'impressions'], ['viewable_impressions', 'viewableImpressions'],
++      ['clicks', 'clicks'], ['search_clicks', 'searchClicks'], ['search_impressions', 'searchImpressions'],
+     ];
+-    const rows = summary.daily.map((row) => header.map((key) => row[key] ?? '').join(','));
++    const header = columns.map(([name]) => name;
