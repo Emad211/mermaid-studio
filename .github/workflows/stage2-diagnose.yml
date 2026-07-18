@@ -39,13 +39,18 @@ jobs:
           npm ci
           npm run build
 
-      - name: Syntax, security and release contracts
+      - name: Syntax contract
+        run: npm run check
+
+      - name: Security contracts
         env:
           PUPPETEER_NO_SANDBOX: true
-        run: |
-          npm run check
-          npm run test:security
-          npm run test:release
+        run: npm run test:security
+
+      - name: Release contracts
+        env:
+          PUPPETEER_NO_SANDBOX: true
+        run: npm run test:release
 
       - name: Core and admin browser flows
         env:
