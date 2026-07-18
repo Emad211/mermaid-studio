@@ -5,16 +5,19 @@ on:
     branches: [agent/editor-ads-launch-readiness]
     paths:
       - .github/workflows/stage2-commit-source.yml
+  pull_request:
+    branches: [main]
 
 permissions:
   contents: write
 
 concurrency:
-  group: nemodara-stage-2-commit-source
-  cancel-in-progress: false
+  group: nemodara-stage-2-finalize
+  cancel-in-progress: true
 
 jobs:
   commit:
+    if: github.event_name == 'push' || github.event.pull_request.head.ref == 'agent/editor-ads-launch-readiness'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
