@@ -135,6 +135,8 @@ test('Nemodara landing, learning hub and long-form article are editorial and mob
   await inspectPage(page, `${server.url}/learn/flowchart-mermaid`, /آموزش فلوچارت Mermaid/);
   assert.equal(await page.$eval('.mobile-toc', (node) => getComputedStyle(node).display !== 'none'), true);
   assert.equal(await page.$eval('.article-aside', (node) => getComputedStyle(node).display), 'none');
+  await inspectPage(page, `${server.url}/articles/choose-the-right-diagram`, /فلوچارت، Sequence/);
+  assert.equal(await page.$eval('.article-table-wrap', (node) => node.scrollWidth > node.clientWidth), true);
 });
 
 test('Nemodara SEO metadata and sitemap use the production brand and domain', async (t) => {
@@ -149,6 +151,8 @@ test('Nemodara SEO metadata and sitemap use the production brand and domain', as
   assert.match(landing, /نمودارا/);
   assert.match(landing, /https:\/\/nemodara\.ir\//);
   assert.doesNotMatch(landing, /Mermaid Studio \| ادیتور فارسی/);
+  assert.match(landing, /\/articles\/architecture-diagram-that-stays-useful/);
+  assert.doesNotMatch(landing, /\/articles\/architecture-documentation-that-lasts/);
 
   const article = await (await fetch(`${server.url}/learn/sequence-diagram-mermaid`)).text();
   assert.match(article, /تیم تحریریه نمودارا|نمودارا/);

@@ -134,12 +134,12 @@
       <div class="drawer-body">
         <div class="tab-pane active" data-pane="config">
           <p class="hint">این JSON با تنظیمات اصلی Mermaid ادغام می‌شود؛ مانند <code>themeVariables</code> و تنظیمات هر نمودار.</p>
-          <textarea id="config-input" class="code-input" spellcheck="false" dir="ltr" placeholder='{ "themeVariables": { "primaryColor": "#b16cea" } }'></textarea>
+          <textarea id="config-input" class="code-input" spellcheck="false" dir="ltr" aria-label="تنظیمات JSON مرمید" placeholder='{ "themeVariables": { "primaryColor": "#b16cea" } }'></textarea>
           <div id="config-error" class="input-error"></div>
         </div>
         <div class="tab-pane" data-pane="css">
           <p class="hint">CSS زیر داخل SVG نمودار قرار می‌گیرد. در نسخه عمومی، CSS ناامن و منابع خارجی مسدود هستند.</p>
-          <textarea id="css-input" class="code-input" spellcheck="false" dir="ltr" placeholder=".node rect { stroke-width: 2px; }"></textarea>
+          <textarea id="css-input" class="code-input" spellcheck="false" dir="ltr" aria-label="CSS اختصاصی نمودار" placeholder=".node rect { stroke-width: 2px; }"></textarea>
         </div>
       </div>
     </aside>

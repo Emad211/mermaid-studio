@@ -103,7 +103,7 @@ test('Nemodara editor exposes commands, diagnostics and a focused mobile workflo
     assert.equal(await page.$eval('#diagnostics-panel', (node) => node.classList.contains('is-clean')), true, `example failed: ${example}`);
     assert.equal(await page.$$eval('.error-icon, .error-text, [id^="dmstudio-"]', (nodes) => nodes.length), 0, `orphan render output: ${example}`);
     if (example === 'mindmap') {
-      assert.equal(await page.$eval('#stage > svg', (node) => node.classList.contains('mindmapDiagram')), true);
+      assert.equal(await page.$eval('#stage', (node) => node.shadowRoot?.querySelector('svg')?.classList.contains('mindmapDiagram')), true);
       assert.match(await page.$eval('#diagnostics-title', (node) => node.textContent), /نقشه ذهنی/);
     }
   }

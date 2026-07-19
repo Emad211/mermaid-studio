@@ -23,7 +23,7 @@ child.stderr.on('data', (chunk) => { output += chunk; });
 async function waitForHealth() {
   for (let attempt = 0; attempt < 80; attempt += 1) {
     try {
-      const response = await fetch(`${base}/api/health`);
+      const response = await fetch(`${base}/api/ready`);
       if (response.ok) return;
     } catch {
       // Server is still starting.
@@ -35,6 +35,7 @@ async function waitForHealth() {
 
 try {
   await waitForHealth();
+  assert.deepEqual(await (await fetch(`${base}/api/ready`)).json(), { ok: true });
   for (const route of ['/', '/editor', '/templates', '/learn', '/learn/flowchart-mermaid', '/privacy', '/terms']) {
     const response = await fetch(base + route, { redirect: 'manual' });
     assert.equal(response.status, 200, `${route} must return 200`);

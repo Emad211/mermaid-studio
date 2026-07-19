@@ -151,6 +151,10 @@ test('public health is minimal while operational health is authenticated', async
   assert.equal(publicHealth.status, 200);
   assert.deepEqual(Object.keys(JSON.parse(publicHealth.body)).sort(), ['ok', 'version']);
 
+  const publicReadiness = await request(server, '/api/ready');
+  assert.equal(publicReadiness.status, 200);
+  assert.deepEqual(JSON.parse(publicReadiness.body), { ok: true });
+
   const anonymous = await request(server, '/api/admin/health');
   assert.equal(anonymous.status, 401);
   const admin = await request(server, '/api/admin/health', { headers: { Authorization: basic() } });
@@ -159,6 +163,27 @@ test('public health is minimal while operational health is authenticated', async
   assert.equal(data.ok, true);
   assert.ok(data.analytics);
   assert.ok(data.render);
+});
+
+test('readiness fails closed without exposing storage errors', async (t) => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'nemodara-readiness-'));
+  const invalidDataDir = path.join(root, 'not-a-directory');
+  await fs.writeFile(invalidDataDir, 'occupied');
+  const server = await startServer({
+    port: 0,
+    host: '127.0.0.1',
+    environment: environment(invalidDataDir),
+    logger: { error() {} },
+  });
+  t.after(async () => {
+    await server.close();
+    await fs.rm(root, { recursive: true, force: true });
+  });
+
+  const response = await request(server, '/api/ready');
+  assert.equal(response.status, 503);
+  assert.deepEqual(JSON.parse(response.body), { ok: false });
+  assert.doesNotMatch(response.body, /not-a-directory|EEXIST|storage/i);
 });
 
 test('production GET rendering is disabled and POST remains the supported path', async (t) => {

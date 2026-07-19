@@ -129,6 +129,7 @@
 .journal-about > a { padding-bottom: 4px; border-bottom: 1px solid currentColor; color: var(--accent); white-space: nowrap; }
 
 .article-layout { grid-template-columns: minmax(0, 1fr) 248px; }
+.article-layout > .docs-main { min-width: 0; }
 
 .journal-article-hero {
   padding-bottom: clamp(34px, 6vw, 70px);
@@ -271,7 +272,7 @@
   .journal-grid { grid-template-columns: 1fr; }
   .journal-card--featured { grid-column: auto; padding-left: clamp(25px, 4vw, 44px); }
   .journal-about { grid-template-columns: 1fr; align-items: start; }
-  .article-layout { grid-template-columns: 1fr; }
+  .article-layout { grid-template-columns: minmax(0, 1fr); }
 }
 
 @media (max-width: 620px) {
@@ -289,7 +290,8 @@
   .article-section p,
   .article-section li { font-size: 1rem; line-height: 2.1; }
   .article-checklist { padding: 20px 18px; }
-  .article-table-wrap { margin-inline: -10px; }
+  .article-table-wrap { max-width: 100%; margin-inline: 0; }
+  .code-example { margin-inline: 0; }
 }
 
 @media print {

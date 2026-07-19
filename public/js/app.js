@@ -1,6 +1,7 @@
 /** Mermaid Studio — Persian-first GUI controller. */
 
 import { renderToSvg, detectType } from '/js/mermaid-runtime.js';
+import { mountSafeSvg } from '/js/svg-safety.js';
 import { createEditor } from '/js/editor.js';
 import { downloadSvg, downloadAs, copySvgText, copyImage } from '/js/exporter.js';
 import { buildShareUrl, readHashState } from '/js/share.js';
@@ -201,7 +202,9 @@ async function render() {
   $('#type-chip').textContent = detected ? TYPE_LABELS[detected] || detected : '—';
 
   if (!code) {
-    $('#stage').replaceChildren();
+    const stage = $('#stage');
+    stage.replaceChildren();
+    stage.shadowRoot?.replaceChildren();
     currentSvgEl = null;
     $('#dims').textContent = '';
     setStatus('کد نمودار خالی است', 'muted');
@@ -224,8 +227,7 @@ async function render() {
     if (sequence !== renderSequence) return;
 
     const stage = $('#stage');
-    stage.innerHTML = svg;
-    currentSvgEl = stage.querySelector('svg');
+    currentSvgEl = mountSafeSvg(stage, svg);
     if (!currentSvgEl) throw new Error('خروجی Mermaid شامل SVG معتبر نبود.');
 
     currentSvgEl.removeAttribute('height');

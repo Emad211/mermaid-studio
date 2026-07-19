@@ -60,9 +60,11 @@ Home       http://localhost:4321/
 Editor     http://localhost:4321/editor
 Admin      http://localhost:4321/admin/analytics
 Health     http://localhost:4321/api/health
+Readiness  http://localhost:4321/api/ready
 ```
 
 See the complete Persian guide: [`docs/LOCAL_DOCKER_FA.md`](docs/LOCAL_DOCKER_FA.md).
+For Hamravesh/Darkube production, use [`docs/HAMRAVESH_DEPLOY_FA.md`](docs/HAMRAVESH_DEPLOY_FA.md).
 
 ---
 

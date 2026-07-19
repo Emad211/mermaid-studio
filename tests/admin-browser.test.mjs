@@ -74,6 +74,13 @@ test('admin growth control center works in desktop and mobile browsers', { timeo
     };
   });
   const analyticsSidebar = await sidebarSignature();
+  await page.click('[data-admin-view="revenue"]');
+  await page.$eval('.admin-nav-item[href="/admin/content"]', (link) => {
+    link.addEventListener('click', (event) => event.preventDefault(), { capture: true, once: true });
+    link.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, ctrlKey: true }));
+  });
+  assert.equal(await page.evaluate(() => location.hash), '#revenue');
+  assert.equal(await page.$eval('[data-admin-view="revenue"]', (node) => node.classList.contains('is-active')), true);
   await Promise.all([
     page.waitForNavigation({ waitUntil: 'networkidle0' }),
     page.click('.admin-nav-item[href="/admin/content"]'),

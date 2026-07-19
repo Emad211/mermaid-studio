@@ -789,7 +789,7 @@ $('#copy-backup-command').addEventListener('click', async () => {
   catch { alert(command); }
 });
 
-$$('.admin-nav-item').forEach((button) => button.addEventListener('click', () => switchView(button.dataset.adminView)));
+$$('[data-admin-view]').forEach((button) => button.addEventListener('click', () => switchView(button.dataset.adminView)));
 $$('[data-jump-view]').forEach((button) => button.addEventListener('click', () => switchView(button.dataset.jumpView)));
 $('#alerts-list').addEventListener('click', (event) => { const card = event.target.closest('[data-alert-view]'); if (card) switchView(card.dataset.alertView); });
 $('#sidebar-toggle').addEventListener('click', () => document.body.classList.toggle('sidebar-open'));

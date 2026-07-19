@@ -379,7 +379,7 @@ export function createApp({ environment = process.env, logger = console } = {}) 
     app.use((req, res, next) => {
       const requestHostname = String(req.hostname || '').toLowerCase();
       if (requestHostname !== editorFrameHostname) return next();
-      if (req.path === '/ads/editor-frame' || req.path === '/api/health') return next();
+      if (req.path === '/ads/editor-frame' || req.path === '/api/health' || req.path === '/api/ready') return next();
       if (['GET', 'HEAD'].includes(req.method) && primarySiteOrigin) {
         return res.redirect(302, `${primarySiteOrigin}${req.originalUrl}`);
       }
@@ -772,6 +772,12 @@ export function createApp({ environment = process.env, logger = console } = {}) 
   app.get('/api/health', (_req, res) => {
     res.setHeader('Cache-Control', 'no-store');
     res.json({ ok: true, version: pkg.version });
+  });
+  app.get('/api/ready', async (_req, res) => {
+    res.setHeader('Cache-Control', 'no-store');
+    if (!state.analytics.config.enabled) return res.json({ ok: true });
+    const storage = await state.analytics.storageProbe();
+    return res.status(storage.writable ? 200 : 503).json({ ok: storage.writable });
   });
   app.get('/api/admin/health', adminLimit, adminAuth, (_req, res) => {
     res.setHeader('Cache-Control', 'no-store');

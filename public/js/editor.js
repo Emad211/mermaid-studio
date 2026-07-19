@@ -52,6 +52,7 @@ export function createEditor(textarea, { onChange, value = '' } = {}) {
           Tab: (editor) => editor.replaceSelection('  '),
         },
       });
+      cm.getInputField().setAttribute('aria-label', textarea.getAttribute('aria-label') || 'ویرایشگر کد Mermaid');
       cm.setValue(value);
       let timer = null;
       cm.on('change', () => {
