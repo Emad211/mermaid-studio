@@ -190,21 +190,44 @@ export function syncContentText(files, entries) {
   return { articles, tutorials, templates, seo, editorialTests };
 }
 
-async function loadEntries() {
-  const names = (await fs.readdir(CONTENT_DIR))
-    .filter((name) => name.endsWith('.json'))
-    .sort();
+async function readJson(filePath) {
+  return JSON.parse(await fs.readFile(filePath, 'utf8'));
+}
+
+async function readEntryCandidate(dirent) {
+  if (dirent.isFile() && dirent.name.endsWith('.json')) {
+    return { label: dirent.name, entry: await readJson(path.join(CONTENT_DIR, dirent.name)) };
+  }
+  if (!dirent.isDirectory()) return null;
+  const directory = path.join(CONTENT_DIR, dirent.name);
+  const [manifest, article, tutorial, template] = await Promise.all([
+    readJson(path.join(directory, 'manifest.json')),
+    readJson(path.join(directory, 'article.json')),
+    readJson(path.join(directory, 'tutorial.json')),
+    readJson(path.join(directory, 'template.json')),
+  ]);
+  return {
+    label: `${dirent.name}/manifest.json`,
+    entry: { ...manifest, article, tutorial, template },
+  };
+}
+
+export async function loadEntries() {
+  const dirents = (await fs.readdir(CONTENT_DIR, { withFileTypes: true }))
+    .filter((dirent) => dirent.isDirectory() || (dirent.isFile() && dirent.name.endsWith('.json')))
+    .sort((a, b) => a.name.localeCompare(b.name));
   const entries = [];
   const articleSlugs = new Set();
   const tutorialSlugs = new Set();
   const templateIds = new Set();
 
-  for (const name of names) {
-    const fullPath = path.join(CONTENT_DIR, name);
-    const entry = validateEntry(JSON.parse(await fs.readFile(fullPath, 'utf8')), name);
-    assert(!articleSlugs.has(entry.article.slug), `${name}: duplicate article slug`);
-    assert(!tutorialSlugs.has(entry.tutorial.slug), `${name}: duplicate tutorial slug`);
-    assert(!templateIds.has(entry.template.id), `${name}: duplicate template id`);
+  for (const dirent of dirents) {
+    const candidate = await readEntryCandidate(dirent);
+    if (!candidate) continue;
+    const entry = validateEntry(candidate.entry, candidate.label);
+    assert(!articleSlugs.has(entry.article.slug), `${candidate.label}: duplicate article slug`);
+    assert(!tutorialSlugs.has(entry.tutorial.slug), `${candidate.label}: duplicate tutorial slug`);
+    assert(!templateIds.has(entry.template.id), `${candidate.label}: duplicate template id`);
     articleSlugs.add(entry.article.slug);
     tutorialSlugs.add(entry.tutorial.slug);
     templateIds.add(entry.template.id);
