@@ -1,0 +1,139 @@
+{
+  "slug": "state-diagram-mermaid",
+  "shortTitle": "نمودار حالت",
+  "title": "آموزش State Diagram در Mermaid؛ از وضعیت ساده تا ماشین حالت حرفه‌ای",
+  "description": "آموزش گام‌به‌گام State Diagram در Mermaid با stateDiagram-v2، انتقال، choice، حالت مرکب، fork/join، Note و مثال چرخه سفارش.",
+  "keywords": [
+    "آموزش State Diagram Mermaid",
+    "stateDiagram-v2",
+    "نمودار ماشین حالت",
+    "نمودار وضعیت سفارش"
+  ],
+  "level": "مقدماتی تا پیشرفته",
+  "minutes": 22,
+  "published": "2026-07-21",
+  "updated": "2026-07-21",
+  "intro": "State Diagram رفتار یک موجودیت یا سیستم را با وضعیت‌ها و انتقال‌های مجاز نمایش می‌دهد. این نمودار برای چرخهٔ سفارش، تیکت پشتیبانی، نشست کاربر، دستگاه، پروتکل و هر مسئله‌ای که تعداد محدودی وضعیت مشخص دارد مناسب است. در این آموزش کدها با stateDiagram-v2 نوشته شده‌اند و می‌توانی آن‌ها را مستقیم در ادیتور نمودارا اجرا و ویرایش کنی.",
+  "learningOutcomes": [
+    "وضعیت شروع و پایان را تعریف کنی.",
+    "برای حالت‌ها نام فنی و برچسب فارسی جدا بسازی.",
+    "رویداد، شرط، choice و مسیرهای هم‌زمان را مدل کنی.",
+    "ماشین حالت چرخهٔ سفارش را به یک سند قابل بازبینی تبدیل کنی."
+  ],
+  "sections": [
+    {
+      "id": "first-state-diagram",
+      "title": "ساخت اولین State Diagram",
+      "paragraphs": [
+        "خط نخست را با stateDiagram-v2 شروع کنید. نشانهٔ [*] در ابتدای فلش وضعیت شروع و در انتهای فلش وضعیت پایان را نشان می‌دهد. هر نامی که در دو طرف فلش نوشته شود یک state است و Mermaid آن را خودکار ایجاد می‌کند.",
+        "در نمونهٔ زیر سفارش ابتدا در وضعیت Draft قرار می‌گیرد، با ثبت نهایی وارد PendingPayment می‌شود و پس از پرداخت یا لغو به پایان می‌رسد. برچسب پس از دونقطه توضیح می‌دهد کدام رویداد انتقال را ایجاد کرده است."
+      ],
+      "code": "stateDiagram-v2\n  [*] --> Draft\n  Draft --> PendingPayment: ثبت سفارش\n  PendingPayment --> Paid: پرداخت موفق\n  PendingPayment --> Cancelled: انصراف کاربر\n  Paid --> [*]\n  Cancelled --> [*]",
+      "codeLabel": "ماشین حالت سادهٔ سفارش"
+    },
+    {
+      "id": "aliases-persian-labels",
+      "title": "شناسهٔ فنی و برچسب فارسی",
+      "paragraphs": [
+        "شناسهٔ state را کوتاه، انگلیسی و پایدار نگه دارید تا تغییر متن فارسی باعث تغییر ارجاع‌ها نشود. برای نمایش عنوان فارسی از ساختار state \"عنوان\" as Id استفاده کنید. این الگو در تیم‌هایی که کد، دیتابیس و نمودار را هم‌زمان نگه می‌دارند بسیار مفید است.",
+        "نام فنی بهتر است با enum یا قرارداد API هماهنگ باشد. اگر در کد از PENDING_PAYMENT استفاده می‌کنید، در نمودار نیز شناسه‌ای نزدیک به PendingPayment انتخاب کنید و ترجمهٔ انسانی را فقط در label قرار دهید."
+      ],
+      "code": "stateDiagram-v2\n  state \"پیش‌نویس\" as Draft\n  state \"در انتظار پرداخت\" as PendingPayment\n  state \"پرداخت‌شده\" as Paid\n  [*] --> Draft\n  Draft --> PendingPayment: submit\n  PendingPayment --> Paid: payment_succeeded",
+      "codeLabel": "جداکردن نام فنی از متن نمایشی"
+    },
+    {
+      "id": "events-guards",
+      "title": "رویداد، Guard و Action را روی انتقال بنویسید",
+      "paragraphs": [
+        "Mermaid متن پس از دونقطه را به‌عنوان label انتقال نمایش می‌دهد. برای خوانایی می‌توانید از قرارداد event [guard] / action استفاده کنید؛ Mermaid این عبارت را اجرا نمی‌کند، اما به تیم کمک می‌کند منطق انتقال را دقیق و یکدست مستند کند.",
+        "Guard باید شرطی باشد که در لحظهٔ رویداد بررسی می‌شود. وضعیت را با شرط اشتباه نگیرید. «موجودی تأیید شده» می‌تواند نتیجهٔ یک بررسی باشد، اما اگر قرار نیست موجودیت برای مدتی در آن باقی بماند، بهتر است روی transition نوشته شود نه به‌عنوان state مستقل."
+      ],
+      "code": "stateDiagram-v2\n  PendingPayment --> Paid: payment_succeeded [amount_valid]\n  Paid --> Preparing: inventory_checked [available] / reserve_items\n  Paid --> Refunded: inventory_checked [unavailable] / refund",
+      "codeLabel": "قرارداد پیشنهادی برای برچسب انتقال"
+    },
+    {
+      "id": "choice",
+      "title": "شاخه‌سازی با Choice",
+      "paragraphs": [
+        "وقتی یک رویداد به چند مقصد احتمالی منتهی می‌شود، یک state از نوع choice تعریف کنید. خروجی‌های choice باید با شرط‌های کوتاه و متقابل برچسب‌گذاری شوند تا مشخص باشد در هر حالت کدام مسیر انتخاب می‌شود.",
+        "Choice را برای تصمیم واقعی دامنه به‌کار ببرید، نه برای هر if داخلی. اگر جزئیات تصمیم فقط در سطح پیاده‌سازی اهمیت دارد، یک Flowchart جداگانه خواناتر خواهد بود."
+      ],
+      "code": "stateDiagram-v2\n  state stockResult <<choice>>\n  Paid --> stockResult: بررسی موجودی\n  stockResult --> Preparing: موجود است\n  stockResult --> Refunded: ناموجود است",
+      "codeLabel": "انتخاب مسیر براساس نتیجهٔ موجودی"
+    },
+    {
+      "id": "composite-states",
+      "title": "گروه‌بندی با Composite State",
+      "paragraphs": [
+        "برای چرخه‌های بزرگ می‌توانید چند وضعیت داخلی را داخل یک state مرکب قرار دهید. این کار سطح اصلی نمودار را ساده نگه می‌دارد و جزئیات مرحله‌ای مانند آماده‌سازی، بسته‌بندی و تحویل به پست را در یک مرز مشخص جمع می‌کند.",
+        "درون هر composite state می‌توان شروع و پایان مستقل تعریف کرد. از تو در تو کردن چندلایه فقط زمانی استفاده کنید که واقعاً یک سلسله‌مراتب رفتاری وجود دارد؛ در غیر این صورت چند نمودار کوچک نگهداری ساده‌تری دارند."
+      ],
+      "code": "stateDiagram-v2\n  [*] --> Paid\n  state Fulfillment {\n    [*] --> Preparing\n    Preparing --> Packed: بسته‌بندی کامل\n    Packed --> Shipped: تحویل به پست\n    Shipped --> [*]\n  }\n  Paid --> Fulfillment: آغاز پردازش\n  Fulfillment --> Delivered: تحویل موفق\n  Delivered --> [*]",
+      "codeLabel": "وضعیت مرکب پردازش و ارسال"
+    },
+    {
+      "id": "fork-join",
+      "title": "پردازش هم‌زمان با Fork و Join",
+      "paragraphs": [
+        "اگر پس از یک رویداد چند بررسی مستقل هم‌زمان شروع می‌شوند، از fork برای تقسیم مسیر و join برای پیوستن دوباره استفاده کنید. نمونهٔ رایج آن بررسی موجودی و کنترل تقلب پس از پرداخت است.",
+        "Fork به معنی اجرای واقعی هم‌زمان در نرم‌افزار نیست؛ فقط مدل رفتاری را نشان می‌دهد. جزئیات صف، زمان‌بندی و retry را در Sequence Diagram یا مستند اجرایی مکمل توضیح دهید."
+      ],
+      "code": "stateDiagram-v2\n  state verifyFork <<fork>>\n  state verifyJoin <<join>>\n  Paid --> verifyFork\n  verifyFork --> InventoryCheck\n  verifyFork --> FraudCheck\n  InventoryCheck --> verifyJoin: تأیید\n  FraudCheck --> verifyJoin: تأیید\n  verifyJoin --> Preparing",
+      "codeLabel": "دو بررسی مستقل پس از پرداخت"
+    },
+    {
+      "id": "notes-direction-style",
+      "title": "Note، جهت و استایل",
+      "paragraphs": [
+        "با direction LR می‌توانید نمودار را افقی کنید. Note برای ثبت محدودیت مهمی مناسب است که از روی نام وضعیت یا انتقال روشن نیست؛ مانند مهلت پرداخت یا سیاست بازپرداخت. یادداشت را کوتاه نگه دارید تا جای منطق اصلی را نگیرد.",
+        "برای تأکید محدود از classDef استفاده کنید. رنگ باید معنای ثابتی داشته باشد و تنها حامل اطلاعات نباشد؛ عنوان، شکل و متن باید در چاپ سیاه‌وسفید نیز قابل فهم بمانند."
+      ],
+      "code": "stateDiagram-v2\n  direction LR\n  [*] --> PendingPayment\n  PendingPayment --> Paid: پرداخت موفق\n  Paid --> Delivered: تحویل\n  note right of PendingPayment\n    مهلت پرداخت ۱۵ دقیقه است\n  end note\n  classDef success fill:#dcfce7,stroke:#16a34a,color:#14532d\n  class Delivered success",
+      "codeLabel": "چیدمان افقی، یادداشت و تأکید محدود"
+    },
+    {
+      "id": "complete-order-example",
+      "title": "مثال کامل چرخهٔ سفارش",
+      "paragraphs": [
+        "نمونهٔ زیر نقطهٔ شروع مناسبی برای فروشگاه است. قبل از استفاده، نام وضعیت‌ها و انتقال‌ها را با قواعد واقعی محصول خود تطبیق دهید. اگر بازپرداخت، مرجوعی یا تحویل ناموفق رفتار متفاوتی دارد، آن را صریح اضافه کنید.",
+        "منبع Mermaid را کنار تعریف وضعیت‌های backend نگه دارید و در Pull Requestهایی که enum، transition یا policy را تغییر می‌دهند، نمودار را نیز بازبینی کنید. خروجی SVG برای مستندات و فایل .mmd برای نگهداری مناسب است."
+      ],
+      "code": "stateDiagram-v2\n  direction LR\n  state \"پیش‌نویس\" as Draft\n  state \"در انتظار پرداخت\" as PendingPayment\n  state \"پرداخت‌شده\" as Paid\n  state \"آماده‌سازی\" as Preparing\n  state \"ارسال‌شده\" as Shipped\n  state \"تحویل‌شده\" as Delivered\n  state \"لغوشده\" as Cancelled\n  state \"مرجوع‌شده\" as Returned\n  state \"بازپرداخت‌شده\" as Refunded\n\n  [*] --> Draft\n  Draft --> PendingPayment: ثبت نهایی\n  PendingPayment --> Paid: پرداخت موفق\n  PendingPayment --> Cancelled: انصراف یا انقضا\n  Paid --> Preparing: تأیید موجودی\n  Paid --> Refunded: عدم تأمین\n  Preparing --> Shipped: تحویل به پست\n  Shipped --> Delivered: تحویل موفق\n  Shipped --> Returned: برگشت مرسوله\n  Delivered --> Returned: درخواست مرجوعی\n  Returned --> Refunded: تأیید بازپرداخت\n  Delivered --> [*]\n  Cancelled --> [*]\n  Refunded --> [*]",
+      "codeLabel": "قالب قابل ویرایش چرخهٔ سفارش"
+    },
+    {
+      "id": "common-errors",
+      "title": "خطاهای رایج و چک‌لیست بازبینی",
+      "paragraphs": [
+        "خطاهای رایج شامل استفاده از stateDiagram قدیمی به‌جای stateDiagram-v2، شناسهٔ دارای فاصله، فراموش‌کردن end note، انتقال‌های بی‌برچسب و ساخت وضعیت‌هایی است که در واقع عملیات لحظه‌ای هستند. نمودار را از نمونهٔ کوچک شروع کنید و بخش‌ها را تدریجی اضافه کنید.",
+        "اعتبار سینتکس کافی نیست. ماشین حالت باید از نظر دامنه نیز درست باشد. انتقال‌های غیرمجاز، وضعیت‌های بدون خروج، مسیرهای خطا و رفتار timeout را با توسعه‌دهنده و مالک محصول بازبینی کنید."
+      ],
+      "bullets": [
+        "هر وضعیت تعریف روشن و بدون هم‌پوشانی دارد.",
+        "هر انتقال مهم یک رویداد یا دلیل مشخص دارد.",
+        "شروع، پایان، لغو و خطا دیده شده‌اند.",
+        "نام‌های فنی با enum، API و دیتابیس هماهنگ‌اند.",
+        "کد نمونه در نسخهٔ فعلی Mermaid رندر شده است."
+      ],
+      "note": "State Diagram قرارداد رفتاری را خلاصه می‌کند؛ جای تست، اعتبارسنجی backend یا مستند کامل قواعد کسب‌وکار را نمی‌گیرد."
+    }
+  ],
+  "faq": [
+    [
+      "تفاوت stateDiagram و stateDiagram-v2 چیست؟",
+      "stateDiagram-v2 رندرر فعلی و پیشنهادی Mermaid است. برای محتوای جدید از نسخهٔ v2 استفاده کنید، مگر اینکه سازگاری با محیط بسیار قدیمی الزام باشد."
+    ],
+    [
+      "آیا می‌توان متن وضعیت‌ها را فارسی نوشت؟",
+      "بله. بهتر است شناسهٔ فنی انگلیسی بماند و عنوان فارسی با ساختار state \"عنوان\" as Id تعریف شود تا ارجاع‌ها پایدار باشند."
+    ],
+    [
+      "چه زمانی از Choice استفاده کنم؟",
+      "وقتی یک رویداد یا نتیجهٔ بررسی می‌تواند براساس شرط‌های مشخص به چند وضعیت مقصد منتهی شود. برای جزئیات الگوریتمی ریز، Flowchart جداگانه مناسب‌تر است."
+    ],
+    [
+      "آیا State Diagram جای Sequence Diagram را می‌گیرد؟",
+      "خیر. State Diagram چرخهٔ وضعیت یک موجودیت را نشان می‌دهد؛ Sequence Diagram ترتیب پیام‌ها میان کاربر، سرویس‌ها و دیتابیس را در یک سناریو نمایش می‌دهد."
+    ]
+  ]
+}
