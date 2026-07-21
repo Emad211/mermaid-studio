@@ -11,10 +11,13 @@ import {
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
-const entry = JSON.parse(fs.readFileSync(
-  path.join(ROOT, 'content', 'daily', '2026-07-21-state-diagram.json'),
-  'utf8',
-));
+const packageDir = path.join(ROOT, 'content', 'daily', '2026-07-21-state-diagram');
+const entry = {
+  ...JSON.parse(fs.readFileSync(path.join(packageDir, 'manifest.json'), 'utf8')),
+  article: JSON.parse(fs.readFileSync(path.join(packageDir, 'article.json'), 'utf8')),
+  tutorial: JSON.parse(fs.readFileSync(path.join(packageDir, 'tutorial.json'), 'utf8')),
+  template: JSON.parse(fs.readFileSync(path.join(packageDir, 'template.json'), 'utf8')),
+};
 
 function fixtures() {
   return {
