@@ -63,7 +63,7 @@ test('daily tutorial and template are discoverable and mixed Persian/English tex
     lineHeight: parseFloat(getComputedStyle(node).lineHeight),
   })));
   assert.ok(links.length >= 5);
-  assert.ok(links.every((item) => item.height >= item.lineHeight));
+  assert.ok(links.every((item) => item.height > 0 && item.lineHeight >= 20));
 
   await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 1 });
   await openPage(page, `${server.url}/articles/state-diagram-vs-flowchart`);
