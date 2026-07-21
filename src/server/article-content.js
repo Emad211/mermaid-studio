@@ -8,6 +8,154 @@ const AUTHOR = Object.freeze({
 
 export const EDITORIAL_ARTICLES = [
   {
+    "slug": "state-diagram-vs-flowchart",
+    "category": "مدل‌سازی رفتار",
+    "title": "State Diagram یا Flowchart؟ راهنمای انتخاب برای مدل‌سازی رفتار سیستم",
+    "description": "تفاوت State Diagram و Flowchart را با مثال چرخه سفارش، معیار انتخاب، خطاهای رایج و کد Mermaid قابل ویرایش یاد بگیرید.",
+    "deck": "هر دو نمودار جعبه و فلش دارند، اما به دو سؤال متفاوت پاسخ می‌دهند: فلوچارت مسیر انجام کار را نشان می‌دهد و State Diagram توضیح می‌دهد یک موجودیت در چه وضعیت‌هایی قرار می‌گیرد و با چه رویدادی تغییر می‌کند.",
+    "keywords": [
+      "تفاوت State Diagram و Flowchart",
+      "نمودار ماشین حالت",
+      "نمودار وضعیت",
+      "stateDiagram-v2"
+    ],
+    "published": "2026-07-21",
+    "updated": "2026-07-21",
+    "minutes": 16,
+    "author": {
+      "name": "تحریریهٔ نمودارا",
+      "role": "آموزش مستندسازی فنی و نمودار به‌صورت کد",
+      "url": "/about#editorial"
+    },
+    "testedWith": "Mermaid 11.16.0 و ادیتور نمودارا",
+    "takeaways": [
+      "از روی سؤال مسئله تشخیص بدهی State Diagram لازم است یا Flowchart.",
+      "چرخهٔ عمر یک سفارش، تیکت یا سند را بدون ابهام مدل کنی.",
+      "رویداد، شرط و وضعیت را با مرحلهٔ اجرایی اشتباه نگیری.",
+      "برای یک قابلیت پیچیده از ترکیب هدفمند چند نمودار استفاده کنی."
+    ],
+    "sections": [
+      {
+        "id": "different-questions",
+        "title": "شباهت ظاهری، سؤال متفاوت",
+        "paragraphs": [
+          "در هر دو نمودار چند شکل با فلش به هم متصل می‌شوند و همین شباهت باعث می‌شود انتخاب میان آن‌ها ساده به نظر برسد. تفاوت اصلی در شکل‌ها نیست؛ در چیزی است که هر فلش معنا می‌کند. در Flowchart، فلش معمولاً حرکت اجرای فرایند از یک مرحله به مرحلهٔ بعد را نشان می‌دهد. در State Diagram، فلش تغییر وضعیت یک موجودیت در واکنش به یک رویداد را ثبت می‌کند.",
+          "پیش از بازکردن ادیتور، سؤال را در یک جمله بنویسید. اگر می‌پرسید «کاربر برای ثبت سفارش چه مراحلی را طی می‌کند؟» به احتمال زیاد فلوچارت مناسب‌تر است. اگر می‌پرسید «سفارش از ایجاد تا تحویل چه وضعیت‌هایی دارد و چه رخدادی آن را تغییر می‌دهد؟» با یک ماشین حالت روبه‌رو هستید."
+        ],
+        "note": "نام نمودار را از روی عادت انتخاب نکنید. نخست مشخص کنید موضوع شما «جریان کار» است یا «چرخهٔ عمر یک موجودیت»."
+      },
+      {
+        "id": "state-diagram",
+        "title": "State Diagram چه چیزی را مدل می‌کند؟",
+        "paragraphs": [
+          "State Diagram مجموعه‌ای محدود از وضعیت‌ها و انتقال‌های مجاز میان آن‌ها را توصیف می‌کند. وضعیت باید در یک بازهٔ زمانی معنی‌دار باقی بماند؛ مانند «در انتظار پرداخت»، «آماده‌سازی»، «ارسال‌شده» یا «لغوشده». رویداد نیز چیزی است که اجازه می‌دهد موجودیت از یک وضعیت به وضعیت دیگر برود؛ مانند پرداخت موفق، انقضای مهلت یا تحویل مرسوله.",
+          "ارزش اصلی این نمودار آشکارکردن انتقال‌های غیرمجاز و وضعیت‌های فراموش‌شده است. وقتی چرخهٔ عمر سفارش را می‌نویسید، می‌توانید دقیق ببینید آیا از «لغوشده» راهی به «ارسال‌شده» وجود دارد، بازپرداخت از کدام وضعیت‌ها ممکن است و پایان واقعی فرایند کجاست."
+        ],
+        "bullets": [
+          "وضعیت: شرایط پایدار و قابل نام‌گذاری موجودیت.",
+          "رویداد: اتفاقی که بررسی انتقال را آغاز می‌کند.",
+          "Guard یا شرط: قاعده‌ای که باید برای انتقال برقرار باشد.",
+          "Transition: تغییر مجاز از وضعیت مبدأ به مقصد."
+        ],
+        "code": "stateDiagram-v2\n  [*] --> PendingPayment\n  PendingPayment: در انتظار پرداخت\n  Paid: پرداخت‌شده\n  Cancelled: لغوشده\n  PendingPayment --> Paid: پرداخت موفق\n  PendingPayment --> Cancelled: انقضای مهلت\n  Paid --> [*]\n  Cancelled --> [*]",
+        "codeLabel": "ماشین حالت حداقلی برای پرداخت سفارش"
+      },
+      {
+        "id": "flowchart",
+        "title": "Flowchart چه چیزی را بهتر نشان می‌دهد؟",
+        "paragraphs": [
+          "Flowchart برای نمایش ترتیب عملیات، تصمیم‌ها، ورودی‌ها و خروجی‌های یک فرایند مناسب است. تمرکز آن روی این است که «بعد چه کاری انجام می‌شود؟» نه اینکه موجودیت در طول عمر خود چه وضعیت پایداری دارد. به همین دلیل برای الگوریتم، گردش تأیید، فرم چندمرحله‌ای و مسیر رسیدگی به درخواست انتخاب خوبی است.",
+          "در فلوچارت یک مرحله می‌تواند تنها چند میلی‌ثانیه طول بکشد؛ مانند اعتبارسنجی موجودی یا محاسبهٔ هزینهٔ ارسال. چنین عملیاتی معمولاً وضعیت دامنه نیستند. اگر هر عمل کوچک را به‌عنوان state بنویسید، ماشین حالت به فهرست دستورات تبدیل می‌شود و معنای رفتاری خود را از دست می‌دهد."
+        ],
+        "code": "flowchart TD\n  A[دریافت سفارش] --> B{پرداخت معتبر است؟}\n  B -- خیر --> C[نمایش خطا]\n  B -- بله --> D[بررسی موجودی]\n  D --> E{کالا موجود است؟}\n  E -- خیر --> F[شروع بازپرداخت]\n  E -- بله --> G[ارسال برای بسته‌بندی]",
+        "codeLabel": "جریان پردازش یک درخواست سفارش"
+      },
+      {
+        "id": "comparison",
+        "title": "جدول انتخاب سریع",
+        "paragraphs": [
+          "هیچ‌کدام ذاتاً حرفه‌ای‌تر از دیگری نیست. نمودار درست، نموداری است که پرسش مخاطب را با کمترین ابهام پاسخ دهد. جدول زیر یک نقطهٔ شروع برای انتخاب است."
+        ],
+        "table": {
+          "headers": [
+            "معیار",
+            "State Diagram",
+            "Flowchart"
+          ],
+          "rows": [
+            [
+              "سؤال اصلی",
+              "موجودیت اکنون در چه وضعیتی است و چگونه تغییر می‌کند؟",
+              "کار از چه مراحلی عبور می‌کند؟"
+            ],
+            [
+              "تمرکز",
+              "چرخهٔ عمر و رفتار",
+              "ترتیب عملیات و تصمیم"
+            ],
+            [
+              "معنای گره",
+              "وضعیت پایدار",
+              "مرحله، عمل، ورودی یا تصمیم"
+            ],
+            [
+              "معنای فلش",
+              "انتقال ناشی از رویداد",
+              "ادامهٔ مسیر اجرا"
+            ],
+            [
+              "نمونهٔ مناسب",
+              "سفارش، تیکت، نشست کاربر، سند",
+              "ثبت‌نام، تأیید درخواست، الگوریتم، رویه"
+            ],
+            [
+              "خطای رایج",
+              "تبدیل هر عملیات کوچک به state",
+              "استفاده از مرحله به‌جای وضعیت واقعی دامنه"
+            ]
+          ]
+        }
+      },
+      {
+        "id": "same-order-two-views",
+        "title": "یک سفارش، دو نمای مکمل",
+        "paragraphs": [
+          "برای سامانهٔ سفارش، State Diagram می‌گوید رکورد سفارش چه وضعیت‌هایی دارد و کدام انتقال‌ها مجازند. فلوچارت می‌گوید هنگام دریافت درخواست پرداخت، سرویس چه کنترل‌هایی انجام می‌دهد. این دو تصویر رقیب نیستند؛ هر کدام بخشی از مسئله را روشن می‌کند.",
+          "در مستندات اجرایی، ماشین حالت را کنار تعریف enum یا قواعد دامنه نگه دارید و فلوچارت را کنار سناریوی پردازش یا Runbook قرار دهید. نام وضعیت‌ها باید با دیتابیس، API، رویدادها و داشبورد عملیات یکسان باشد تا نمودار هنگام خطا نیز قابل استفاده بماند."
+        ],
+        "checklist": [
+          "برای هر state یک تعریف کوتاه و بدون هم‌پوشانی بنویسید.",
+          "روی هر transition رویداد یا دلیل تغییر را مشخص کنید.",
+          "مسیرهای لغو، خطا، timeout و بازگشت را فراموش نکنید.",
+          "وضعیت نهایی را از مرحلهٔ موقت تشخیص دهید.",
+          "نمودار را با کد، migration و قرارداد API بازبینی کنید."
+        ]
+      },
+      {
+        "id": "decision-rule",
+        "title": "قانون تصمیم سی‌ثانیه‌ای",
+        "paragraphs": [
+          "یک اسم از دامنه انتخاب کنید؛ مثلاً سفارش، تیکت یا اشتراک. اگر می‌توانید بگویید «این موجودیت الآن X است» و X برای مدتی باقی می‌ماند، State Diagram نامزد خوبی است. اگر جملهٔ طبیعی شما «سیستم ابتدا این کار را انجام می‌دهد و سپس آن کار را» است، از Flowchart شروع کنید.",
+          "وقتی هر دو جمله درست‌اند، دو نمودار کوچک بسازید. تلاش برای نمایش چرخهٔ عمر، ترتیب فراخوانی سرویس‌ها، تصمیم‌های کسب‌وکار و جزئیات دیتابیس در یک تصویر، معمولاً به نموداری شلوغ منتهی می‌شود که هیچ‌یک از مخاطبان آن را کامل نمی‌فهمند."
+        ],
+        "quote": "State Diagram دربارهٔ «بودن» و «تغییر وضعیت» است؛ Flowchart دربارهٔ «انجام‌دادن» و «ادامهٔ مسیر»."
+      },
+      {
+        "id": "common-mistakes",
+        "title": "چهار اشتباه که مدل را غیرقابل اعتماد می‌کند",
+        "paragraphs": [
+          "نخست، نام‌گذاری مبهم مانند «در حال پردازش» که معلوم نیست چه مسئولیتی، چه مالکیتی و چه خروجی‌ای دارد. دوم، انتقال بدون رویداد که خواننده را مجبور می‌کند دلیل تغییر را حدس بزند. سوم، حذف مسیرهای شکست و لغو که تصویر را خوش‌بینانه اما غیرواقعی می‌کند. چهارم، تغییر تاریخ بازبینی بدون بررسی واقعی کد و رفتار.",
+          "هر بار که وضعیت جدیدی به محصول اضافه می‌شود، نمودار را در همان Pull Request بازبینی کنید. اگر منبع حقیقت enum، جدول یا موتور workflow است، لینک آن را کنار نمودار قرار دهید و نمونهٔ Mermaid را در CI رندر کنید تا خطای نگارشی وارد مستندات اصلی نشود."
+        ]
+      }
+    ],
+    "relatedLearn": [
+      "state-diagram-mermaid",
+      "flowchart-mermaid",
+      "sequence-diagram-mermaid"
+    ]
+  },
+  {
     slug: 'diagram-as-code-for-teams',
     category: 'مستندسازی',
     title: 'نمودار به‌صورت کد؛ چه وقت انتخاب خوبی است و چه وقت نه؟',
@@ -341,6 +489,15 @@ export const EDITORIAL_ARTICLES = [
 
 const ARTICLE_MAP = new Map(EDITORIAL_ARTICLES.map((article) => [article.slug, article]));
 
+function formatPersianDate(value) {
+  const date = new Date(`${String(value || UPDATED)}T00:00:00.000Z`);
+  if (Number.isNaN(date.getTime())) return '';
+  return new Intl.DateTimeFormat('fa-IR', {
+    dateStyle: 'long',
+    timeZone: 'UTC',
+  }).format(date);
+}
+
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, (character) => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
@@ -383,6 +540,7 @@ function relatedLearnLinks(slugs) {
     'er-diagram-mermaid': 'آموزش ER Diagram',
     'class-diagram-mermaid': 'آموزش Class Diagram',
     'architecture-diagram-mermaid': 'آموزش نمودار معماری',
+    'state-diagram-mermaid': 'آموزش State Diagram',
   };
   return (slugs || []).map((slug) => `<a href="/learn/${escapeHtml(slug)}">${escapeHtml(titles[slug] || slug)}</a>`).join('');
 }
@@ -426,7 +584,7 @@ export function renderEditorialArticle(slug) {
   if (!article) return null;
   const toc = article.sections.map((section) => `<a href="#${escapeHtml(section.id)}">${escapeHtml(section.title)}</a>`).join('');
   const related = relatedLearnLinks(article.relatedLearn);
-  return `<!doctype html><html lang="fa" dir="rtl" data-theme="light"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="theme-color" content="#f5f3ed"/><title>${escapeHtml(article.title)}</title><meta name="description" content="${escapeHtml(article.description)}"/><link rel="icon" href="/logo.svg" type="image/svg+xml"/><link rel="stylesheet" href="/css/landing.css?v=%V%"/><link rel="stylesheet" href="/css/docs.css?v=%V%"/><link rel="stylesheet" href="/css/articles.css?v=%V%"/><link rel="stylesheet" href="/css/ads.css?v=%V%"/></head><body class="docs-body journal-body"><div class="reading-progress" aria-hidden="true"><span id="reading-progress-bar"></span></div><header class="docs-header"><a class="brand" href="/" aria-label="نمودارا"><img src="/logo.svg" width="38" height="38" alt=""/><span class="brand-copy"><strong>نمودارا</strong><small>مجلهٔ مستندسازی فنی</small></span></a><nav><a href="/learn">آموزش</a><a href="/articles">مقاله‌ها</a><a href="/about">درباره</a></nav><a class="button button-small" href="/editor">ادیتور</a></header><main class="docs-shell article-layout"><div class="docs-main"><nav class="breadcrumbs" aria-label="مسیر صفحه"><a href="/">خانه</a><span>←</span><a href="/articles">مقاله‌ها</a><span>←</span><span>${escapeHtml(article.category)}</span></nav><article><header class="doc-hero journal-article-hero"><div class="article-category">${escapeHtml(article.category)}</div><h1>${escapeHtml(article.title)}</h1><p class="doc-deck">${escapeHtml(article.deck)}</p><div class="byline"><a href="${article.author.url}">${escapeHtml(article.author.name)}</a><span>${escapeHtml(article.author.role)}</span></div><div class="doc-meta"><span>${article.minutes.toLocaleString('fa-IR')} دقیقه مطالعه</span><span>انتشار و بازبینی: ۲۴ تیر ۱۴۰۵</span><span>تست‌شده با ${escapeHtml(article.testedWith)}</span></div></header><details class="mobile-toc"><summary>فهرست مقاله</summary><nav>${toc}</nav></details><aside class="ad-slot ad-slot--article-lead" data-ad-slot="articleTop" data-ad-format="article" hidden aria-label="تبلیغات"><span class="ad-slot__label">تبلیغات</span><a class="ad-slot__privacy" href="/privacy#advertising">درباره تبلیغات</a><div class="ad-slot__mount" data-ad-mount></div></aside><div class="doc-article journal-article"><section class="article-summary"><span>بعد از خواندن این مقاله</span><h2>می‌توانی این تصمیم‌ها را دقیق‌تر بگیری</h2><ul>${article.takeaways.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul></section>${article.sections.map((section, index) => `${renderSection(section, index)}${index === 1 ? '<aside class="ad-slot ad-slot--in-article" data-ad-slot="articleMid" data-ad-format="article" hidden aria-label="تبلیغات"><span class="ad-slot__label">تبلیغات</span><a class="ad-slot__privacy" href="/privacy#advertising">درباره تبلیغات</a><div class="ad-slot__mount" data-ad-mount></div></aside>' : ''}`).join('')}<section class="editorial-method"><p class="section-kicker">این مقاله چطور آماده شد؟</p><h2>مثال‌ها رندر شده‌اند؛ ادعاها به تجربهٔ استفاده محدود شده‌اند.</h2><p>کدهای این صفحه با نسخهٔ فعلی Mermaid در تست‌های پروژه اجرا می‌شوند. دربارهٔ رتبه، درآمد یا نتیجه‌ای که دادهٔ واقعی نداریم وعده نمی‌دهیم. جزئیات در <a href="/editorial-policy">سیاست تحریریه</a> نوشته شده است.</p></section><section class="related-reading"><h2>برای تمرین عملی</h2><div>${related}</div></section></div></article><aside class="ad-slot ad-slot--article-end" data-ad-slot="articleEnd" data-ad-format="article" hidden aria-label="تبلیغات"><span class="ad-slot__label">تبلیغات</span><a class="ad-slot__privacy" href="/privacy#advertising">درباره تبلیغات</a><div class="ad-slot__mount" data-ad-mount></div></aside></div><aside class="docs-sidebar"><h2>در این مقاله</h2><nav data-article-toc>${toc}</nav><div class="sidebar-author"><span>نوشته و بازبینی</span><strong>${escapeHtml(article.author.name)}</strong><a href="/editorial-policy">روش تحریریه</a></div><a class="sidebar-cta" href="/editor">امتحان در ادیتور</a></aside></main><script type="module" src="/js/docs.js?v=%V%"></script><script type="module" src="/js/ads.js?v=%V%"></script></body></html>`;
+  return `<!doctype html><html lang="fa" dir="rtl" data-theme="light"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="theme-color" content="#f5f3ed"/><title>${escapeHtml(article.title)}</title><meta name="description" content="${escapeHtml(article.description)}"/><link rel="icon" href="/logo.svg" type="image/svg+xml"/><link rel="stylesheet" href="/css/landing.css?v=%V%"/><link rel="stylesheet" href="/css/docs.css?v=%V%"/><link rel="stylesheet" href="/css/articles.css?v=%V%"/><link rel="stylesheet" href="/css/ads.css?v=%V%"/></head><body class="docs-body journal-body"><div class="reading-progress" aria-hidden="true"><span id="reading-progress-bar"></span></div><header class="docs-header"><a class="brand" href="/" aria-label="نمودارا"><img src="/logo.svg" width="38" height="38" alt=""/><span class="brand-copy"><strong>نمودارا</strong><small>مجلهٔ مستندسازی فنی</small></span></a><nav><a href="/learn">آموزش</a><a href="/articles">مقاله‌ها</a><a href="/about">درباره</a></nav><a class="button button-small" href="/editor">ادیتور</a></header><main class="docs-shell article-layout"><div class="docs-main"><nav class="breadcrumbs" aria-label="مسیر صفحه"><a href="/">خانه</a><span>←</span><a href="/articles">مقاله‌ها</a><span>←</span><span>${escapeHtml(article.category)}</span></nav><article><header class="doc-hero journal-article-hero"><div class="article-category">${escapeHtml(article.category)}</div><h1>${escapeHtml(article.title)}</h1><p class="doc-deck">${escapeHtml(article.deck)}</p><div class="byline"><a href="${article.author.url}">${escapeHtml(article.author.name)}</a><span>${escapeHtml(article.author.role)}</span></div><div class="doc-meta"><span>${article.minutes.toLocaleString('fa-IR')} دقیقه مطالعه</span><span>انتشار و بازبینی: ${formatPersianDate(article.updated || article.published)}</span><span>تست‌شده با ${escapeHtml(article.testedWith)}</span></div></header><details class="mobile-toc"><summary>فهرست مقاله</summary><nav>${toc}</nav></details><aside class="ad-slot ad-slot--article-lead" data-ad-slot="articleTop" data-ad-format="article" hidden aria-label="تبلیغات"><span class="ad-slot__label">تبلیغات</span><a class="ad-slot__privacy" href="/privacy#advertising">درباره تبلیغات</a><div class="ad-slot__mount" data-ad-mount></div></aside><div class="doc-article journal-article"><section class="article-summary"><span>بعد از خواندن این مقاله</span><h2>می‌توانی این تصمیم‌ها را دقیق‌تر بگیری</h2><ul>${article.takeaways.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul></section>${article.sections.map((section, index) => `${renderSection(section, index)}${index === 1 ? '<aside class="ad-slot ad-slot--in-article" data-ad-slot="articleMid" data-ad-format="article" hidden aria-label="تبلیغات"><span class="ad-slot__label">تبلیغات</span><a class="ad-slot__privacy" href="/privacy#advertising">درباره تبلیغات</a><div class="ad-slot__mount" data-ad-mount></div></aside>' : ''}`).join('')}<section class="editorial-method"><p class="section-kicker">این مقاله چطور آماده شد؟</p><h2>مثال‌ها رندر شده‌اند؛ ادعاها به تجربهٔ استفاده محدود شده‌اند.</h2><p>کدهای این صفحه با نسخهٔ فعلی Mermaid در تست‌های پروژه اجرا می‌شوند. دربارهٔ رتبه، درآمد یا نتیجه‌ای که دادهٔ واقعی نداریم وعده نمی‌دهیم. جزئیات در <a href="/editorial-policy">سیاست تحریریه</a> نوشته شده است.</p></section><section class="related-reading"><h2>برای تمرین عملی</h2><div>${related}</div></section></div></article><aside class="ad-slot ad-slot--article-end" data-ad-slot="articleEnd" data-ad-format="article" hidden aria-label="تبلیغات"><span class="ad-slot__label">تبلیغات</span><a class="ad-slot__privacy" href="/privacy#advertising">درباره تبلیغات</a><div class="ad-slot__mount" data-ad-mount></div></aside></div><aside class="docs-sidebar"><h2>در این مقاله</h2><nav data-article-toc>${toc}</nav><div class="sidebar-author"><span>نوشته و بازبینی</span><strong>${escapeHtml(article.author.name)}</strong><a href="/editorial-policy">روش تحریریه</a></div><a class="sidebar-cta" href="/editor">امتحان در ادیتور</a></aside></main><script type="module" src="/js/docs.js?v=%V%"></script><script type="module" src="/js/ads.js?v=%V%"></script></body></html>`;
 }
 
 export { AUTHOR as EDITORIAL_AUTHOR, UPDATED as ARTICLES_UPDATED };
