@@ -19,6 +19,7 @@ function collectCode(entry) {
 }
 
 async function main() {
+  process.env.PUPPETEER_NO_SANDBOX = process.env.PUPPETEER_NO_SANDBOX || 'true';
   const entries = await loadEntries();
   const dataDir = await fs.mkdtemp(path.join(os.tmpdir(), 'nemodara-daily-content-'));
   const environment = {
@@ -31,7 +32,7 @@ async function main() {
     ADS_ENABLED: 'false',
     GSC_ENABLED: 'false',
     INDEXNOW_ENABLED: 'false',
-    PUPPETEER_NO_SANDBOX: process.env.PUPPETEER_NO_SANDBOX || 'true',
+    PUPPETEER_NO_SANDBOX: process.env.PUPPETEER_NO_SANDBOX,
   };
 
   const server = await startServer({
@@ -45,6 +46,7 @@ async function main() {
   try {
     for (const entry of entries) {
       for (const sample of collectCode(entry)) {
+        process.stdout.write(`Validating ${sample.label}...\n`);
         const response = await fetch(`${server.url}/api/render`, {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
