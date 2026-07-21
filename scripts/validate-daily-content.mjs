@@ -2,14 +2,9 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
-import { fileURLToPath } from 'node:url';
 import { startServer } from '../src/server/app.js';
 import { closeBrowser } from '../src/core/renderer.js';
-import { validateEntry } from './publish-daily-content.mjs';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const ROOT = path.resolve(__dirname, '..');
-const CONTENT_DIR = path.join(ROOT, 'content', 'daily');
+import { loadEntries } from './publish-daily-content.mjs';
 
 function collectCode(entry) {
   return [
@@ -21,14 +16,6 @@ function collectCode(entry) {
       .filter((section) => section.code)
       .map((section) => ({ label: `tutorial:${entry.tutorial.slug}#${section.id}`, code: section.code })),
   ];
-}
-
-async function loadEntries() {
-  const names = (await fs.readdir(CONTENT_DIR)).filter((name) => name.endsWith('.json')).sort();
-  return Promise.all(names.map(async (name) => {
-    const entry = JSON.parse(await fs.readFile(path.join(CONTENT_DIR, name), 'utf8'));
-    return validateEntry(entry, name);
-  }));
 }
 
 async function main() {
