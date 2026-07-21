@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "date": "2026-07-21",
+  "cluster": {
+    "name": "State Diagram در Mermaid",
+    "primaryQuery": "آموزش State Diagram در Mermaid",
+    "secondaryQueries": [
+      "نمودار ماشین حالت چیست",
+      "تفاوت State Diagram و Flowchart",
+      "stateDiagram-v2",
+      "نمودار وضعیت سفارش"
+    ],
+    "intent": "آموزشی و حل مسئله",
+    "sources": [
+      "https://mermaid.js.org/syntax/stateDiagram.html"
+    ]
+  },
+  "relatedLearnTitle": "آموزش State Diagram"
+}
