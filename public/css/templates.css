@@ -17,13 +17,15 @@
 .template-count { color: var(--muted); font-size: 13px; margin-inline-start: 4px; }
 .templates-section { padding-bottom: 90px; }
 .templates-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
-.template-card { display: flex; flex-direction: column; min-height: 390px; overflow: hidden; border: 1px solid var(--border); border-radius: 20px; background: color-mix(in srgb, var(--panel) 94%, transparent); box-shadow: 0 14px 36px rgba(0,0,0,.14); transition: transform .18s ease, border-color .18s ease; }
+.template-card { display: flex; flex-direction: column; min-height: 390px; overflow: hidden; scroll-margin-top: 100px; border: 1px solid var(--border); border-radius: 20px; background: color-mix(in srgb, var(--panel) 94%, transparent); box-shadow: 0 14px 36px rgba(0,0,0,.14); transition: transform .18s ease, border-color .18s ease; }
 .template-card:hover { transform: translateY(-4px); border-color: color-mix(in srgb, var(--accent) 65%, var(--border)); }
 .template-card-head { display: flex; justify-content: space-between; gap: 12px; padding: 20px 20px 13px; }
 .template-card h3 { margin: 0 0 7px; font-size: 19px; }
 .template-card p { margin: 0; color: var(--muted); line-height: 1.8; font-size: 13px; }
 .template-badge { align-self: flex-start; white-space: nowrap; padding: 5px 9px; border-radius: 999px; color: var(--accent-hover); background: color-mix(in srgb, var(--accent) 12%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent); font-size: 11px; }
 .template-code { flex: 1; min-height: 190px; margin: 0 16px; padding: 16px; overflow: auto; direction: ltr; text-align: left; white-space: pre; border: 1px solid var(--border); border-radius: 14px; background: #0c0e16; color: #dce3f3; font: 12px/1.75 var(--mono); }
+.template-related { padding: 13px 17px 0; display: flex; flex-wrap: wrap; gap: 8px 14px; }
+.template-related a { color: var(--accent); font-size: 11px; font-weight: 750; text-decoration: underline; text-underline-offset: 4px; }
 .template-actions { display: flex; gap: 9px; padding: 15px 16px 17px; }
 .template-actions .button { flex: 1; justify-content: center; }
 .template-actions button { font-family: inherit; }
