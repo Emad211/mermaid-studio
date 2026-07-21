@@ -1,0 +1,9 @@
+{
+  "id": "order-state",
+  "category": "software",
+  "badge": "ماشین حالت",
+  "title": "چرخهٔ وضعیت سفارش",
+  "description": "قالب آماده برای سفارش، پرداخت، ارسال، لغو، مرجوعی و بازپرداخت.",
+  "keywords": "state diagram stateDiagram-v2 نمودار حالت ماشین حالت چرخه سفارش پرداخت ارسال مرجوعی",
+  "code": "stateDiagram-v2\n  direction LR\n  state \"پیش‌نویس\" as Draft\n  state \"در انتظار پرداخت\" as PendingPayment\n  state \"پرداخت‌شده\" as Paid\n  state \"آماده‌سازی\" as Preparing\n  state \"ارسال‌شده\" as Shipped\n  state \"تحویل‌شده\" as Delivered\n  state \"لغوشده\" as Cancelled\n  state \"مرجوع‌شده\" as Returned\n  state \"بازپرداخت‌شده\" as Refunded\n\n  [*] --> Draft\n  Draft --> PendingPayment: ثبت نهایی\n  PendingPayment --> Paid: پرداخت موفق\n  PendingPayment --> Cancelled: انصراف یا انقضا\n  Paid --> Preparing: تأیید موجودی\n  Paid --> Refunded: عدم تأمین\n  Preparing --> Shipped: تحویل به پست\n  Shipped --> Delivered: تحویل موفق\n  Shipped --> Returned: برگشت مرسوله\n  Delivered --> Returned: درخواست مرجوعی\n  Returned --> Refunded: تأیید بازپرداخت\n  Delivered --> [*]\n  Cancelled --> [*]\n  Refunded --> [*]"
+}
