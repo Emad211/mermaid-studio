@@ -46,6 +46,19 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Capture production dependency audit
+        shell: bash
+        run: npm audit --omit=dev --json > production-audit.json || true
+
+      - name: Upload production dependency audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-dependency-audit
+          path: production-audit.json
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Compile content into site registries
         run: node scripts/publish-daily-content.mjs
 
