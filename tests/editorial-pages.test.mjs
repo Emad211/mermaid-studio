@@ -106,7 +106,7 @@ test('Nemodara landing, learning hub and long-form article are editorial and mob
   assert.doesNotMatch(darkDemo.decisionColor, /rgba\([^)]*, 0\)$/);
 
   await inspectPage(page, `${server.url}/learn`, /Mermaid را برای حل مسئله/);
-  assert.ok(await page.$eval('.guide-card', (nodes) => nodes.length) >= 8);
+  assert.ok(await page.$$eval('.guide-card', (nodes) => nodes.length) >= 8);
   assert.equal(await page.$$eval('.path-card', (nodes) => nodes.length), 4);
 
   await inspectPage(page, `${server.url}/learn/flowchart-mermaid`, /آموزش فلوچارت Mermaid/);
