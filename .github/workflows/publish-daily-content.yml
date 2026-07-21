@@ -36,7 +36,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -47,41 +46,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Capture dependency audit before fix
-        shell: bash
-        run: npm audit --omit=dev --json > production-audit-before.json || true
-
-      - name: Generate safe lockfile security update
-        shell: bash
-        run: |
-          npm audit fix --package-lock-only --omit=dev
-          npm audit --omit=dev --json > production-audit-after.json || true
-
-      - name: Commit audited lockfile update
-        if: github.event_name == 'pull_request'
-        shell: bash
-        run: |
-          if git diff --quiet -- package-lock.json; then
-            echo "Dependency lockfile is already current."
-            exit 0
-          fi
-          git config user.name "nemodara-security-bot"
-          git config user.email "actions@users.noreply.github.com"
-          git add package-lock.json
-          git commit -m "fix audited production dependencies"
-          git push origin HEAD:${{ github.head_ref }}
-
-      - name: Upload dependency audit and lockfile candidate
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: production-dependency-audit
-          path: |
-            production-audit-before.json
-            production-audit-after.json
-            package-lock.json
-          if-no-files-found: error
-          retention-days: 7
+      - name: Reject high-severity production dependency vulnerabilities
+        run: npm audit --omit=dev --audit-level=high
 
       - name: Compile content into site registries
         run: node scripts/publish-daily-content.mjs
@@ -125,6 +91,6 @@ jobs:
           fi
           git config user.name "nemodara-content-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add package-lock.json src/server/article-content.js src/server/learn-content.js src/server/seo.js public/js/templates.js tests/editorial-pages.test.mjs
+          git add src/server/article-content.js src/server/learn-content.js src/server/seo.js public/js/templates.js tests/editorial-pages.test.mjs
           git commit -m "publish daily SEO content"
           git push
