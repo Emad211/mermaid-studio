@@ -70,6 +70,6 @@ jobs:
           fi
           git config user.name "nemodara-content-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add src/server/article-content.js src/server/learn-content.js src/server/seo.js public/js/templates.js
+          git add src/server/article-content.js src/server/learn-content.js src/server/seo.js public/js/templates.js tests/editorial-pages.test.mjs
           git commit -m "publish daily SEO content"
           git push
