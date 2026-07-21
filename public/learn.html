@@ -4,9 +4,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#f5f3ed" />
-    <meta name="description" content="آموزش رایگان Mermaid به فارسی در نمودارا؛ فلوچارت، نمودار توالی، ERD، گانت، UML، معماری و رفع خطا با مثال‌های قابل ویرایش." />
+    <meta name="description" content="آموزش رایگان Mermaid به فارسی؛ State Diagram، فلوچارت، Sequence، ERD، گانت، UML، معماری و رفع خطا با مثال‌های قابل ویرایش." />
     <meta name="robots" content="index,follow" />
-    <title>آموزش Mermaid به فارسی | نمودارا</title>
+    <title>آموزش Mermaid به فارسی؛ از State Diagram تا فلوچارت | نمودارا</title>
     <link rel="icon" href="/logo.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/css/landing.css?v=%V%" />
     <link rel="stylesheet" href="/css/landing-utilities.css?v=%V%" />
@@ -35,11 +35,11 @@
           <p class="eyebrow">راهنمای فارسی، مثال‌محور و رایگان</p>
           <h1>Mermaid را برای حل مسئله یاد بگیر، نه برای حفظ‌کردن سینتکس.</h1>
           <p>هر راهنما از یک موقعیت واقعی شروع می‌شود، کد قابل ویرایش دارد و توضیح می‌دهد چرا یک نمودار خوب خواناست یا چرا یک کد رندر نمی‌شود.</p>
-          <div class="learn-hero-actions"><a class="button button-primary" href="/learn/flowchart-mermaid">شروع مسیر یادگیری</a><a class="text-link" href="#all-guides">همهٔ راهنماها</a></div>
+          <div class="learn-hero-actions"><a class="button button-primary" href="/learn/state-diagram-mermaid">آموزش جدید State Diagram</a><a class="text-link" href="#all-guides">همهٔ راهنماها</a></div>
         </div>
         <dl class="learn-stats" aria-label="مشخصات مسیر آموزش">
-          <div><dt>۸</dt><dd>راهنمای عمیق</dd></div>
-          <div><dt>۲۰+</dt><dd>مثال قابل ویرایش</dd></div>
+          <div><dt data-guide-count>۹</dt><dd>راهنمای عمیق</dd></div>
+          <div><dt>۳۰+</dt><dd>مثال قابل ویرایش</dd></div>
           <div><dt>۰</dt><dd>نیاز به ثبت‌نام</dd></div>
         </dl>
       </section>
@@ -48,16 +48,16 @@
         <header class="editorial-heading"><p class="section-kicker">مسیر را براساس نیازت انتخاب کن</p><h2 id="paths-title">الان می‌خواهی چه چیزی را روشن‌تر کنی؟</h2></header>
         <div class="path-grid">
           <article class="path-card">
+            <span>چرخهٔ عمر و رفتار</span><h3>وضعیت‌های سیستم را مدل کن</h3><p>برای سفارش، تیکت، نشست کاربر و هر موجودیتی که بین چند وضعیت مشخص جابه‌جا می‌شود.</p><div><a href="/learn/state-diagram-mermaid">State Diagram</a><a href="/articles/state-diagram-vs-flowchart">مقایسه با Flowchart</a></div>
+          </article>
+          <article class="path-card">
             <span>فرایند و تصمیم</span><h3>از فلوچارت شروع کن</h3><p>برای الگوریتم، گردش کار، مسیر تأیید و هر چیزی که شاخه و تصمیم دارد.</p><div><a href="/learn/flowchart-mermaid">فلوچارت</a><a href="/learn/mermaid-errors">رفع خطا</a></div>
           </article>
           <article class="path-card">
-            <span>رفتار سیستم</span><h3>تعامل سرویس‌ها را ببین</h3><p>برای API، احراز هویت، پرداخت و ترتیب پیام میان کاربر، سرویس و دیتابیس.</p><div><a href="/learn/sequence-diagram-mermaid">نمودار توالی</a><a href="/learn/architecture-diagram-mermaid">معماری</a></div>
+            <span>تعامل سرویس‌ها</span><h3>ترتیب پیام‌ها را ببین</h3><p>برای API، احراز هویت، پرداخت و ترتیب پیام میان کاربر، سرویس و دیتابیس.</p><div><a href="/learn/sequence-diagram-mermaid">نمودار توالی</a><a href="/learn/architecture-diagram-mermaid">معماری</a></div>
           </article>
           <article class="path-card">
             <span>ساختار داده و کد</span><h3>مدل را پیش از پیاده‌سازی بررسی کن</h3><p>برای Entity، رابطه‌ها، کلاس‌ها، وابستگی و مرزهای یک دامنهٔ نرم‌افزاری.</p><div><a href="/learn/er-diagram-mermaid">ERD</a><a href="/learn/class-diagram-mermaid">UML Class</a></div>
-          </article>
-          <article class="path-card">
-            <span>برنامه و ایده</span><h3>زمان و موضوع را مرتب کن</h3><p>برای برنامهٔ انتشار، وابستگی کارها، نقشهٔ ذهنی و معماری اطلاعات.</p><div><a href="/learn/gantt-mermaid">گانت</a><a href="/learn/mindmap-mermaid">نقشه ذهنی</a></div>
           </article>
         </div>
       </section>
@@ -65,14 +65,16 @@
       <section id="all-guides" class="guide-library" aria-labelledby="guides-title">
         <header class="editorial-heading editorial-heading--split"><div><p class="section-kicker">کتابخانهٔ آموزش</p><h2 id="guides-title">راهنماها را به ترتیب یا مستقل بخوان.</h2></div><p>هر درس یک خروجی مشخص دارد. کد نمونه را باز کن، یک بخش را عوض کن و نتیجه را در ادیتور ببین.</p></header>
         <div class="guide-list">
-          <a class="guide-card" href="/learn/flowchart-mermaid"><span class="guide-index">۰۱</span><div><small>شروع پیشنهادی</small><h3>فلوچارت Mermaid</h3><p>گره، فلش، شرط، subgraph و استایل برای فرایندهای واقعی.</p></div><footer><span>۱۸ دقیقه</span><span>مقدماتی تا متوسط</span></footer></a>
-          <a class="guide-card" href="/learn/sequence-diagram-mermaid"><span class="guide-index">۰۲</span><div><small>API و رفتار سیستم</small><h3>Sequence Diagram</h3><p>پیام، پاسخ، activation، loop و مسیرهای موفق و ناموفق.</p></div><footer><span>۲۰ دقیقه</span><span>مقدماتی تا پیشرفته</span></footer></a>
-          <a class="guide-card" href="/learn/er-diagram-mermaid"><span class="guide-index">۰۳</span><div><small>مدل داده</small><h3>ERD و پایگاه داده</h3><p>Entity، Attribute، PK/FK و رابطه‌های یک‌به‌چند و چندبه‌چند.</p></div><footer><span>۱۸ دقیقه</span><span>متوسط</span></footer></a>
-          <a class="guide-card" href="/learn/gantt-mermaid"><span class="guide-index">۰۴</span><div><small>زمان‌بندی</small><h3>نمودار گانت</h3><p>فعالیت، وابستگی، milestone و برنامهٔ انتشار قابل نگهداری.</p></div><footer><span>۱۵ دقیقه</span><span>مقدماتی تا متوسط</span></footer></a>
-          <a class="guide-card" href="/learn/class-diagram-mermaid"><span class="guide-index">۰۵</span><div><small>طراحی نرم‌افزار</small><h3>نمودار کلاس UML</h3><p>کلاس، متد، visibility، ارث‌بری، composition و dependency.</p></div><footer><span>۱۷ دقیقه</span><span>متوسط</span></footer></a>
-          <a class="guide-card" href="/learn/mindmap-mermaid"><span class="guide-index">۰۶</span><div><small>فکر و محتوا</small><h3>نقشهٔ ذهنی</h3><p>شکستن موضوع پیچیده، ایده‌پردازی و طراحی ساختار اطلاعات.</p></div><footer><span>۱۲ دقیقه</span><span>مقدماتی</span></footer></a>
-          <a class="guide-card" href="/learn/architecture-diagram-mermaid"><span class="guide-index">۰۷</span><div><small>سیستم و زیرساخت</small><h3>نمودار معماری</h3><p>سرویس، دیتابیس، صف، مرز اعتماد و زیرساخت ابری.</p></div><footer><span>۱۹ دقیقه</span><span>متوسط تا پیشرفته</span></footer></a>
-          <a class="guide-card" href="/learn/mermaid-errors"><span class="guide-index">۰۸</span><div><small>اشکال‌زدایی</small><h3>رفع خطاهای Mermaid</h3><p>Parser، کوتیشن، براکت، تورفتگی، Config و تفاوت نسخه‌ها.</p></div><footer><span>۱۶ دقیقه</span><span>همهٔ سطوح</span></footer></a>
+          <!-- DAILY_TUTORIAL_CARDS -->
+          <a class="guide-card" data-tutorial-slug="state-diagram-mermaid" href="/learn/state-diagram-mermaid"><span class="guide-index">۰۱</span><div><small>ماشین حالت و چرخهٔ عمر</small><h3>State Diagram در Mermaid</h3><p>وضعیت، انتقال، Guard، Choice، حالت مرکب و قالب کامل چرخهٔ سفارش.</p></div><footer><span>۲۲ دقیقه</span><span>مقدماتی تا پیشرفته</span></footer></a>
+          <a class="guide-card" href="/learn/flowchart-mermaid"><span class="guide-index">۰۲</span><div><small>شروع پیشنهادی</small><h3>فلوچارت Mermaid</h3><p>گره، فلش، شرط، subgraph و استایل برای فرایندهای واقعی.</p></div><footer><span>۱۸ دقیقه</span><span>مقدماتی تا متوسط</span></footer></a>
+          <a class="guide-card" href="/learn/sequence-diagram-mermaid"><span class="guide-index">۰۳</span><div><small>API و رفتار سیستم</small><h3>Sequence Diagram</h3><p>پیام، پاسخ، activation، loop و مسیرهای موفق و ناموفق.</p></div><footer><span>۲۰ دقیقه</span><span>مقدماتی تا پیشرفته</span></footer></a>
+          <a class="guide-card" href="/learn/er-diagram-mermaid"><span class="guide-index">۰۴</span><div><small>مدل داده</small><h3>ERD و پایگاه داده</h3><p>Entity، Attribute، PK/FK و رابطه‌های یک‌به‌چند و چندبه‌چند.</p></div><footer><span>۱۸ دقیقه</span><span>متوسط</span></footer></a>
+          <a class="guide-card" href="/learn/gantt-mermaid"><span class="guide-index">۰۵</span><div><small>زمان‌بندی</small><h3>نمودار گانت</h3><p>فعالیت، وابستگی، milestone و برنامهٔ انتشار قابل نگهداری.</p></div><footer><span>۱۵ دقیقه</span><span>مقدماتی تا متوسط</span></footer></a>
+          <a class="guide-card" href="/learn/class-diagram-mermaid"><span class="guide-index">۰۶</span><div><small>طراحی نرم‌افزار</small><h3>نمودار کلاس UML</h3><p>کلاس، متد، visibility، ارث‌بری، composition و dependency.</p></div><footer><span>۱۷ دقیقه</span><span>متوسط</span></footer></a>
+          <a class="guide-card" href="/learn/mindmap-mermaid"><span class="guide-index">۰۷</span><div><small>فکر و محتوا</small><h3>نقشهٔ ذهنی</h3><p>شکستن موضوع پیچیده، ایده‌پردازی و طراحی ساختار اطلاعات.</p></div><footer><span>۱۲ دقیقه</span><span>مقدماتی</span></footer></a>
+          <a class="guide-card" href="/learn/architecture-diagram-mermaid"><span class="guide-index">۰۸</span><div><small>سیستم و زیرساخت</small><h3>نمودار معماری</h3><p>سرویس، دیتابیس، صف، مرز اعتماد و زیرساخت ابری.</p></div><footer><span>۱۹ دقیقه</span><span>متوسط تا پیشرفته</span></footer></a>
+          <a class="guide-card" href="/learn/mermaid-errors"><span class="guide-index">۰۹</span><div><small>اشکال‌زدایی</small><h3>رفع خطاهای Mermaid</h3><p>Parser، کوتیشن، براکت، تورفتگی، Config و تفاوت نسخه‌ها.</p></div><footer><span>۱۶ دقیقه</span><span>همهٔ سطوح</span></footer></a>
         </div>
       </section>
 
@@ -81,6 +83,8 @@
       <section class="diagram-picker" aria-labelledby="picker-title">
         <header class="editorial-heading"><p class="section-kicker">انتخاب نوع نمودار</p><h2 id="picker-title">مسئله را بگو؛ نمودار مناسب را انتخاب کن.</h2></header>
         <div class="picker-table" role="table" aria-label="راهنمای انتخاب نمودار">
+          <!-- DAILY_TUTORIAL_PICKER_ROWS -->
+          <div data-tutorial-picker="state-diagram-mermaid" role="row"><strong role="cell">چرخهٔ عمر و تغییر وضعیت یک موجودیت</strong><span role="cell">State Diagram</span><a role="cell" href="/learn/state-diagram-mermaid">راهنما</a></div>
           <div role="row"><strong role="cell">فرایند، تصمیم یا الگوریتم</strong><span role="cell">Flowchart</span><a role="cell" href="/learn/flowchart-mermaid">راهنما</a></div>
           <div role="row"><strong role="cell">پیام میان چند سرویس در طول زمان</strong><span role="cell">Sequence</span><a role="cell" href="/learn/sequence-diagram-mermaid">راهنما</a></div>
           <div role="row"><strong role="cell">ساختار پایگاه داده و Cardinality</strong><span role="cell">ER Diagram</span><a role="cell" href="/learn/er-diagram-mermaid">راهنما</a></div>
@@ -91,12 +95,12 @@
       </section>
 
       <section class="practice-block" aria-labelledby="practice-title">
-        <div><p class="section-kicker">پنج دقیقه تمرین</p><h2 id="practice-title">یک مثال کوچک را تغییر بده.</h2><p>نام گره‌ها، مسیر شرط و جهت نمودار را عوض کن. همین تمرین کوتاه، بیشتر از خواندن یک فهرست بلند سینتکس به یاد می‌ماند.</p></div>
-        <div class="code-example"><div class="code-example-head"><span>first-diagram.mmd</span><button type="button" data-copy-target="first-example-code">کپی کد</button><a data-open-target="first-example-code" href="/editor">بازکردن در ادیتور</a></div><pre><code id="first-example-code">flowchart TD
-  A[شروع] --&gt; B{آماده‌ای؟}
-  B -- بله --&gt; C[ساخت نمودار]
-  B -- خیر --&gt; D[مطالعه راهنما]
-  D --&gt; B</code></pre></div>
+        <div><p class="section-kicker">پنج دقیقه تمرین</p><h2 id="practice-title">یک مثال کوچک را تغییر بده.</h2><p>نام وضعیت‌ها، رویداد انتقال و جهت نمودار را عوض کن. برای شروع سریع می‌توانی <a href="/templates#template-order-state">قالب چرخهٔ وضعیت سفارش</a> را باز کنی.</p></div>
+        <div class="code-example"><div class="code-example-head"><span>first-state-diagram.mmd</span><button type="button" data-copy-target="first-example-code">کپی کد</button><a data-open-target="first-example-code" href="/editor">بازکردن در ادیتور</a></div><pre><code id="first-example-code">stateDiagram-v2
+  [*] --&gt; Draft
+  Draft --&gt; PendingPayment: ثبت سفارش
+  PendingPayment --&gt; Paid: پرداخت موفق
+  Paid --&gt; [*]</code></pre></div>
       </section>
     </main>
 
