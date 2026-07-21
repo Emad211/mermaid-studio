@@ -1,3 +1,5 @@
+import { startBidiIsolation } from './bidi.js';
+
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 
@@ -81,6 +83,7 @@ function closeMobileTocAfterNavigation() {
   });
 }
 
+startBidiIsolation();
 setupExamples();
 setupReadingProgress();
 setupActiveToc();

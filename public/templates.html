@@ -4,9 +4,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#f5f3ed" />
-    <meta name="description" content="قالب‌های رایگان و فارسی Mermaid در نمودارا برای فلوچارت، Sequence، ERD، کلاس، گانت، معماری و نقشه ذهنی." />
+    <meta name="description" content="قالب‌های رایگان Mermaid فارسی؛ قالب State Diagram چرخه سفارش، فلوچارت، Sequence، ERD، UML، گانت، معماری و نقشه ذهنی." />
     <meta name="robots" content="index,follow" />
-    <title>قالب‌های Mermaid فارسی | نمودارا</title>
+    <title>قالب‌های رایگان Mermaid فارسی؛ State Diagram و فلوچارت | نمودارا</title>
     <link rel="icon" href="/logo.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/css/landing.css?v=%V%" />
     <link rel="stylesheet" href="/css/landing-sections.css?v=%V%" />
@@ -23,15 +23,48 @@
     </header>
 
     <main id="templates-main">
-      <section class="templates-hero section-shell"><p class="eyebrow"><span></span> شروع سریع، بدون صفحهٔ خالی</p><h1>قالب مناسب را انتخاب کن و همان لحظه ویرایشش کن.</h1><p>برای فرایند، مستندات نرم‌افزار، طراحی پایگاه داده و برنامه‌ریزی پروژه، نمونه‌های فارسی آماده کرده‌ایم.</p><label class="template-search"><span aria-hidden="true">⌕</span><input id="template-search" type="search" placeholder="جست‌وجو؛ مثلاً ERD، معماری یا گانت…" autocomplete="off" /></label><div class="filter-row" role="group" aria-label="دسته‌بندی قالب‌ها"><button class="filter-chip active" type="button" data-category="all">همه</button><button class="filter-chip" type="button" data-category="process">فرایند</button><button class="filter-chip" type="button" data-category="software">نرم‌افزار</button><button class="filter-chip" type="button" data-category="data">داده</button><button class="filter-chip" type="button" data-category="planning">برنامه‌ریزی</button><span id="template-count" class="template-count" aria-live="polite"></span></div></section>
+      <section class="templates-hero section-shell"><p class="eyebrow"><span></span> شروع سریع، بدون صفحهٔ خالی</p><h1>قالب مناسب Mermaid را انتخاب کن و همان لحظه ویرایشش کن.</h1><p>از قالب State Diagram چرخهٔ سفارش تا فلوچارت، مستندات نرم‌افزار، طراحی پایگاه داده و برنامه‌ریزی پروژه؛ همهٔ نمونه‌ها فارسی و قابل ویرایش‌اند.</p><label class="template-search"><span aria-hidden="true">⌕</span><input id="template-search" type="search" placeholder="جست‌وجو؛ مثلاً State Diagram، ERD یا گانت…" autocomplete="off" /></label><div class="filter-row" role="group" aria-label="دسته‌بندی قالب‌ها"><button class="filter-chip active" type="button" data-category="all">همه</button><button class="filter-chip" type="button" data-category="process">فرایند</button><button class="filter-chip" type="button" data-category="software">نرم‌افزار</button><button class="filter-chip" type="button" data-category="data">داده</button><button class="filter-chip" type="button" data-category="planning">برنامه‌ریزی</button><span id="template-count" class="template-count" aria-live="polite">۹ قالب</span></div></section>
 
       <aside class="ad-slot ad-slot--compact" data-ad-slot="templatesTop" hidden aria-label="تبلیغات"><span class="ad-slot__label">تبلیغات</span><a class="ad-slot__privacy" href="/privacy#advertising">درباره تبلیغات</a><div class="ad-slot__mount" data-ad-mount></div></aside>
 
-      <section class="section-shell templates-section" aria-labelledby="templates-title"><div class="section-heading align-right"><p class="section-kicker">قابل ویرایش و رایگان</p><h2 id="templates-title">نمونه‌های آماده Mermaid</h2><p>دکمهٔ «ویرایش» کد و تنظیمات قالب را مستقیم داخل ادیتور باز می‌کند.</p></div><div id="templates-grid" class="templates-grid"></div><div id="template-empty" class="template-empty" hidden><strong>قالبی پیدا نشد.</strong><span>عبارت کوتاه‌تری امتحان کن یا همهٔ دسته‌ها را نمایش بده.</span></div></section>
+      <section class="section-shell templates-section" aria-labelledby="templates-title"><div class="section-heading align-right"><p class="section-kicker">قابل ویرایش و رایگان</p><h2 id="templates-title">نمونه‌های آماده Mermaid</h2><p>دکمهٔ «ویرایش» کد و تنظیمات قالب را مستقیم داخل ادیتور باز می‌کند. آموزش و راهنمای مرتبط نیز کنار قالب‌های تخصصی قرار دارد.</p></div><div id="templates-grid" class="templates-grid">
+        <!-- DAILY_TEMPLATE_CARDS -->
+        <article id="template-order-state" class="template-card" data-id="order-state" data-template-id="order-state">
+          <div class="template-card-head"><div><h3>چرخهٔ وضعیت سفارش</h3><p>قالب آمادهٔ State Diagram برای سفارش، پرداخت، ارسال، لغو، مرجوعی و بازپرداخت.</p></div><span class="template-badge">ماشین حالت</span></div>
+          <pre class="template-code"><code>stateDiagram-v2
+  direction LR
+  state &quot;پیش‌نویس&quot; as Draft
+  state &quot;در انتظار پرداخت&quot; as PendingPayment
+  state &quot;پرداخت‌شده&quot; as Paid
+  state &quot;آماده‌سازی&quot; as Preparing
+  state &quot;ارسال‌شده&quot; as Shipped
+  state &quot;تحویل‌شده&quot; as Delivered
+  state &quot;لغوشده&quot; as Cancelled
+  state &quot;مرجوع‌شده&quot; as Returned
+  state &quot;بازپرداخت‌شده&quot; as Refunded
+
+  [*] --&gt; Draft
+  Draft --&gt; PendingPayment: ثبت نهایی
+  PendingPayment --&gt; Paid: پرداخت موفق
+  PendingPayment --&gt; Cancelled: انصراف یا انقضا
+  Paid --&gt; Preparing: تأیید موجودی
+  Paid --&gt; Refunded: عدم تأمین
+  Preparing --&gt; Shipped: تحویل به پست
+  Shipped --&gt; Delivered: تحویل موفق
+  Shipped --&gt; Returned: برگشت مرسوله
+  Delivered --&gt; Returned: درخواست مرجوعی
+  Returned --&gt; Refunded: تأیید بازپرداخت
+  Delivered --&gt; [*]
+  Cancelled --&gt; [*]
+  Refunded --&gt; [*]</code></pre>
+          <nav class="template-related" aria-label="مطالب مرتبط"><a href="/learn/state-diagram-mermaid">آموزش State Diagram در Mermaid</a><a href="/articles/state-diagram-vs-flowchart">تفاوت State Diagram و Flowchart</a></nav>
+          <div class="template-actions"><a class="button button-primary" href="/editor">ویرایش قالب</a><button class="button button-secondary copy-template" type="button" data-id="order-state">کپی کد</button></div>
+        </article>
+      </div><div id="template-empty" class="template-empty" hidden><strong>قالبی پیدا نشد.</strong><span>عبارت کوتاه‌تری امتحان کن یا همهٔ دسته‌ها را نمایش بده.</span></div></section>
 
       <aside class="ad-slot ad-slot--compact" data-ad-slot="templatesInline" hidden aria-label="تبلیغات"><span class="ad-slot__label">تبلیغات</span><a class="ad-slot__privacy" href="/privacy#advertising">درباره تبلیغات</a><div class="ad-slot__mount" data-ad-mount></div></aside>
 
-      <section class="template-guide section-shell section-block"><div class="section-heading align-right"><p class="section-kicker">سه گام ساده</p><h2>قالب را برای پروژهٔ خودت آماده کن</h2></div><div class="guide-grid"><article><span>۱</span><h3>ساختار را انتخاب کن</h3><p>ببین نمودار قرار است فرایند، تعامل، داده یا زمان‌بندی را توضیح بدهد.</p></article><article><span>۲</span><h3>نام‌ها را عوض کن</h3><p>متن داخل براکت‌ها و عنوان‌ها را با اصطلاحات واقعی پروژه جایگزین کن.</p></article><article><span>۳</span><h3>خروجی بگیر</h3><p>برای وب SVG یا WebP و برای سند و چاپ PNG باکیفیت یا PDF را انتخاب کن.</p></article></div></section>
+      <section class="template-guide section-shell section-block"><div class="section-heading align-right"><p class="section-kicker">سه گام ساده</p><h2>قالب را برای پروژهٔ خودت آماده کن</h2></div><div class="guide-grid"><article><span>۱</span><h3>ساختار را انتخاب کن</h3><p>ببین نمودار قرار است وضعیت، فرایند، تعامل، داده یا زمان‌بندی را توضیح بدهد.</p></article><article><span>۲</span><h3>نام‌ها را عوض کن</h3><p>متن داخل براکت‌ها و عنوان‌ها را با اصطلاحات واقعی پروژه جایگزین کن.</p></article><article><span>۳</span><h3>خروجی بگیر</h3><p>برای وب SVG یا WebP و برای سند و چاپ PNG باکیفیت یا PDF را انتخاب کن.</p></article></div></section>
 
       <section class="section-shell template-cta"><div><p class="section-kicker">قالب دلخواهت نبود؟</p><h2>از یک نمودار خالی شروع کن.</h2><p>ادیتور نوع نمودار را تشخیص می‌دهد و نتیجه را هم‌زمان با تایپ نمایش می‌دهد.</p></div><a class="button button-primary" href="/editor">بازکردن ادیتور <span aria-hidden="true">←</span></a></section>
     </main>

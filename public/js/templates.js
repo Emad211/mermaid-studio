@@ -1,21 +1,115 @@
+import { startBidiIsolation } from './bidi.js';
+
 const templates = [
   {
-    "id": "order-state",
-    "category": "software",
-    "badge": "ماشین حالت",
-    "title": "چرخهٔ وضعیت سفارش",
-    "description": "قالب آماده برای سفارش، پرداخت، ارسال، لغو، مرجوعی و بازپرداخت.",
-    "keywords": "state diagram stateDiagram-v2 نمودار حالت ماشین حالت چرخه سفارش پرداخت ارسال مرجوعی",
-    "code": "stateDiagram-v2\n  direction LR\n  state \"پیش‌نویس\" as Draft\n  state \"در انتظار پرداخت\" as PendingPayment\n  state \"پرداخت‌شده\" as Paid\n  state \"آماده‌سازی\" as Preparing\n  state \"ارسال‌شده\" as Shipped\n  state \"تحویل‌شده\" as Delivered\n  state \"لغوشده\" as Cancelled\n  state \"مرجوع‌شده\" as Returned\n  state \"بازپرداخت‌شده\" as Refunded\n\n  [*] --> Draft\n  Draft --> PendingPayment: ثبت نهایی\n  PendingPayment --> Paid: پرداخت موفق\n  PendingPayment --> Cancelled: انصراف یا انقضا\n  Paid --> Preparing: تأیید موجودی\n  Paid --> Refunded: عدم تأمین\n  Preparing --> Shipped: تحویل به پست\n  Shipped --> Delivered: تحویل موفق\n  Shipped --> Returned: برگشت مرسوله\n  Delivered --> Returned: درخواست مرجوعی\n  Returned --> Refunded: تأیید بازپرداخت\n  Delivered --> [*]\n  Cancelled --> [*]\n  Refunded --> [*]"
+    id: 'order-state',
+    category: 'software',
+    badge: 'ماشین حالت',
+    title: 'چرخهٔ وضعیت سفارش',
+    description: 'قالب آماده برای سفارش، پرداخت، ارسال، لغو، مرجوعی و بازپرداخت.',
+    keywords: 'state diagram stateDiagram-v2 نمودار حالت ماشین حالت چرخه سفارش پرداخت ارسال مرجوعی',
+    tutorial: '/learn/state-diagram-mermaid',
+    article: '/articles/state-diagram-vs-flowchart',
+    code: `stateDiagram-v2
+  direction LR
+  state "پیش‌نویس" as Draft
+  state "در انتظار پرداخت" as PendingPayment
+  state "پرداخت‌شده" as Paid
+  state "آماده‌سازی" as Preparing
+  state "ارسال‌شده" as Shipped
+  state "تحویل‌شده" as Delivered
+  state "لغوشده" as Cancelled
+  state "مرجوع‌شده" as Returned
+  state "بازپرداخت‌شده" as Refunded
+
+  [*] --> Draft
+  Draft --> PendingPayment: ثبت نهایی
+  PendingPayment --> Paid: پرداخت موفق
+  PendingPayment --> Cancelled: انصراف یا انقضا
+  Paid --> Preparing: تأیید موجودی
+  Paid --> Refunded: عدم تأمین
+  Preparing --> Shipped: تحویل به پست
+  Shipped --> Delivered: تحویل موفق
+  Shipped --> Returned: برگشت مرسوله
+  Delivered --> Returned: درخواست مرجوعی
+  Returned --> Refunded: تأیید بازپرداخت
+  Delivered --> [*]
+  Cancelled --> [*]
+  Refunded --> [*]`,
   },
-  { id: 'flowchart', category: 'process', badge: 'فرایند', title: 'فلوچارت تصمیم‌گیری', description: 'برای مسیرهای شرطی، عملیات و گردش کار.', keywords: 'فلوچارت flowchart فرایند تصمیم workflow', code: `flowchart TD\n  A[شروع درخواست] --> B{اطلاعات کامل است؟}\n  B -- بله --> C[پردازش درخواست]\n  B -- خیر --> D[تکمیل اطلاعات]\n  D --> B\n  C --> E[پایان]` },
-  { id: 'sequence', category: 'software', badge: 'نرم‌افزار', title: 'تعامل کاربر و API', description: 'برای مستندسازی درخواست‌ها و پاسخ سرویس‌ها.', keywords: 'sequence توالی api درخواست سرویس نرم افزار', code: `sequenceDiagram\n  autonumber\n  actor U as کاربر\n  participant W as وب‌اپ\n  participant A as API\n  U->>W: ثبت فرم\n  W->>A: POST /requests\n  A-->>W: 201 Created\n  W-->>U: نمایش نتیجه` },
-  { id: 'erd', category: 'data', badge: 'داده', title: 'مدل فروشگاه', description: 'شروع سریع برای طراحی موجودیت‌ها و ارتباط‌ها.', keywords: 'erd er entity relationship database پایگاه داده موجودیت رابطه', code: `erDiagram\n  CUSTOMER ||--o{ ORDER : places\n  ORDER ||--|{ ORDER_ITEM : contains\n  PRODUCT ||--o{ ORDER_ITEM : appears_in\n  CUSTOMER {\n    int id PK\n    string name\n  }\n  ORDER {\n    int id PK\n    date created_at\n  }` },
-  { id: 'class', category: 'software', badge: 'UML', title: 'نمودار کلاس سرویس', description: 'برای طراحی کلاس‌ها، ویژگی‌ها و وابستگی‌ها.', keywords: 'class uml کلاس شی گرایی object oriented software', code: `classDiagram\n  class User {\n    +String name\n    +String email\n    +login()\n  }\n  class Project {\n    +String title\n    +archive()\n  }\n  User "1" --> "*" Project : owns` },
-  { id: 'gantt', category: 'planning', badge: 'برنامه‌ریزی', title: 'زمان‌بندی انتشار', description: 'نمایش مرحله‌ها، وابستگی‌ها و موعدها.', keywords: 'gantt گانت زمان بندی برنامه ریزی پروژه timeline', code: `gantt\n  title برنامه انتشار محصول\n  dateFormat YYYY-MM-DD\n  section طراحی\n  تحقیق کاربران :done, research, 2026-07-01, 5d\n  رابط کاربری :active, ui, after research, 7d\n  section توسعه\n  نسخه اولیه :dev, after ui, 10d\n  تست و انتشار :after dev, 5d` },
-  { id: 'mindmap', category: 'planning', badge: 'ایده‌پردازی', title: 'نقشه ذهنی محتوا', description: 'برای شکستن یک موضوع به شاخه‌های قابل اجرا.', keywords: 'mindmap نقشه ذهنی ایده پردازی برنامه محتوا', code: `mindmap\n  root((محصول))\n    مخاطب\n      توسعه‌دهنده\n      دانشجو\n    محتوا\n      آموزش\n      قالب‌ها\n    رشد\n      SEO\n      تبلیغات` },
-  { id: 'architecture', category: 'software', badge: 'معماری', title: 'معماری سرویس ابری', description: 'نمایش API، پایگاه داده و فضای ذخیره‌سازی.', keywords: 'architecture معماری cloud aws سرویس زیرساخت system', code: `architecture-beta\n  group cloud(logos:aws)[Cloud]\n  service api(logos:aws-lambda)[API] in cloud\n  service db(logos:aws-rds)[Database] in cloud\n  service store(logos:aws-s3)[Storage] in cloud\n  api:R --> L:db\n  api:B --> T:store` },
-  { id: 'journey', category: 'process', badge: 'تجربه کاربر', title: 'سفر کاربر', description: 'ثبت مرحله‌ها و میزان رضایت در یک سناریو.', keywords: 'journey سفر کاربر تجربه مشتری ux process', code: `journey\n  title ساخت اولین نمودار\n  section شروع\n    ورود به ادیتور: 5: کاربر\n    انتخاب قالب: 5: کاربر\n  section ساخت\n    ویرایش کد: 4: کاربر\n    دریافت خروجی: 5: کاربر` },
+  { id: 'flowchart', category: 'process', badge: 'فرایند', title: 'فلوچارت تصمیم‌گیری', description: 'برای مسیرهای شرطی، عملیات و گردش کار.', keywords: 'فلوچارت flowchart فرایند تصمیم workflow', code: `flowchart TD
+  A[شروع درخواست] --> B{اطلاعات کامل است؟}
+  B -- بله --> C[پردازش درخواست]
+  B -- خیر --> D[تکمیل اطلاعات]
+  D --> B
+  C --> E[پایان]` },
+  { id: 'sequence', category: 'software', badge: 'نرم‌افزار', title: 'تعامل کاربر و API', description: 'برای مستندسازی درخواست‌ها و پاسخ سرویس‌ها.', keywords: 'sequence توالی api درخواست سرویس نرم افزار', code: `sequenceDiagram
+  autonumber
+  actor U as کاربر
+  participant W as وب‌اپ
+  participant A as API
+  U->>W: ثبت فرم
+  W->>A: POST /requests
+  A-->>W: 201 Created
+  W-->>U: نمایش نتیجه` },
+  { id: 'erd', category: 'data', badge: 'داده', title: 'مدل فروشگاه', description: 'شروع سریع برای طراحی موجودیت‌ها و ارتباط‌ها.', keywords: 'erd er entity relationship database پایگاه داده موجودیت رابطه', code: `erDiagram
+  CUSTOMER ||--o{ ORDER : places
+  ORDER ||--|{ ORDER_ITEM : contains
+  PRODUCT ||--o{ ORDER_ITEM : appears_in
+  CUSTOMER {
+    int id PK
+    string name
+  }
+  ORDER {
+    int id PK
+    date created_at
+  }` },
+  { id: 'class', category: 'software', badge: 'UML', title: 'نمودار کلاس سرویس', description: 'برای طراحی کلاس‌ها، ویژگی‌ها و وابستگی‌ها.', keywords: 'class uml کلاس شی گرایی object oriented software', code: `classDiagram
+  class User {
+    +String name
+    +String email
+    +login()
+  }
+  class Project {
+    +String title
+    +archive()
+  }
+  User "1" --> "*" Project : owns` },
+  { id: 'gantt', category: 'planning', badge: 'برنامه‌ریزی', title: 'زمان‌بندی انتشار', description: 'نمایش مرحله‌ها، وابستگی‌ها و موعدها.', keywords: 'gantt گانت زمان بندی برنامه ریزی پروژه timeline', code: `gantt
+  title برنامه انتشار محصول
+  dateFormat YYYY-MM-DD
+  section طراحی
+  تحقیق کاربران :done, research, 2026-07-01, 5d
+  رابط کاربری :active, ui, after research, 7d
+  section توسعه
+  نسخه اولیه :dev, after ui, 10d
+  تست و انتشار :after dev, 5d` },
+  { id: 'mindmap', category: 'planning', badge: 'ایده‌پردازی', title: 'نقشه ذهنی محتوا', description: 'برای شکستن یک موضوع به شاخه‌های قابل اجرا.', keywords: 'mindmap نقشه ذهنی ایده پردازی برنامه محتوا', code: `mindmap
+  root((محصول))
+    مخاطب
+      توسعه‌دهنده
+      دانشجو
+    محتوا
+      آموزش
+      قالب‌ها
+    رشد
+      SEO
+      تبلیغات` },
+  { id: 'architecture', category: 'software', badge: 'معماری', title: 'معماری سرویس ابری', description: 'نمایش API، پایگاه داده و فضای ذخیره‌سازی.', keywords: 'architecture معماری cloud aws سرویس زیرساخت system', code: `architecture-beta
+  group cloud(logos:aws)[Cloud]
+  service api(logos:aws-lambda)[API] in cloud
+  service db(logos:aws-rds)[Database] in cloud
+  service store(logos:aws-s3)[Storage] in cloud
+  api:R --> L:db
+  api:B --> T:store` },
+  { id: 'journey', category: 'process', badge: 'تجربه کاربر', title: 'سفر کاربر', description: 'ثبت مرحله‌ها و میزان رضایت در یک سناریو.', keywords: 'journey سفر کاربر تجربه مشتری ux process', code: `journey
+  title ساخت اولین نمودار
+  section شروع
+    ورود به ادیتور: 5: کاربر
+    انتخاب قالب: 5: کاربر
+  section ساخت
+    ویرایش کد: 4: کاربر
+    دریافت خروجی: 5: کاربر` },
 ];
 
 const grid = document.querySelector('#templates-grid');
@@ -47,11 +141,19 @@ function showToast(message) {
   toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
 }
 
+function relatedLinks(template) {
+  const links = [];
+  if (template.tutorial) links.push(`<a href="${escapeHtml(template.tutorial)}">آموزش این نمودار</a>`);
+  if (template.article) links.push(`<a href="${escapeHtml(template.article)}">راهنمای انتخاب نمودار</a>`);
+  return links.length ? `<nav class="template-related" aria-label="مطالب مرتبط">${links.join('')}</nav>` : '';
+}
+
 function card(template) {
-  return `<article class="template-card" data-id="${template.id}">
+  return `<article id="template-${escapeHtml(template.id)}" class="template-card" data-id="${escapeHtml(template.id)}">
     <div class="template-card-head"><div><h3>${escapeHtml(template.title)}</h3><p>${escapeHtml(template.description)}</p></div><span class="template-badge">${escapeHtml(template.badge)}</span></div>
     <pre class="template-code"><code>${escapeHtml(template.code)}</code></pre>
-    <div class="template-actions"><a class="button button-primary" href="${shareUrl(template)}">ویرایش قالب</a><button class="button button-secondary copy-template" type="button" data-id="${template.id}">کپی کد</button></div>
+    ${relatedLinks(template)}
+    <div class="template-actions"><a class="button button-primary" href="${shareUrl(template)}">ویرایش قالب</a><button class="button button-secondary copy-template" type="button" data-id="${escapeHtml(template.id)}">کپی کد</button></div>
   </article>`;
 }
 
@@ -77,4 +179,6 @@ grid.addEventListener('click', async (event) => {
   try { await navigator.clipboard.writeText(template.code); showToast('کد قالب کپی شد.'); }
   catch { showToast('مرورگر اجازهٔ کپی نداد.'); }
 });
+
+startBidiIsolation();
 render();

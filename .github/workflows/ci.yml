@@ -27,7 +27,24 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-      - run: npm test
+      - name: Run test suite
+        id: test_suite
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          npm test 2>&1 | tee npm-test.log
+      - name: Upload npm test log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-test-log
+          path: npm-test.log
+          if-no-files-found: error
+          retention-days: 7
+      - name: Fail when test suite fails
+        if: steps.test_suite.outcome == 'failure'
+        run: exit 1
       - run: npm run smoke:production
       - name: Reject high-severity production dependency vulnerabilities
         run: npm audit --omit=dev --audit-level=high

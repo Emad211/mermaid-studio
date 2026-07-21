@@ -5,8 +5,18 @@ on:
     paths:
       - "content/daily/**"
       - "scripts/publish-daily-content.mjs"
+      - "scripts/sync-content-indexes.mjs"
       - "scripts/validate-daily-content.mjs"
+      - "public/learn.html"
+      - "public/templates.html"
+      - "public/js/bidi.js"
+      - "public/js/docs.js"
+      - "public/js/templates.js"
+      - "public/css/templates.css"
       - "tests/daily-content-publisher.test.mjs"
+      - "tests/content-index-sync.test.mjs"
+      - "tests/editorial-pages.test.mjs"
+      - "tests/bidi-content.test.mjs"
       - ".github/workflows/publish-daily-content.yml"
   push:
     branches:
@@ -14,8 +24,18 @@ on:
     paths:
       - "content/daily/**"
       - "scripts/publish-daily-content.mjs"
+      - "scripts/sync-content-indexes.mjs"
       - "scripts/validate-daily-content.mjs"
+      - "public/learn.html"
+      - "public/templates.html"
+      - "public/js/bidi.js"
+      - "public/js/docs.js"
+      - "public/js/templates.js"
+      - "public/css/templates.css"
       - "tests/daily-content-publisher.test.mjs"
+      - "tests/content-index-sync.test.mjs"
+      - "tests/editorial-pages.test.mjs"
+      - "tests/bidi-content.test.mjs"
       - ".github/workflows/publish-daily-content.yml"
   workflow_dispatch:
 
@@ -52,8 +72,11 @@ jobs:
       - name: Compile content into site registries
         run: node scripts/publish-daily-content.mjs
 
-      - name: Run publisher unit tests
-        run: node --test tests/daily-content-publisher.test.mjs
+      - name: Synchronize crawlable content indexes
+        run: node scripts/sync-content-indexes.mjs
+
+      - name: Run publisher and index unit tests
+        run: node --test tests/daily-content-publisher.test.mjs tests/content-index-sync.test.mjs
 
       - name: Validate JavaScript
         run: npm run check
@@ -91,6 +114,6 @@ jobs:
           fi
           git config user.name "nemodara-content-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add src/server/article-content.js src/server/learn-content.js src/server/seo.js public/js/templates.js tests/editorial-pages.test.mjs
+          git add src/server/article-content.js src/server/learn-content.js src/server/seo.js public/js/templates.js public/learn.html public/templates.html tests/editorial-pages.test.mjs
           git commit -m "publish daily SEO content"
           git push
