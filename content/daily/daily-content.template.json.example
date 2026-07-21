@@ -1,0 +1,105 @@
+{
+  "version": 1,
+  "date": "YYYY-MM-DD",
+  "cluster": {
+    "name": "نام خوشه",
+    "primaryQuery": "عبارت اصلی طبیعی",
+    "secondaryQueries": [
+      "عبارت فرعی ۱",
+      "عبارت فرعی ۲",
+      "عبارت فرعی ۳"
+    ],
+    "intent": "آموزشی | مقایسه‌ای | رفع خطا | قالب | ابزار",
+    "sources": [
+      "https://mermaid.js.org/..."
+    ]
+  },
+  "article": {
+    "slug": "english-kebab-case",
+    "category": "دسته",
+    "title": "عنوان توصیفی و تصمیم‌محور",
+    "description": "خلاصهٔ دقیق نتیجهٔ صفحه برای کاربر.",
+    "deck": "پاسخ مستقیم و زاویهٔ اصلی مقاله.",
+    "keywords": [
+      "query اصلی",
+      "مترادف",
+      "اصطلاح فنی"
+    ],
+    "published": "YYYY-MM-DD",
+    "updated": "YYYY-MM-DD",
+    "minutes": 12,
+    "author": {
+      "name": "تحریریهٔ نمودارا",
+      "role": "آموزش مستندسازی فنی و نمودار به‌صورت کد",
+      "url": "/about#editorial"
+    },
+    "testedWith": "Mermaid X و ادیتور نمودارا",
+    "takeaways": [
+      "نتیجهٔ ۱",
+      "نتیجهٔ ۲",
+      "نتیجهٔ ۳"
+    ],
+    "sections": [
+      {
+        "id": "answer",
+        "title": "پاسخ مستقیم",
+        "paragraphs": [
+          "متن..."
+        ],
+        "code": "flowchart TD\n  A --> B",
+        "codeLabel": "نمونهٔ قابل ویرایش"
+      }
+    ],
+    "relatedLearn": [
+      "related-tutorial-slug"
+    ]
+  },
+  "tutorial": {
+    "slug": "tutorial-kebab-case",
+    "shortTitle": "عنوان کوتاه",
+    "title": "عنوان کامل آموزش",
+    "description": "خلاصهٔ دقیق آموزش و قابلیت‌هایی که پوشش می‌دهد.",
+    "keywords": [
+      "query اصلی",
+      "syntax",
+      "کاربرد"
+    ],
+    "level": "مقدماتی تا متوسط",
+    "minutes": 18,
+    "published": "YYYY-MM-DD",
+    "updated": "YYYY-MM-DD",
+    "intro": "کاربر در پایان چه چیزی می‌سازد و این آموزش برای چه کسی است؟",
+    "learningOutcomes": [
+      "خروجی ۱",
+      "خروجی ۲",
+      "خروجی ۳"
+    ],
+    "sections": [
+      {
+        "id": "first-example",
+        "title": "اولین نمونه",
+        "paragraphs": [
+          "توضیح..."
+        ],
+        "code": "flowchart TD\n  A --> B",
+        "codeLabel": "نمونهٔ سالم"
+      }
+    ],
+    "faq": [
+      [
+        "پرسش واقعی کاربر؟",
+        "پاسخ دقیق و کوتاه."
+      ]
+    ]
+  },
+  "template": {
+    "id": "template-kebab-case",
+    "category": "software",
+    "badge": "برچسب",
+    "title": "عنوان قالب",
+    "description": "قالب چه مسئله‌ای را حل می‌کند؟",
+    "keywords": "کلیدواژه فارسی english keyword intent",
+    "code": "flowchart TD\n  A --> B"
+  },
+  "relatedLearnTitle": "عنوان لینک آموزش"
+}
