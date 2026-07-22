@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "date": "2026-07-22",
+  "cluster": {
+    "name": "GitGraph در Mermaid",
+    "primaryQuery": "آموزش GitGraph در Mermaid",
+    "secondaryQueries": [
+      "نمودار شاخه‌های Git",
+      "قالب Git Flow در Mermaid",
+      "مستندسازی Branching Strategy",
+      "نمودار release و hotfix"
+    ],
+    "intent": "آموزشی، تصمیم‌گیری و یافتن قالب",
+    "sources": [
+      "https://mermaid.js.org/syntax/gitgraph.html",
+      "https://git-scm.com/book/en/v2/Git-Branching-Branches-in-a-Nutshell",
+      "https://git-scm.com/docs/git-merge",
+      "https://git-scm.com/docs/git-cherry-pick"
+    ]
+  },
+  "relatedLearnTitle": "آموزش GitGraph در Mermaid"
+}
