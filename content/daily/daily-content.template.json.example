@@ -51,7 +51,7 @@
       }
     ],
     "relatedLearn": [
-      "related-tutorial-slug"
+      "tutorial-kebab-case"
     ]
   },
   "tutorial": {
@@ -99,6 +99,8 @@
     "title": "عنوان قالب",
     "description": "قالب چه مسئله‌ای را حل می‌کند؟",
     "keywords": "کلیدواژه فارسی english keyword intent",
+    "tutorial": "/learn/tutorial-kebab-case",
+    "article": "/articles/english-kebab-case",
     "code": "flowchart TD\n  A --> B"
   },
   "relatedLearnTitle": "عنوان لینک آموزش"

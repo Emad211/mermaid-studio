@@ -8,6 +8,8 @@ const templates = [
     "title": "Git Flow برای release و hotfix",
     "description": "قالب GitGraph قابل ویرایش برای feature، develop، release، tag نسخه و hotfix.",
     "keywords": "GitGraph Mermaid قالب Git Flow branching strategy release hotfix نمودار شاخه گیت",
+    "tutorial": "/learn/gitgraph-mermaid",
+    "article": "/articles/gitgraph-for-branching-strategy",
     "code": "gitGraph LR:\n  commit id: \"v1.3.0\" tag: \"v1.3.0\"\n  branch develop\n  commit id: \"prepare-1.4\"\n  branch feature-auth\n  commit id: \"auth-ui\"\n  commit id: \"auth-api\"\n  checkout develop\n  merge feature-auth id: \"merge-auth\"\n  branch release-1.4\n  commit id: \"release-qa\"\n  checkout main\n  merge release-1.4 id: \"release-1.4\" tag: \"v1.4.0\"\n  checkout develop\n  merge release-1.4 id: \"sync-1.4\"\n  checkout main\n  branch hotfix-payment\n  commit id: \"payment-fix\" type: HIGHLIGHT\n  checkout main\n  merge hotfix-payment id: \"hotfix-1.4.1\" tag: \"v1.4.1\"\n  checkout develop\n  merge hotfix-payment id: \"sync-hotfix\""
   },
   {

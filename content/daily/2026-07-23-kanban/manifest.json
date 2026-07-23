@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "date": "2026-07-23",
+  "cluster": {
+    "name": "Kanban در Mermaid برای مدیریت جریان کار",
+    "primaryQuery": "آموزش Kanban در Mermaid",
+    "secondaryQueries": [
+      "تفاوت Kanban و Gantt",
+      "ساخت برد کانبان با کد",
+      "قالب کانبان Mermaid",
+      "نمودار کانبان برای Sprint"
+    ],
+    "intent": "آموزشی، مقایسه و انتخاب، یافتن قالب",
+    "sources": [
+      "https://mermaid.js.org/syntax/kanban.html",
+      "https://mermaid.js.org/config/schema-docs/config-defs-kanban-diagram-config.html",
+      "https://mermaid.js.org/syntax/gantt.html",
+      "https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/creating-diagrams"
+    ]
+  },
+  "relatedLearnTitle": "آموزش Kanban در Mermaid"
+}

@@ -18,9 +18,22 @@ function collectCode(entry) {
   ];
 }
 
+function validateTemplateLinks(entry) {
+  const expectedTutorial = `/learn/${entry.tutorial.slug}`;
+  const expectedArticle = `/articles/${entry.article.slug}`;
+  if (entry.template.tutorial !== expectedTutorial) {
+    throw new Error(`template:${entry.template.id} tutorial link must be ${expectedTutorial}`);
+  }
+  if (entry.template.article !== expectedArticle) {
+    throw new Error(`template:${entry.template.id} article link must be ${expectedArticle}`);
+  }
+}
+
 async function main() {
   process.env.PUPPETEER_NO_SANDBOX = process.env.PUPPETEER_NO_SANDBOX || 'true';
   const entries = await loadEntries();
+  entries.forEach(validateTemplateLinks);
+  const samples = entries.flatMap(collectCode);
   const dataDir = await fs.mkdtemp(path.join(os.tmpdir(), 'nemodara-daily-content-'));
   const environment = {
     ...process.env,
@@ -33,6 +46,12 @@ async function main() {
     GSC_ENABLED: 'false',
     INDEXNOW_ENABLED: 'false',
     PUPPETEER_NO_SANDBOX: process.env.PUPPETEER_NO_SANDBOX,
+    // The production API deliberately has a low public rate limit. This local
+    // validator renders the entire trusted content inventory in one process, so
+    // its limit must scale with the number of checked examples instead of
+    // failing as the editorial library grows.
+    RENDER_RATE_MAX: String(Math.max(100, samples.length + 10)),
+    RENDER_RATE_WINDOW_MS: '60000',
   };
 
   const server = await startServer({
@@ -44,27 +63,25 @@ async function main() {
 
   const results = [];
   try {
-    for (const entry of entries) {
-      for (const sample of collectCode(entry)) {
-        process.stdout.write(`Validating ${sample.label}...\n`);
-        const response = await fetch(`${server.url}/api/render`, {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({
-            code: sample.code,
-            format: 'svg',
-            theme: 'default',
-            background: 'white',
-          }),
-        });
-        if (!response.ok) {
-          const detail = await response.text();
-          throw new Error(`${sample.label} failed Mermaid validation (${response.status}): ${detail.slice(0, 500)}`);
-        }
-        const svg = await response.text();
-        if (!svg.includes('<svg')) throw new Error(`${sample.label} did not return SVG`);
-        results.push(sample.label);
+    for (const sample of samples) {
+      process.stdout.write(`Validating ${sample.label}...\n`);
+      const response = await fetch(`${server.url}/api/render`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          code: sample.code,
+          format: 'svg',
+          theme: 'default',
+          background: 'white',
+        }),
+      });
+      if (!response.ok) {
+        const detail = await response.text();
+        throw new Error(`${sample.label} failed Mermaid validation (${response.status}): ${detail.slice(0, 500)}`);
       }
+      const svg = await response.text();
+      if (!svg.includes('<svg')) throw new Error(`${sample.label} did not return SVG`);
+      results.push(sample.label);
     }
   } finally {
     await server.close();
@@ -72,7 +89,7 @@ async function main() {
     await fs.rm(dataDir, { recursive: true, force: true });
   }
 
-  process.stdout.write(`Validated ${results.length} Mermaid examples.\n`);
+  process.stdout.write(`Validated ${results.length} Mermaid examples and ${entries.length} template link pairs.\n`);
 }
 
 main().catch((error) => {

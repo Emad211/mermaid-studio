@@ -11,7 +11,7 @@ function environment(directory) {
     NODE_ENV: 'test',
     SITE_URL: 'https://nemodara.ir',
     SITE_NAME: 'نمودارا',
-    SEO_LAST_MODIFIED: '2026-07-21',
+    SEO_LAST_MODIFIED: '2026-07-23',
     SEO_AUTHOR_NAME: 'تیم تحریریه نمودارا',
     ANALYTICS_ENABLED: 'true',
     ANALYTICS_DATA_DIR: directory,
@@ -31,7 +31,7 @@ async function openPage(page, url) {
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2), `horizontal overflow at ${url}`);
 }
 
-test('daily tutorial and template are discoverable and mixed Persian/English text is isolated', { timeout: 120_000 }, async (t) => {
+test('daily tutorials and templates are discoverable and mixed Persian/English text is isolated', { timeout: 120_000 }, async (t) => {
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'nemodara-bidi-'));
   const server = await startServer({ port: 0, host: '127.0.0.1', environment: environment(directory), logger: { error() {} } });
   const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'] });
@@ -45,16 +45,23 @@ test('daily tutorial and template are discoverable and mixed Persian/English tex
   await page.setViewport({ width: 1440, height: 1000, deviceScaleFactor: 1 });
 
   await openPage(page, `${server.url}/learn`);
-  assert.equal(await page.$$eval('.guide-card', (nodes) => nodes.length), 9);
+  assert.ok(await page.$$eval('.guide-card', (nodes) => nodes.length) >= 10);
   assert.ok(await page.$('a[data-tutorial-slug="state-diagram-mermaid"]'));
+  assert.ok(await page.$('a[data-tutorial-slug="kanban-mermaid"]'));
 
   await openPage(page, `${server.url}/learn/state-diagram-mermaid`);
+  assert.ok(await page.$$eval('bdi.latin-run[dir="ltr"]', (nodes) => nodes.length) >= 5);
+
+  await openPage(page, `${server.url}/learn/kanban-mermaid`);
   assert.ok(await page.$$eval('bdi.latin-run[dir="ltr"]', (nodes) => nodes.length) >= 5);
 
   await openPage(page, `${server.url}/templates`);
   assert.ok(await page.$('#template-order-state'));
   assert.ok(await page.$('#template-order-state a[href="/learn/state-diagram-mermaid"]'));
   assert.ok(await page.$('#template-order-state a[href="/articles/state-diagram-vs-flowchart"]'));
+  assert.ok(await page.$('#template-content-release-kanban'));
+  assert.ok(await page.$('#template-content-release-kanban a[href="/learn/kanban-mermaid"]'));
+  assert.ok(await page.$('#template-content-release-kanban a[href="/articles/kanban-vs-gantt-for-team-work"]'));
 
   await openPage(page, `${server.url}/articles/state-diagram-vs-flowchart`);
   assert.ok(await page.$$eval('.docs-sidebar bdi.latin-run[dir="ltr"]', (nodes) => nodes.length) >= 2);
@@ -66,7 +73,7 @@ test('daily tutorial and template are discoverable and mixed Persian/English tex
   assert.ok(links.every((item) => item.height > 0 && item.lineHeight >= 20));
 
   await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 1 });
-  await openPage(page, `${server.url}/articles/state-diagram-vs-flowchart`);
+  await openPage(page, `${server.url}/articles/kanban-vs-gantt-for-team-work`);
   assert.equal(await page.$eval('.docs-sidebar', (node) => getComputedStyle(node).display), 'none');
 });
 
@@ -81,9 +88,14 @@ test('source HTML contains standard crawlable links before client rendering', as
   const learn = await (await fetch(`${server.url}/learn`)).text();
   assert.match(learn, /data-tutorial-slug="state-diagram-mermaid"/);
   assert.match(learn, /href="\/learn\/state-diagram-mermaid"/);
+  assert.match(learn, /data-tutorial-slug="kanban-mermaid"/);
+  assert.match(learn, /href="\/learn\/kanban-mermaid"/);
 
   const templates = await (await fetch(`${server.url}/templates`)).text();
   assert.match(templates, /data-template-id="order-state"/);
   assert.match(templates, /href="\/learn\/state-diagram-mermaid"/);
   assert.match(templates, /href="\/articles\/state-diagram-vs-flowchart"/);
+  assert.match(templates, /data-template-id="content-release-kanban"/);
+  assert.match(templates, /href="\/learn\/kanban-mermaid"/);
+  assert.match(templates, /href="\/articles\/kanban-vs-gantt-for-team-work"/);
 });
