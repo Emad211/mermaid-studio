@@ -33,6 +33,13 @@ async function main() {
     GSC_ENABLED: 'false',
     INDEXNOW_ENABLED: 'false',
     PUPPETEER_NO_SANDBOX: process.env.PUPPETEER_NO_SANDBOX,
+    // Validation renders every historical daily sample in one short CI run. The
+    // production limiter is intentionally conservative, but it must not make
+    // this trusted local test fail once the content library grows past 30
+    // examples. The server is bound to 127.0.0.1 and analytics are disabled.
+    RENDER_RATE_MAX: '2000',
+    RENDER_RATE_WINDOW_MS: '60000',
+    RENDER_CONCURRENCY: '1',
   };
 
   const server = await startServer({
