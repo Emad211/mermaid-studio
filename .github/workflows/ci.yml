@@ -27,6 +27,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+      - name: Compile structured editorial content
+        run: node scripts/publish-daily-content.mjs
+      - name: Synchronize crawlable content indexes
+        run: node scripts/sync-content-indexes.mjs
       - name: Run test suite
         id: test_suite
         continue-on-error: true
@@ -75,6 +79,15 @@ jobs:
     timeout-minutes: 50
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Compile structured editorial content
+        run: node scripts/publish-daily-content.mjs
+      - name: Synchronize crawlable content indexes
+        run: node scripts/sync-content-indexes.mjs
       - name: Build production image
         run: docker build --pull --tag mermaid-studio:ci .
       - name: Smoke-test production container with persistent analytics volume
@@ -103,7 +116,9 @@ jobs:
           curl -fsS http://127.0.0.1:4321/templates >/dev/null
           curl -fsS http://127.0.0.1:4321/learn >/dev/null
           curl -fsS http://127.0.0.1:4321/learn/sequence-diagram-mermaid >/dev/null
-          curl -fsS http://127.0.0.1:4321/sitemap.xml | grep -q '/learn/flowchart-mermaid'
+          curl -fsS http://127.0.0.1:4321/learn/kanban-mermaid >/dev/null
+          curl -fsS http://127.0.0.1:4321/articles/kanban-vs-gantt-for-team-work >/dev/null
+          curl -fsS http://127.0.0.1:4321/sitemap.xml | grep -q '/learn/kanban-mermaid'
           curl -fsS -X POST http://127.0.0.1:4321/api/analytics/event \
             -H 'content-type: application/json' \
             --data '{"event":"page_view","path":"/","session":"ci-session"}' \
