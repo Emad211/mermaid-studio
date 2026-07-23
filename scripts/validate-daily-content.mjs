@@ -18,9 +18,21 @@ function collectCode(entry) {
   ];
 }
 
+function validateTemplateLinks(entry) {
+  const expectedTutorial = `/learn/${entry.tutorial.slug}`;
+  const expectedArticle = `/articles/${entry.article.slug}`;
+  if (entry.template.tutorial !== expectedTutorial) {
+    throw new Error(`template:${entry.template.id} tutorial link must be ${expectedTutorial}`);
+  }
+  if (entry.template.article !== expectedArticle) {
+    throw new Error(`template:${entry.template.id} article link must be ${expectedArticle}`);
+  }
+}
+
 async function main() {
   process.env.PUPPETEER_NO_SANDBOX = process.env.PUPPETEER_NO_SANDBOX || 'true';
   const entries = await loadEntries();
+  entries.forEach(validateTemplateLinks);
   const samples = entries.flatMap(collectCode);
   const dataDir = await fs.mkdtemp(path.join(os.tmpdir(), 'nemodara-daily-content-'));
   const environment = {
@@ -77,7 +89,7 @@ async function main() {
     await fs.rm(dataDir, { recursive: true, force: true });
   }
 
-  process.stdout.write(`Validated ${results.length} Mermaid examples.\n`);
+  process.stdout.write(`Validated ${results.length} Mermaid examples and ${entries.length} template link pairs.\n`);
 }
 
 main().catch((error) => {
