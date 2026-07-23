@@ -1,0 +1,11 @@
+{
+  "id": "product-roadmap-timeline",
+  "category": "planning",
+  "badge": "Roadmap",
+  "title": "Timeline roadmap محصول",
+  "description": "قالب فارسی برای نمایش milestoneهای roadmap محصول در چهار فصل، بدون ورود به مدت و وابستگی taskها.",
+  "keywords": "timeline mermaid roadmap محصول تایم لاین خط زمانی milestone برنامه ریزی",
+  "tutorial": "/learn/timeline-mermaid",
+  "article": "/articles/timeline-vs-gantt-for-roadmaps",
+  "code": "timeline\n  title Roadmap محصول ۱۴۰۵\n  section کشف\n    بهار : مصاحبه با کاربران\n         : تعریف مسئله‌های اولویت‌دار\n  section ساخت\n    تابستان : نسخهٔ آزمایشی\n            : سنجش رفتار استفاده\n  section رشد\n    پاییز : گزارش‌گیری تیمی\n          : بهبود onboarding\n  section تثبیت\n    زمستان : بهینه‌سازی عملکرد\n            : بازبینی roadmap سال بعد"
+}
