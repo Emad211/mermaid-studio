@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "date": "2026-07-23",
+  "cluster": {
+    "name": "Timeline در Mermaid",
+    "primaryQuery": "آموزش Timeline در Mermaid",
+    "secondaryQueries": [
+      "تفاوت Timeline و Gantt در Mermaid",
+      "ساخت roadmap با Mermaid",
+      "قالب timeline محصول",
+      "نمودار خط زمانی Mermaid"
+    ],
+    "intent": "آموزشی، مقایسه‌ای و یافتن قالب",
+    "sources": [
+      "https://mermaid.js.org/syntax/timeline.html",
+      "https://mermaid.js.org/syntax/gantt.html"
+    ]
+  },
+  "relatedLearnTitle": "آموزش Timeline در Mermaid"
+}
