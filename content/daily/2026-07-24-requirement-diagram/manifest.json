@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "date": "2026-07-24",
+  "cluster": {
+    "name": "Requirement Diagram در Mermaid",
+    "primaryQuery": "آموزش Requirement Diagram در Mermaid",
+    "secondaryQueries": [
+      "نمودار نیازمندی در Mermaid",
+      "Requirement Diagram چیست",
+      "تفاوت Requirement Diagram و Traceability Matrix",
+      "قالب ردیابی نیازمندی نرم افزار",
+      "نمودار نیازمندی SysML با Mermaid"
+    ],
+    "intent": "آموزشی، مقایسه‌ای و یافتن قالب",
+    "sources": [
+      "https://mermaid.js.org/syntax/requirementDiagram.html"
+    ]
+  },
+  "relatedLearnTitle": "آموزش Requirement Diagram در Mermaid"
+}
