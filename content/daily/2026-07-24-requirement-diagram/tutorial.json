@@ -1,0 +1,156 @@
+{
+  "slug": "requirement-diagram-mermaid",
+  "shortTitle": "نمودار نیازمندی",
+  "title": "آموزش Requirement Diagram در Mermaid؛ ردیابی نیازمندی، اجرا و آزمون",
+  "description": "Requirement Diagram در Mermaid را با requirement، element، risk، verification method، رابطه‌های traceability، جهت، استایل و مثال فارسی یاد بگیرید.",
+  "keywords": [
+    "آموزش Requirement Diagram در Mermaid",
+    "requirementDiagram syntax",
+    "نمودار نیازمندی SysML",
+    "ردیابی نیازمندی نرم افزار"
+  ],
+  "level": "متوسط",
+  "minutes": 24,
+  "published": "2026-07-24",
+  "updated": "2026-07-24",
+  "intro": "Requirement Diagram برای نشان‌دادن نیازمندی‌ها و رابطهٔ آن‌ها با اجزای سیستم، اسناد و آزمون‌هاست. در پایان این آموزش یک نمودار قابل بازبینی برای قابلیت ورود امن می‌سازید، انواع requirement و رابطه‌های traceability را می‌شناسید و می‌دانید چه اطلاعاتی باید بیرون از نمودار باقی بماند.",
+  "learningOutcomes": [
+    "اولین Requirement Diagram معتبر را بسازی.",
+    "نوع، شناسه، متن، ریسک و روش راستی‌آزمایی را تعریف کنی.",
+    "elementها را به سرویس، سند و آزمون متصل کنی.",
+    "رابطه‌های contains، satisfies، verifies، refines و traces را درست به‌کار ببری.",
+    "یک نمودار کوچک و قابل نگهداری برای بازبینی نیازمندی‌ها آماده کنی."
+  ],
+  "sections": [
+    {
+      "id": "first-diagram",
+      "title": "ساخت اولین Requirement Diagram",
+      "paragraphs": [
+        "خط نخست با requirementDiagram شروع می‌شود. سپس یک requirement با نام فنی تعریف می‌کنید و داخل بلوک آن شناسه، متن، سطح ریسک و روش راستی‌آزمایی را می‌نویسید. نام فنی باید کوتاه و بدون فاصله باشد؛ متن فارسی را داخل کوتیشن قرار دهید تا parser آن را یک مقدار کامل تشخیص دهد.",
+        "فیلد id برای پیوند با Issue، سند یا تست بسیار مهم است. بهتر است الگویی پایدار مانند AUTH-001 یا PAY-004 داشته باشید. نام داخلی secure_login برای ارجاع داخل کد Mermaid استفاده می‌شود و id می‌تواند همان شناسه‌ای باشد که تیم در ابزارهای دیگر می‌شناسد."
+      ],
+      "code": "requirementDiagram\n  requirement secure_login {\n    id: \"AUTH-001\"\n    text: \"کاربر باید با احراز هویت امن وارد شود\"\n    risk: high\n    verifymethod: test\n  }",
+      "codeLabel": "اولین نیازمندی قابل رندر"
+    },
+    {
+      "id": "requirement-types",
+      "title": "انتخاب نوع Requirement",
+      "paragraphs": [
+        "Mermaid علاوه بر requirement عمومی، چند نوع مشخص ارائه می‌کند: functionalRequirement برای رفتار مورد انتظار، interfaceRequirement برای مرز ارتباط، performanceRequirement برای محدودیت عملکرد، physicalRequirement برای ویژگی فیزیکی و designConstraint برای قید طراحی. نوع باید به فهم خواننده کمک کند؛ استفاده از نام تخصصی بدون تعریف مشترک، دقت ظاهری می‌سازد.",
+        "یک نیازمندی عملکردی می‌تواند بگوید پاسخ ورود در بار معمول باید زیر آستانهٔ تعریف‌شده باشد. یک interfaceRequirement قرارداد ثبت رویداد امنیتی را توصیف می‌کند. designConstraint زمانی مناسب است که راه‌حل یا فناوری به‌صورت صریح محدود شده باشد. متن کامل معیار پذیرش همچنان باید در سند مرجع بماند."
+      ],
+      "bullets": [
+        "`requirement` برای نیاز عمومی یا زمانی که نوع تخصصی لازم نیست.",
+        "`functionalRequirement` برای رفتار یا قابلیت سیستم.",
+        "`interfaceRequirement` برای مرز و قرارداد ارتباطی.",
+        "`performanceRequirement` برای زمان پاسخ، ظرفیت یا کارایی.",
+        "`physicalRequirement` برای محدودیت فیزیکی یا سخت‌افزاری.",
+        "`designConstraint` برای قید الزام‌آور طراحی."
+      ],
+      "code": "requirementDiagram\n  functionalRequirement login_feature {\n    id: \"AUTH-001\"\n    text: \"کاربر باید بتواند وارد سامانه شود\"\n    risk: high\n    verifymethod: test\n  }\n\n  performanceRequirement login_latency {\n    id: \"AUTH-004\"\n    text: \"زمان پاسخ ورود باید در محدودهٔ توافق‌شده باشد\"\n    risk: medium\n    verifymethod: demonstration\n  }\n\n  interfaceRequirement audit_contract {\n    id: \"AUTH-005\"\n    text: \"نتیجهٔ ورود باید رویداد امنیتی تولید کند\"\n    risk: medium\n    verifymethod: inspection\n  }",
+      "codeLabel": "سه نوع نیازمندی برای قابلیت ورود"
+    },
+    {
+      "id": "risk-verification",
+      "title": "Risk و Verification Method را معنی‌دار بنویسید",
+      "paragraphs": [
+        "risk یکی از مقادیر low، medium یا high است و باید بازتاب پیامد شکست یا اهمیت بازبینی باشد، نه ابزاری برای رنگ‌آمیزی تصادفی. اگر همهٔ نیازمندی‌ها high باشند، اولویت‌گذاری معنای خود را از دست می‌دهد. معیار انتخاب سطح ریسک را در راهنمای تیم ثبت کنید.",
+        "verifymethod یکی از analysis، inspection، test یا demonstration است. test برای بررسی اجرایی قابل تکرار، inspection برای بازبینی سند یا artefact، analysis برای استدلال و محاسبه و demonstration برای نشان‌دادن رفتار در شرایط تعریف‌شده مناسب است. این فیلد به‌تنهایی مدرک تأیید نیست؛ فقط نوع روش مورد انتظار را ثبت می‌کند.",
+        "برای نیازهای پرریسک، علاوه بر verifymethod یک element آزمون یا سند تحلیل نیز تعریف کنید و با رابطهٔ verifies به نیاز متصل کنید. به این ترتیب نمودار نشان می‌دهد روش فقط نوشته نشده و یک artefact واقعی برای اجرای آن وجود دارد."
+      ],
+      "code": "requirementDiagram\n  requirement account_lock {\n    id: \"AUTH-002\"\n    text: \"تلاش ناموفق متوالی باید محدود شود\"\n    risk: high\n    verifymethod: test\n  }\n\n  element lockout_test {\n    type: \"integration-test\"\n    docref: \"tests/auth/lockout.spec\"\n  }\n\n  lockout_test - verifies -> account_lock",
+      "codeLabel": "پیوند روش راستی‌آزمایی با آزمون واقعی"
+    },
+    {
+      "id": "elements",
+      "title": "اتصال Element به کد، سند و آزمون",
+      "paragraphs": [
+        "element نمای سبک یک جزء مرتبط است. می‌تواند سرویس، رابط کاربری، دیتابیس، سند طراحی، تست یا حتی مدل شبیه‌سازی باشد. داخل بلوک element می‌توانید type و docref بنویسید. این فیلدها آزاد هستند، بنابراین تیم باید واژگان محدودی مانند service، database، automated-test و adr را تعریف کند.",
+        "docref بهتر است مسیر یا شناسه‌ای پایدار باشد، نه آدرس موقت محیط محلی. برای Repository می‌توانید مسیر فایل، نام ADR یا شناسهٔ Issue را بنویسید. اگر مقصد از نمودار قابل کلیک نیست، همین مقدار به خواننده کمک می‌کند منبع را جست‌وجو کند.",
+        "یک element را فقط زمانی وارد کنید که رابطهٔ آن با نیازمندی برای سؤال نمودار مهم باشد. افزودن همهٔ فایل‌ها و کلاس‌ها، تصویر را به dependency graph ناقص تبدیل می‌کند."
+      ],
+      "code": "requirementDiagram\n  requirement secure_login {\n    id: \"AUTH-001\"\n    text: \"ورود باید امن باشد\"\n    risk: high\n    verifymethod: test\n  }\n\n  element auth_api {\n    type: \"service\"\n    docref: \"src/auth/api\"\n  }\n\n  element security_adr {\n    type: \"adr\"\n    docref: \"docs/adr/012-auth-security.md\"\n  }\n\n  auth_api - satisfies -> secure_login\n  security_adr - traces -> secure_login",
+      "codeLabel": "سرویس و ADR مرتبط با نیازمندی"
+    },
+    {
+      "id": "relationships",
+      "title": "رابطه‌های Traceability را درست انتخاب کنید",
+      "paragraphs": [
+        "رابطه با الگوی source - type -> destination نوشته می‌شود. contains نشان می‌دهد یک نیازمندی بالادستی نیازهای جزئی‌تری را در بر می‌گیرد. derives برای نیاز استخراج‌شده، refines برای دقیق‌ترکردن و traces برای پیوند قابل ردیابی استفاده می‌شود. satisfies معمولاً عنصر اجرا را به نیاز وصل می‌کند و verifies عنصر آزمون یا مدرک را به نیاز متصل می‌سازد.",
+        "جهت فلش باید با معنای جمله خوانده شود. عبارت auth_api - satisfies -> secure_login یعنی «سرویس احراز هویت، نیاز ورود امن را برآورده می‌کند». اگر منبع و مقصد را جابه‌جا کنید، نمودار ممکن است رندر شود اما معنای مستند اشتباه باشد.",
+        "copies را فقط زمانی به‌کار ببرید که واقعاً یک نیازمندی کپی‌شده و رابطهٔ نسخه‌ای آن مهم است. برای شباهت مفهومی یا لینک عمومی، traces معمولاً صادقانه‌تر است."
+      ],
+      "bullets": [
+        "`contains` برای تجزیهٔ نیاز بالادستی به نیازهای زیرمجموعه.",
+        "`derives` برای نیازمندی استخراج‌شده از نیاز دیگر.",
+        "`refines` برای دقیق‌ترکردن تعریف یا دامنه.",
+        "`satisfies` برای عنصر طراحی یا پیاده‌سازی.",
+        "`verifies` برای آزمون، تحلیل یا مدرک راستی‌آزمایی.",
+        "`traces` برای پیوند قابل ردیابی بدون ادعای برآورده‌سازی.",
+        "`copies` برای رابطهٔ کپی مشخص میان دو نیاز."
+      ],
+      "code": "requirementDiagram\n  requirement auth_security {\n    id: \"AUTH-000\"\n    text: \"ورود باید در برابر سوءاستفاده مقاوم باشد\"\n    risk: high\n    verifymethod: analysis\n  }\n\n  functionalRequirement rate_limit {\n    id: \"AUTH-002\"\n    text: \"تلاش ناموفق باید محدود شود\"\n    risk: high\n    verifymethod: test\n  }\n\n  element auth_service {\n    type: \"backend-service\"\n    docref: \"src/auth\"\n  }\n\n  element abuse_test {\n    type: \"integration-test\"\n    docref: \"tests/auth/abuse.spec\"\n  }\n\n  auth_security - contains -> rate_limit\n  auth_service - satisfies -> rate_limit\n  abuse_test - verifies -> rate_limit",
+      "codeLabel": "contains، satisfies و verifies در یک زنجیره"
+    },
+    {
+      "id": "direction-layout",
+      "title": "جهت نمودار و کنترل خوانایی",
+      "paragraphs": [
+        "با direction می‌توانید چیدمان را تغییر دهید. LR برای زنجیرهٔ نیاز تا پیاده‌سازی و آزمون معمولاً خواناست؛ TB برای ساختار والد و فرزند فضای طبیعی‌تری می‌دهد. BT و RL نیز برای نیازهای خاص در دسترس‌اند، اما جهت غیرمعمول باید دلیل روشن داشته باشد.",
+        "چیدمان خودکار جای انتخاب دامنه را نمی‌گیرد. اگر رابطه‌ها از چند جهت عبور می‌کنند، ابتدا گره‌های غیرضروری را حذف یا نمودار را به چند نمای کوچک تقسیم کنید. تغییر جهت به‌تنهایی شبکهٔ بیش‌ازحد بزرگ را قابل فهم نمی‌کند.",
+        "عنوان کوتاه، text فشرده و شناسه‌های منظم از تنظیمات بصری مهم‌ترند. برای متن فارسی طولانی، خلاصه را در نمودار و جزئیات را در docref نگه دارید."
+      ],
+      "code": "requirementDiagram\n  direction LR\n\n  functionalRequirement session_expiry {\n    id: \"AUTH-006\"\n    text: \"نشست غیرفعال باید منقضی شود\"\n    risk: medium\n    verifymethod: test\n  }\n\n  element session_worker {\n    type: \"background-worker\"\n    docref: \"src/session/expiry\"\n  }\n\n  element expiry_test {\n    type: \"automated-test\"\n    docref: \"tests/session/expiry.spec\"\n  }\n\n  session_worker - satisfies -> session_expiry\n  expiry_test - verifies -> session_expiry",
+      "codeLabel": "چیدمان افقی از نیاز تا اجرا و آزمون"
+    },
+    {
+      "id": "styling",
+      "title": "استایل محدود و قابل نگهداری",
+      "paragraphs": [
+        "Requirement Diagram از style، classDef و class پشتیبانی می‌کند. استایل باید یک قرارداد کوچک را تقویت کند؛ برای نمونه نیازهای پرریسک یا عناصر آزمون را با تأکید محدود نشان دهید. رنگ نباید تنها حامل معنا باشد، زیرا چاپ سیاه‌وسفید، دسترس‌پذیری و تم‌های مختلف می‌توانند تفاوت را کاهش دهند.",
+        "به‌جای تکرار style برای هر گره، classDef بسازید و آن را روی چند requirement یا element اعمال کنید. نام کلاس معنایی مانند critical یا evidence بهتر از نام رنگی مانند redBox است. در عین حال risk داخل خود نیازمندی باقی می‌ماند و منبع معنایی اصلی است.",
+        "اگر هدف شما خروجی رسمی و پایدار است، ابتدا نمودار بدون CSS را قابل خواندن کنید. استایل پیچیده احتمال شکستن در نسخه یا مقصد دیگر را افزایش می‌دهد."
+      ],
+      "code": "requirementDiagram\n  requirement secure_login {\n    id: \"AUTH-001\"\n    text: \"ورود باید امن باشد\"\n    risk: high\n    verifymethod: test\n  }\n\n  element login_test {\n    type: \"automated-test\"\n    docref: \"tests/auth/login.spec\"\n  }\n\n  login_test - verifies -> secure_login\n\n  classDef critical fill:#fee2e2,stroke:#b91c1c,stroke-width:2px\n  classDef evidence fill:#dcfce7,stroke:#15803d\n  class secure_login critical\n  class login_test evidence",
+      "codeLabel": "کلاس معنایی برای نیاز حساس و مدرک آزمون"
+    },
+    {
+      "id": "complete-example",
+      "title": "مثال کامل ردیابی نیازمندی ورود امن",
+      "paragraphs": [
+        "نمونهٔ زیر یک نمای بازبینی برای قابلیت ورود است. نیاز امنیتی بالادستی دو نیاز جزئی را contains می‌کند؛ سرویس احراز هویت آن‌ها را satisfies می‌کند و دو artefact آزمون و بازبینی، رابطهٔ verifies دارند. این نمودار جای معیار پذیرش یا اجرای تست را نمی‌گیرد، اما خلأ پوشش را قابل دیدن می‌کند.",
+        "پیش از استفاده، شناسه‌ها، docrefها، سطح risk و verifymethod را با قرارداد واقعی تیم جایگزین کنید. اگر نمودار بیش از یک صفحه می‌شود، نمای امنیت ورود را از نیازهای نشست، بازیابی رمز و مدیریت حساب جدا کنید.",
+        "کد را کنار سند طراحی یا آزمون‌ها نگه دارید و همان Pull Requestی که شناسه، سرویس یا سناریوی تست را تغییر می‌دهد، نمودار را نیز اصلاح کند."
+      ],
+      "code": "requirementDiagram\n  direction LR\n\n  requirement auth_security {\n    id: \"AUTH-000\"\n    text: \"ورود باید در برابر سوءاستفاده مقاوم باشد\"\n    risk: high\n    verifymethod: analysis\n  }\n\n  functionalRequirement secure_login {\n    id: \"AUTH-001\"\n    text: \"اطلاعات ورود باید به‌صورت امن بررسی شود\"\n    risk: high\n    verifymethod: test\n  }\n\n  functionalRequirement rate_limit {\n    id: \"AUTH-002\"\n    text: \"تلاش ناموفق متوالی باید محدود شود\"\n    risk: high\n    verifymethod: test\n  }\n\n  interfaceRequirement audit_event {\n    id: \"AUTH-003\"\n    text: \"نتیجهٔ ورود باید رویداد امنیتی تولید کند\"\n    risk: medium\n    verifymethod: inspection\n  }\n\n  element auth_service {\n    type: \"backend-service\"\n    docref: \"src/auth\"\n  }\n\n  element login_tests {\n    type: \"automated-test\"\n    docref: \"tests/auth/login.spec\"\n  }\n\n  element audit_review {\n    type: \"inspection-checklist\"\n    docref: \"docs/security/audit-events.md\"\n  }\n\n  auth_security - contains -> secure_login\n  auth_security - contains -> rate_limit\n  auth_security - contains -> audit_event\n  auth_service - satisfies -> secure_login\n  auth_service - satisfies -> rate_limit\n  auth_service - satisfies -> audit_event\n  login_tests - verifies -> secure_login\n  login_tests - verifies -> rate_limit\n  audit_review - verifies -> audit_event",
+      "codeLabel": "قالب کامل نیازمندی، پیاده‌سازی و مدرک"
+    },
+    {
+      "id": "review-errors",
+      "title": "خطاهای رایج و چک‌لیست بازبینی",
+      "paragraphs": [
+        "خطای سینتکس معمولاً از نام دارای فاصله، مقدار فارسی بدون کوتیشن، نوشتن verifyMethod با شکل ناسازگار، رابطه با نام تعریف‌نشده یا براکت بسته‌نشده ایجاد می‌شود. نمودار را با یک requirement کوچک شروع کنید و elementها و رابطه‌ها را مرحله‌به‌مرحله اضافه کنید.",
+        "خطای مهم‌تر، درست‌بودن سینتکس و غلط‌بودن معناست. satisfies نباید برای هر ارتباط عمومی استفاده شود و verifies فقط زمانی مناسب است که عنصر واقعاً مدرک راستی‌آزمایی باشد. یک فایل طراحی ممکن است traces یا refines کند، اما لزوماً نیازمندی را satisfies نمی‌کند.",
+        "در بازبینی، نیازمندی‌های بدون ورودی، نیازهای پرریسک بدون verifies، elementهای بدون رابطه و docrefهای قدیمی را پیدا کنید. سپس نمونه را در نسخهٔ Mermaid پروژه رندر کنید."
+      ],
+      "bullets": [
+        "نام فنی requirement و element کوتاه و بدون فاصله است.",
+        "idها یکتا و با مخزن اصلی نیازمندی هماهنگ‌اند.",
+        "متن‌های فارسی و مسیرهای پیچیده داخل کوتیشن‌اند.",
+        "risk فقط low، medium یا high است.",
+        "verifymethod با analysis، inspection، test یا demonstration نوشته شده است.",
+        "جهت و معنای هر رابطه به‌صورت جمله قابل خواندن است.",
+        "نیازهای پرریسک مدرک verifies دارند.",
+        "نمودار دامنهٔ محدود و مالک مشخص دارد."
+      ],
+      "note": "رندر موفق فقط اعتبار syntax را تأیید می‌کند. صحت نیازمندی، سطح ریسک و پوشش آزمون باید توسط تیم محصول، فنی و کیفیت بازبینی شود."
+    }
+  ],
+  "faq": [
+    ["Requirement Diagram در Mermaid چه کاربردی دارد؟", "برای نمایش نیازمندی‌ها و رابطهٔ آن‌ها با نیازهای دیگر، اجزای سیستم، اسناد و آزمون‌ها استفاده می‌شود. این نمودار برای بازبینی traceability و یافتن خلأ پوشش مناسب است."],
+    ["تفاوت requirement و element چیست؟", "requirement یک نیاز یا قید را تعریف می‌کند؛ element به artefact مرتبط مانند سرویس، دیتابیس، سند یا آزمون اشاره دارد. رابطه‌هایی مانند satisfies و verifies این دو را متصل می‌کنند."],
+    ["چه مقادیری برای risk و verifymethod معتبرند؟", "risk شامل low، medium و high است. verifymethod شامل analysis، inspection، test و demonstration است. انتخاب مقدار باید با تعریف مشترک تیم هماهنگ باشد."],
+    ["آیا Requirement Diagram جای Traceability Matrix را می‌گیرد؟", "خیر. نمودار برای دیدن رابطه و خلأ مناسب است؛ ماتریس برای پوشش جامع، وضعیت، مالک و گزارش‌گیری سطری بهتر عمل می‌کند. معمولاً هر دو از شناسه‌های یک منبع اصلی استفاده می‌کنند."],
+    ["چرا متن فارسی باعث Parse Error می‌شود؟", "متن دارای فاصله یا نویسه‌های خاص را داخل کوتیشن قرار دهید و نام فنی گره را انگلیسی و بدون فاصله نگه دارید. همچنین نخستین خطا و خط قبل از آن را برای براکت یا مقدار ناقص بررسی کنید."]
+  ]
+}
