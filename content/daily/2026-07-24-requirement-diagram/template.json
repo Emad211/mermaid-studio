@@ -1,0 +1,11 @@
+{
+  "id": "secure-login-requirements",
+  "category": "software",
+  "badge": "نیازمندی‌ها",
+  "title": "ردیابی نیازمندی ورود امن",
+  "description": "قالب Requirement Diagram برای اتصال نیازهای امنیت ورود به سرویس احراز هویت، آزمون‌ها و مدرک بازبینی.",
+  "keywords": "Requirement Diagram نمودار نیازمندی ردیابی نیازمندی امنیت ورود satisfies verifies traceability",
+  "tutorial": "/learn/requirement-diagram-mermaid",
+  "article": "/articles/requirement-diagram-vs-traceability-matrix",
+  "code": "requirementDiagram\n  direction LR\n\n  requirement auth_security {\n    id: \"AUTH-000\"\n    text: \"ورود باید در برابر سوءاستفاده مقاوم باشد\"\n    risk: high\n    verifymethod: analysis\n  }\n\n  functionalRequirement secure_login {\n    id: \"AUTH-001\"\n    text: \"اطلاعات ورود باید به‌صورت امن بررسی شود\"\n    risk: high\n    verifymethod: test\n  }\n\n  functionalRequirement rate_limit {\n    id: \"AUTH-002\"\n    text: \"تلاش ناموفق متوالی باید محدود شود\"\n    risk: high\n    verifymethod: test\n  }\n\n  interfaceRequirement audit_event {\n    id: \"AUTH-003\"\n    text: \"نتیجهٔ ورود باید رویداد امنیتی تولید کند\"\n    risk: medium\n    verifymethod: inspection\n  }\n\n  element auth_service {\n    type: \"backend-service\"\n    docref: \"src/auth\"\n  }\n\n  element login_tests {\n    type: \"automated-test\"\n    docref: \"tests/auth/login.spec\"\n  }\n\n  element audit_review {\n    type: \"inspection-checklist\"\n    docref: \"docs/security/audit-events.md\"\n  }\n\n  auth_security - contains -> secure_login\n  auth_security - contains -> rate_limit\n  auth_security - contains -> audit_event\n  auth_service - satisfies -> secure_login\n  auth_service - satisfies -> rate_limit\n  auth_service - satisfies -> audit_event\n  login_tests - verifies -> secure_login\n  login_tests - verifies -> rate_limit\n  audit_review - verifies -> audit_event"
+}
