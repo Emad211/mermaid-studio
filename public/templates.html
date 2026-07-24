@@ -23,12 +23,72 @@
     </header>
 
     <main id="templates-main">
-      <section class="templates-hero section-shell"><p class="eyebrow"><span></span> شروع سریع، بدون صفحهٔ خالی</p><h1>قالب مناسب Mermaid را انتخاب کن و همان لحظه ویرایشش کن.</h1><p>از قالب State Diagram چرخهٔ سفارش تا فلوچارت، مستندات نرم‌افزار، طراحی پایگاه داده و برنامه‌ریزی پروژه؛ همهٔ نمونه‌ها فارسی و قابل ویرایش‌اند.</p><label class="template-search"><span aria-hidden="true">⌕</span><input id="template-search" type="search" placeholder="جست‌وجو؛ مثلاً State Diagram، ERD یا گانت…" autocomplete="off" /></label><div class="filter-row" role="group" aria-label="دسته‌بندی قالب‌ها"><button class="filter-chip active" type="button" data-category="all">همه</button><button class="filter-chip" type="button" data-category="process">فرایند</button><button class="filter-chip" type="button" data-category="software">نرم‌افزار</button><button class="filter-chip" type="button" data-category="data">داده</button><button class="filter-chip" type="button" data-category="planning">برنامه‌ریزی</button><span id="template-count" class="template-count" aria-live="polite">۱۲ قالب</span></div></section>
+      <section class="templates-hero section-shell"><p class="eyebrow"><span></span> شروع سریع، بدون صفحهٔ خالی</p><h1>قالب مناسب Mermaid را انتخاب کن و همان لحظه ویرایشش کن.</h1><p>از قالب State Diagram چرخهٔ سفارش تا فلوچارت، مستندات نرم‌افزار، طراحی پایگاه داده و برنامه‌ریزی پروژه؛ همهٔ نمونه‌ها فارسی و قابل ویرایش‌اند.</p><label class="template-search"><span aria-hidden="true">⌕</span><input id="template-search" type="search" placeholder="جست‌وجو؛ مثلاً State Diagram، ERD یا گانت…" autocomplete="off" /></label><div class="filter-row" role="group" aria-label="دسته‌بندی قالب‌ها"><button class="filter-chip active" type="button" data-category="all">همه</button><button class="filter-chip" type="button" data-category="process">فرایند</button><button class="filter-chip" type="button" data-category="software">نرم‌افزار</button><button class="filter-chip" type="button" data-category="data">داده</button><button class="filter-chip" type="button" data-category="planning">برنامه‌ریزی</button><span id="template-count" class="template-count" aria-live="polite">۱۳ قالب</span></div></section>
 
       <aside class="ad-slot ad-slot--compact" data-ad-slot="templatesTop" hidden aria-label="تبلیغات"><span class="ad-slot__label">تبلیغات</span><a class="ad-slot__privacy" href="/privacy#advertising">درباره تبلیغات</a><div class="ad-slot__mount" data-ad-mount></div></aside>
 
       <section class="section-shell templates-section" aria-labelledby="templates-title"><div class="section-heading align-right"><p class="section-kicker">قابل ویرایش و رایگان</p><h2 id="templates-title">نمونه‌های آماده Mermaid</h2><p>دکمهٔ «ویرایش» کد و تنظیمات قالب را مستقیم داخل ادیتور باز می‌کند. آموزش و راهنمای مرتبط نیز کنار قالب‌های تخصصی قرار دارد.</p></div><div id="templates-grid" class="templates-grid">
         <!-- DAILY_TEMPLATE_CARDS -->
+        <article id="template-secure-login-requirements" class="template-card" data-id="secure-login-requirements" data-template-id="secure-login-requirements">
+          <div class="template-card-head"><div><h3>ردیابی نیازمندی ورود امن</h3><p>قالب Requirement Diagram برای اتصال نیازهای امنیت ورود به سرویس احراز هویت، آزمون‌ها و مدرک بازبینی.</p></div><span class="template-badge">نیازمندی‌ها</span></div>
+          <pre class="template-code"><code>requirementDiagram
+  direction LR
+
+  requirement auth_security {
+    id: &quot;AUTH-000&quot;
+    text: &quot;ورود باید در برابر سوءاستفاده مقاوم باشد&quot;
+    risk: high
+    verifymethod: analysis
+  }
+
+  functionalRequirement secure_login {
+    id: &quot;AUTH-001&quot;
+    text: &quot;اطلاعات ورود باید به‌صورت امن بررسی شود&quot;
+    risk: high
+    verifymethod: test
+  }
+
+  functionalRequirement rate_limit {
+    id: &quot;AUTH-002&quot;
+    text: &quot;تلاش ناموفق متوالی باید محدود شود&quot;
+    risk: high
+    verifymethod: test
+  }
+
+  interfaceRequirement audit_event {
+    id: &quot;AUTH-003&quot;
+    text: &quot;نتیجهٔ ورود باید رویداد امنیتی تولید کند&quot;
+    risk: medium
+    verifymethod: inspection
+  }
+
+  element auth_service {
+    type: &quot;backend-service&quot;
+    docref: &quot;src/auth&quot;
+  }
+
+  element login_tests {
+    type: &quot;automated-test&quot;
+    docref: &quot;tests/auth/login.spec&quot;
+  }
+
+  element audit_review {
+    type: &quot;inspection-checklist&quot;
+    docref: &quot;docs/security/audit-events.md&quot;
+  }
+
+  auth_security - contains -&gt; secure_login
+  auth_security - contains -&gt; rate_limit
+  auth_security - contains -&gt; audit_event
+  auth_service - satisfies -&gt; secure_login
+  auth_service - satisfies -&gt; rate_limit
+  auth_service - satisfies -&gt; audit_event
+  login_tests - verifies -&gt; secure_login
+  login_tests - verifies -&gt; rate_limit
+  audit_review - verifies -&gt; audit_event</code></pre>
+          <nav class="template-related" aria-label="مطالب مرتبط"><a href="/learn/requirement-diagram-mermaid">آموزش مرتبط</a><a href="/articles/requirement-diagram-vs-traceability-matrix">مقالهٔ مرتبط</a></nav>
+          <div class="template-actions"><a class="button button-primary" href="/editor#code=u%3AeyJjb2RlIjoicmVxdWlyZW1lbnREaWFncmFtXG4gIGRpcmVjdGlvbiBMUlxuXG4gIHJlcXVpcmVtZW50IGF1dGhfc2VjdXJpdHkge1xuICAgIGlkOiBcIkFVVEgtMDAwXCJcbiAgICB0ZXh0OiBcItmI2LHZiNivINio2KfbjNivINiv2LEg2KjYsdin2KjYsSDYs9mI2KHYp9iz2KrZgdin2K_ZhyDZhdmC2KfZiNmFINio2KfYtNivXCJcbiAgICByaXNrOiBoaWdoXG4gICAgdmVyaWZ5bWV0aG9kOiBhbmFseXNpc1xuICB9XG5cbiAgZnVuY3Rpb25hbFJlcXVpcmVtZW50IHNlY3VyZV9sb2dpbiB7XG4gICAgaWQ6IFwiQVVUSC0wMDFcIlxuICAgIHRleHQ6IFwi2KfYt9mE2KfYudin2Kog2YjYsdmI2K8g2KjYp9uM2K8g2KjZh-KAjNi12YjYsdiqINin2YXZhiDYqNix2LHYs9uMINi02YjYr1wiXG4gICAgcmlzazogaGlnaFxuICAgIHZlcmlmeW1ldGhvZDogdGVzdFxuICB9XG5cbiAgZnVuY3Rpb25hbFJlcXVpcmVtZW50IHJhdGVfbGltaXQge1xuICAgIGlkOiBcIkFVVEgtMDAyXCJcbiAgICB0ZXh0OiBcItiq2YTYp9i0INmG2KfZhdmI2YHZgiDZhdiq2YjYp9mE24wg2KjYp9uM2K8g2YXYrdiv2YjYryDYtNmI2K9cIlxuICAgIHJpc2s6IGhpZ2hcbiAgICB2ZXJpZnltZXRob2Q6IHRlc3RcbiAgfVxuXG4gIGludGVyZmFjZVJlcXVpcmVtZW50IGF1ZGl0X2V2ZW50IHtcbiAgICBpZDogXCJBVVRILTAwM1wiXG4gICAgdGV4dDogXCLZhtiq24zYrNmH2ZQg2YjYsdmI2K8g2KjYp9uM2K8g2LHZiNuM2K_Yp9ivINin2YXZhtuM2KrbjCDYqtmI2YTbjNivINqp2YbYr1wiXG4gICAgcmlzazogbWVkaXVtXG4gICAgdmVyaWZ5bWV0aG9kOiBpbnNwZWN0aW9uXG4gIH1cblxuICBlbGVtZW50IGF1dGhfc2VydmljZSB7XG4gICAgdHlwZTogXCJiYWNrZW5kLXNlcnZpY2VcIlxuICAgIGRvY3JlZjogXCJzcmMvYXV0aFwiXG4gIH1cblxuICBlbGVtZW50IGxvZ2luX3Rlc3RzIHtcbiAgICB0eXBlOiBcImF1dG9tYXRlZC10ZXN0XCJcbiAgICBkb2NyZWY6IFwidGVzdHMvYXV0aC9sb2dpbi5zcGVjXCJcbiAgfVxuXG4gIGVsZW1lbnQgYXVkaXRfcmV2aWV3IHtcbiAgICB0eXBlOiBcImluc3BlY3Rpb24tY2hlY2tsaXN0XCJcbiAgICBkb2NyZWY6IFwiZG9jcy9zZWN1cml0eS9hdWRpdC1ldmVudHMubWRcIlxuICB9XG5cbiAgYXV0aF9zZWN1cml0eSAtIGNvbnRhaW5zIC0-IHNlY3VyZV9sb2dpblxuICBhdXRoX3NlY3VyaXR5IC0gY29udGFpbnMgLT4gcmF0ZV9saW1pdFxuICBhdXRoX3NlY3VyaXR5IC0gY29udGFpbnMgLT4gYXVkaXRfZXZlbnRcbiAgYXV0aF9zZXJ2aWNlIC0gc2F0aXNmaWVzIC0-IHNlY3VyZV9sb2dpblxuICBhdXRoX3NlcnZpY2UgLSBzYXRpc2ZpZXMgLT4gcmF0ZV9saW1pdFxuICBhdXRoX3NlcnZpY2UgLSBzYXRpc2ZpZXMgLT4gYXVkaXRfZXZlbnRcbiAgbG9naW5fdGVzdHMgLSB2ZXJpZmllcyAtPiBzZWN1cmVfbG9naW5cbiAgbG9naW5fdGVzdHMgLSB2ZXJpZmllcyAtPiByYXRlX2xpbWl0XG4gIGF1ZGl0X3JldmlldyAtIHZlcmlmaWVzIC0-IGF1ZGl0X2V2ZW50IiwidGhlbWUiOiJkZWZhdWx0IiwibGF5b3V0IjoiZGFncmUiLCJiYWNrZ3JvdW5kIjoid2hpdGUiLCJjb25maWciOiIiLCJjc3MiOiIifQ">ویرایش قالب</a><a class="button button-secondary" href="/learn/requirement-diagram-mermaid">آموزش</a></div>
+        </article>
         <article id="template-product-roadmap-timeline" class="template-card" data-id="product-roadmap-timeline" data-template-id="product-roadmap-timeline">
           <div class="template-card-head"><div><h3>Timeline roadmap محصول</h3><p>قالب فارسی برای نمایش milestoneهای roadmap محصول در چهار فصل، بدون ورود به مدت و وابستگی taskها.</p></div><span class="template-badge">Roadmap</span></div>
           <pre class="template-code"><code>timeline
