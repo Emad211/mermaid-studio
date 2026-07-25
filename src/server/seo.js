@@ -220,6 +220,7 @@ function pageStructuredData(pathname, meta, config, article, editorialArticle) {
         itemListElement: [
           'فلوچارت تصمیم‌گیری', 'نمودار توالی API', 'مدل ER فروشگاه', 'نمودار کلاس UML',
           'گانت انتشار', 'نقشه ذهنی محتوا', 'معماری ابری', 'سفر کاربر',
+          "سفر خرید فروشگاه اینترنتی",
           "ردیابی نیازمندی ورود امن",
           "Timeline roadmap محصول",
           "برد کانبان انتشار محتوا",
