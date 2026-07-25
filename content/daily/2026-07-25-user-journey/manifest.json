@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "date": "2026-07-25",
+  "cluster": {
+    "name": "نقشه سفر کاربر با Mermaid",
+    "primaryQuery": "آموزش نقشه سفر کاربر با Mermaid",
+    "secondaryQueries": [
+      "تفاوت نقشه سفر کاربر و User Flow",
+      "User Journey Diagram Mermaid",
+      "قالب نقشه سفر کاربر",
+      "journey syntax Mermaid"
+    ],
+    "intent": "آموزشی، مقایسه و یافتن قالب",
+    "sources": [
+      "https://mermaid.js.org/syntax/userJourney",
+      "https://mermaid.js.org/config/schema-docs/config-defs-journey-diagram-config.html",
+      "https://miro.com/research-and-design/user-journey-vs-user-flow/"
+    ]
+  },
+  "relatedLearnTitle": "آموزش نقشه سفر کاربر"
+}
