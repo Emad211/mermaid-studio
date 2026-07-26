@@ -1,0 +1,11 @@
+{
+  "id": "monthly-metrics-xy-chart",
+  "category": "data",
+  "badge": "نمودار داده",
+  "title": "عملکرد ماهانه در برابر هدف",
+  "description": "قالب XY Chart برای مقایسهٔ مقدار واقعی و هدف ماهانه با نمودار میله‌ای و خطی هم‌واحد.",
+  "keywords": "xy chart xychart نمودار خطی نمودار میله ای عملکرد ماهانه هدف گزارش داده",
+  "tutorial": "/learn/xy-chart-mermaid",
+  "article": "/articles/mermaid-xy-chart-vs-dashboard",
+  "code": "---\nconfig:\n  xyChart:\n    width: 920\n    height: 540\n    showDataLabel: true\n    showDataLabelOutsideBar: true\n  themeVariables:\n    xyChart:\n      plotColorPalette: \"#174d3a, #d85f35\"\n---\nxychart\n  title \"عملکرد ماهانهٔ تکمیل مستندات\"\n  x-axis [\"فروردین\", \"اردیبهشت\", \"خرداد\", \"تیر\", \"مرداد\", \"شهریور\"]\n  y-axis \"تعداد سند تکمیل‌شده\" 0 --> 30\n  bar [11, 14, 18, 19, 24, 27]\n  line [10, 14, 18, 22, 26, 30]"
+}
