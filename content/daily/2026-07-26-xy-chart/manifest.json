@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "date": "2026-07-26",
+  "cluster": {
+    "name": "XY Chart در Mermaid",
+    "primaryQuery": "آموزش XY Chart در Mermaid",
+    "secondaryQueries": [
+      "نمودار خطی در Mermaid",
+      "نمودار میله‌ای در Mermaid",
+      "Mermaid xychart",
+      "قالب نمودار عملکرد ماهانه"
+    ],
+    "intent": "آموزشی، مقایسه و یافتن قالب",
+    "sources": [
+      "https://mermaid.js.org/syntax/xyChart",
+      "https://www.npmjs.com/package/mermaid"
+    ]
+  },
+  "relatedLearnTitle": "آموزش XY Chart"
+}
