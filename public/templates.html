@@ -23,12 +23,34 @@
     </header>
 
     <main id="templates-main">
-      <section class="templates-hero section-shell"><p class="eyebrow"><span></span> شروع سریع، بدون صفحهٔ خالی</p><h1>قالب مناسب Mermaid را انتخاب کن و همان لحظه ویرایشش کن.</h1><p>از قالب State Diagram چرخهٔ سفارش تا فلوچارت، مستندات نرم‌افزار، طراحی پایگاه داده و برنامه‌ریزی پروژه؛ همهٔ نمونه‌ها فارسی و قابل ویرایش‌اند.</p><label class="template-search"><span aria-hidden="true">⌕</span><input id="template-search" type="search" placeholder="جست‌وجو؛ مثلاً State Diagram، ERD یا گانت…" autocomplete="off" /></label><div class="filter-row" role="group" aria-label="دسته‌بندی قالب‌ها"><button class="filter-chip active" type="button" data-category="all">همه</button><button class="filter-chip" type="button" data-category="process">فرایند</button><button class="filter-chip" type="button" data-category="software">نرم‌افزار</button><button class="filter-chip" type="button" data-category="data">داده</button><button class="filter-chip" type="button" data-category="planning">برنامه‌ریزی</button><span id="template-count" class="template-count" aria-live="polite">۱۴ قالب</span></div></section>
+      <section class="templates-hero section-shell"><p class="eyebrow"><span></span> شروع سریع، بدون صفحهٔ خالی</p><h1>قالب مناسب Mermaid را انتخاب کن و همان لحظه ویرایشش کن.</h1><p>از قالب State Diagram چرخهٔ سفارش تا فلوچارت، مستندات نرم‌افزار، طراحی پایگاه داده و برنامه‌ریزی پروژه؛ همهٔ نمونه‌ها فارسی و قابل ویرایش‌اند.</p><label class="template-search"><span aria-hidden="true">⌕</span><input id="template-search" type="search" placeholder="جست‌وجو؛ مثلاً State Diagram، ERD یا گانت…" autocomplete="off" /></label><div class="filter-row" role="group" aria-label="دسته‌بندی قالب‌ها"><button class="filter-chip active" type="button" data-category="all">همه</button><button class="filter-chip" type="button" data-category="process">فرایند</button><button class="filter-chip" type="button" data-category="software">نرم‌افزار</button><button class="filter-chip" type="button" data-category="data">داده</button><button class="filter-chip" type="button" data-category="planning">برنامه‌ریزی</button><span id="template-count" class="template-count" aria-live="polite">۱۵ قالب</span></div></section>
 
       <aside class="ad-slot ad-slot--compact" data-ad-slot="templatesTop" hidden aria-label="تبلیغات"><span class="ad-slot__label">تبلیغات</span><a class="ad-slot__privacy" href="/privacy#advertising">درباره تبلیغات</a><div class="ad-slot__mount" data-ad-mount></div></aside>
 
       <section class="section-shell templates-section" aria-labelledby="templates-title"><div class="section-heading align-right"><p class="section-kicker">قابل ویرایش و رایگان</p><h2 id="templates-title">نمونه‌های آماده Mermaid</h2><p>دکمهٔ «ویرایش» کد و تنظیمات قالب را مستقیم داخل ادیتور باز می‌کند. آموزش و راهنمای مرتبط نیز کنار قالب‌های تخصصی قرار دارد.</p></div><div id="templates-grid" class="templates-grid">
         <!-- DAILY_TEMPLATE_CARDS -->
+        <article id="template-monthly-metrics-xy-chart" class="template-card" data-id="monthly-metrics-xy-chart" data-template-id="monthly-metrics-xy-chart">
+          <div class="template-card-head"><div><h3>عملکرد ماهانه در برابر هدف</h3><p>قالب XY Chart برای مقایسهٔ مقدار واقعی و هدف ماهانه با نمودار میله‌ای و خطی هم‌واحد.</p></div><span class="template-badge">نمودار داده</span></div>
+          <pre class="template-code"><code>---
+config:
+  xyChart:
+    width: 920
+    height: 540
+    showDataLabel: true
+    showDataLabelOutsideBar: true
+  themeVariables:
+    xyChart:
+      plotColorPalette: &quot;#174d3a, #d85f35&quot;
+---
+xychart
+  title &quot;عملکرد ماهانهٔ تکمیل مستندات&quot;
+  x-axis [&quot;فروردین&quot;, &quot;اردیبهشت&quot;, &quot;خرداد&quot;, &quot;تیر&quot;, &quot;مرداد&quot;, &quot;شهریور&quot;]
+  y-axis &quot;تعداد سند تکمیل‌شده&quot; 0 --&gt; 30
+  bar [11, 14, 18, 19, 24, 27]
+  line [10, 14, 18, 22, 26, 30]</code></pre>
+          <nav class="template-related" aria-label="مطالب مرتبط"><a href="/learn/xy-chart-mermaid">آموزش مرتبط</a><a href="/articles/mermaid-xy-chart-vs-dashboard">مقالهٔ مرتبط</a></nav>
+          <div class="template-actions"><a class="button button-primary" href="/editor#code=u%3AeyJjb2RlIjoiLS0tXG5jb25maWc6XG4gIHh5Q2hhcnQ6XG4gICAgd2lkdGg6IDkyMFxuICAgIGhlaWdodDogNTQwXG4gICAgc2hvd0RhdGFMYWJlbDogdHJ1ZVxuICAgIHNob3dEYXRhTGFiZWxPdXRzaWRlQmFyOiB0cnVlXG4gIHRoZW1lVmFyaWFibGVzOlxuICAgIHh5Q2hhcnQ6XG4gICAgICBwbG90Q29sb3JQYWxldHRlOiBcIiMxNzRkM2EsICNkODVmMzVcIlxuLS0tXG54eWNoYXJ0XG4gIHRpdGxlIFwi2LnZhdmE2qnYsdivINmF2KfZh9in2YbZh9mUINiq2qnZhduM2YQg2YXYs9iq2YbYr9in2KpcIlxuICB4LWF4aXMgW1wi2YHYsdmI2LHYr9uM2YZcIiwgXCLYp9ix2K_bjNio2YfYtNiqXCIsIFwi2K7Ysdiv2KfYr1wiLCBcItiq24zYsVwiLCBcItmF2LHYr9in2K9cIiwgXCLYtNmH2LHbjNmI2LFcIl1cbiAgeS1heGlzIFwi2KrYudiv2KfYryDYs9mG2K8g2KraqdmF24zZhOKAjNi02K_Zh1wiIDAgLS0-IDMwXG4gIGJhciBbMTEsIDE0LCAxOCwgMTksIDI0LCAyN11cbiAgbGluZSBbMTAsIDE0LCAxOCwgMjIsIDI2LCAzMF0iLCJ0aGVtZSI6ImRlZmF1bHQiLCJsYXlvdXQiOiJkYWdyZSIsImJhY2tncm91bmQiOiJ3aGl0ZSIsImNvbmZpZyI6IiIsImNzcyI6IiJ9">ویرایش قالب</a><a class="button button-secondary" href="/learn/xy-chart-mermaid">آموزش</a></div>
+        </article>
         <article id="template-ecommerce-user-journey" class="template-card" data-id="ecommerce-user-journey" data-template-id="ecommerce-user-journey">
           <div class="template-card-head"><div><h3>سفر خرید فروشگاه اینترنتی</h3><p>قالب Journey Diagram برای کشف محصول، خرید، پرداخت، تحویل و پشتیبانی با امتیاز تجربه و چند بازیگر.</p></div><span class="template-badge">تجربه کاربر</span></div>
           <pre class="template-code"><code>journey
