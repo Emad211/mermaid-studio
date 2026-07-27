@@ -2,6 +2,17 @@ import { startBidiIsolation } from './bidi.js';
 
 const templates = [
   {
+    "id": "sprint-capacity-donut",
+    "category": "data",
+    "badge": "ترکیب داده",
+    "title": "ترکیب ظرفیت Sprint",
+    "description": "قالب Donut برای نمایش سهم قابلیت جدید، رفع باگ، بدهی فنی و پشتیبانی از ظرفیت برنامه‌ریزی‌شدهٔ Sprint.",
+    "keywords": "Pie Chart Mermaid Donut نمودار دایره ای سهم از کل ظرفیت Sprint برنامه ریزی تیم",
+    "tutorial": "/learn/pie-chart-mermaid",
+    "article": "/articles/pie-chart-vs-bar-chart-for-composition",
+    "code": "---\nconfig:\n  pie:\n    donutHole: 0.42\n    legendPosition: bottom\n    textPosition: 0.72\n    highlightSlice: \"قابلیت جدید\"\n---\npie showData\n  title ترکیب ظرفیت Sprint - داده نمونه\n  \"قابلیت جدید\" : 45\n  \"رفع باگ\" : 25\n  \"بدهی فنی\" : 20\n  \"پشتیبانی\" : 10"
+  },
+  {
     "id": "monthly-metrics-xy-chart",
     "category": "data",
     "badge": "نمودار داده",

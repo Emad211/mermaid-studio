@@ -23,12 +23,31 @@
     </header>
 
     <main id="templates-main">
-      <section class="templates-hero section-shell"><p class="eyebrow"><span></span> شروع سریع، بدون صفحهٔ خالی</p><h1>قالب مناسب Mermaid را انتخاب کن و همان لحظه ویرایشش کن.</h1><p>از قالب State Diagram چرخهٔ سفارش تا فلوچارت، مستندات نرم‌افزار، طراحی پایگاه داده و برنامه‌ریزی پروژه؛ همهٔ نمونه‌ها فارسی و قابل ویرایش‌اند.</p><label class="template-search"><span aria-hidden="true">⌕</span><input id="template-search" type="search" placeholder="جست‌وجو؛ مثلاً State Diagram، ERD یا گانت…" autocomplete="off" /></label><div class="filter-row" role="group" aria-label="دسته‌بندی قالب‌ها"><button class="filter-chip active" type="button" data-category="all">همه</button><button class="filter-chip" type="button" data-category="process">فرایند</button><button class="filter-chip" type="button" data-category="software">نرم‌افزار</button><button class="filter-chip" type="button" data-category="data">داده</button><button class="filter-chip" type="button" data-category="planning">برنامه‌ریزی</button><span id="template-count" class="template-count" aria-live="polite">۱۵ قالب</span></div></section>
+      <section class="templates-hero section-shell"><p class="eyebrow"><span></span> شروع سریع، بدون صفحهٔ خالی</p><h1>قالب مناسب Mermaid را انتخاب کن و همان لحظه ویرایشش کن.</h1><p>از قالب State Diagram چرخهٔ سفارش تا فلوچارت، مستندات نرم‌افزار، طراحی پایگاه داده و برنامه‌ریزی پروژه؛ همهٔ نمونه‌ها فارسی و قابل ویرایش‌اند.</p><label class="template-search"><span aria-hidden="true">⌕</span><input id="template-search" type="search" placeholder="جست‌وجو؛ مثلاً State Diagram، ERD یا گانت…" autocomplete="off" /></label><div class="filter-row" role="group" aria-label="دسته‌بندی قالب‌ها"><button class="filter-chip active" type="button" data-category="all">همه</button><button class="filter-chip" type="button" data-category="process">فرایند</button><button class="filter-chip" type="button" data-category="software">نرم‌افزار</button><button class="filter-chip" type="button" data-category="data">داده</button><button class="filter-chip" type="button" data-category="planning">برنامه‌ریزی</button><span id="template-count" class="template-count" aria-live="polite">۱۶ قالب</span></div></section>
 
       <aside class="ad-slot ad-slot--compact" data-ad-slot="templatesTop" hidden aria-label="تبلیغات"><span class="ad-slot__label">تبلیغات</span><a class="ad-slot__privacy" href="/privacy#advertising">درباره تبلیغات</a><div class="ad-slot__mount" data-ad-mount></div></aside>
 
       <section class="section-shell templates-section" aria-labelledby="templates-title"><div class="section-heading align-right"><p class="section-kicker">قابل ویرایش و رایگان</p><h2 id="templates-title">نمونه‌های آماده Mermaid</h2><p>دکمهٔ «ویرایش» کد و تنظیمات قالب را مستقیم داخل ادیتور باز می‌کند. آموزش و راهنمای مرتبط نیز کنار قالب‌های تخصصی قرار دارد.</p></div><div id="templates-grid" class="templates-grid">
         <!-- DAILY_TEMPLATE_CARDS -->
+        <article id="template-sprint-capacity-donut" class="template-card" data-id="sprint-capacity-donut" data-template-id="sprint-capacity-donut">
+          <div class="template-card-head"><div><h3>ترکیب ظرفیت Sprint</h3><p>قالب Donut برای نمایش سهم قابلیت جدید، رفع باگ، بدهی فنی و پشتیبانی از ظرفیت برنامه‌ریزی‌شدهٔ Sprint.</p></div><span class="template-badge">ترکیب داده</span></div>
+          <pre class="template-code"><code>---
+config:
+  pie:
+    donutHole: 0.42
+    legendPosition: bottom
+    textPosition: 0.72
+    highlightSlice: &quot;قابلیت جدید&quot;
+---
+pie showData
+  title ترکیب ظرفیت Sprint - داده نمونه
+  &quot;قابلیت جدید&quot; : 45
+  &quot;رفع باگ&quot; : 25
+  &quot;بدهی فنی&quot; : 20
+  &quot;پشتیبانی&quot; : 10</code></pre>
+          <nav class="template-related" aria-label="مطالب مرتبط"><a href="/learn/pie-chart-mermaid">آموزش مرتبط</a><a href="/articles/pie-chart-vs-bar-chart-for-composition">مقالهٔ مرتبط</a></nav>
+          <div class="template-actions"><a class="button button-primary" href="/editor#code=u%3AeyJjb2RlIjoiLS0tXG5jb25maWc6XG4gIHBpZTpcbiAgICBkb251dEhvbGU6IDAuNDJcbiAgICBsZWdlbmRQb3NpdGlvbjogYm90dG9tXG4gICAgdGV4dFBvc2l0aW9uOiAwLjcyXG4gICAgaGlnaGxpZ2h0U2xpY2U6IFwi2YLYp9io2YTbjNiqINis2K_bjNivXCJcbi0tLVxucGllIHNob3dEYXRhXG4gIHRpdGxlINiq2LHaqduM2Kgg2LjYsdmB24zYqiBTcHJpbnQgLSDYr9in2K_ZhyDZhtmF2YjZhtmHXG4gIFwi2YLYp9io2YTbjNiqINis2K_bjNivXCIgOiA0NVxuICBcItix2YHYuSDYqNin2q9cIiA6IDI1XG4gIFwi2KjYr9mH24wg2YHZhtuMXCIgOiAyMFxuICBcItm-2LTYqtuM2KjYp9mG24xcIiA6IDEwIiwidGhlbWUiOiJkZWZhdWx0IiwibGF5b3V0IjoiZGFncmUiLCJiYWNrZ3JvdW5kIjoid2hpdGUiLCJjb25maWciOiIiLCJjc3MiOiIifQ">ویرایش قالب</a><a class="button button-secondary" href="/learn/pie-chart-mermaid">آموزش</a></div>
+        </article>
         <article id="template-monthly-metrics-xy-chart" class="template-card" data-id="monthly-metrics-xy-chart" data-template-id="monthly-metrics-xy-chart">
           <div class="template-card-head"><div><h3>عملکرد ماهانه در برابر هدف</h3><p>قالب XY Chart برای مقایسهٔ مقدار واقعی و هدف ماهانه با نمودار میله‌ای و خطی هم‌واحد.</p></div><span class="template-badge">نمودار داده</span></div>
           <pre class="template-code"><code>---
