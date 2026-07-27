@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "date": "2026-07-27",
+  "cluster": {
+    "name": "Pie Chart در Mermaid برای نمایش سهم از کل",
+    "primaryQuery": "آموزش Pie Chart در Mermaid",
+    "secondaryQueries": [
+      "تفاوت Pie Chart و Bar Chart",
+      "نمودار دایره‌ای در Mermaid",
+      "ساخت Donut Chart با Mermaid",
+      "قالب نمایش سهم از کل",
+      "Mermaid pie showData"
+    ],
+    "intent": "آموزشی، مقایسه و یافتن قالب",
+    "sources": [
+      "https://mermaid.js.org/syntax/pie.html",
+      "https://mermaid.js.org/config/schema-docs/config-defs-pie-diagram-config.html",
+      "https://www.cdc.gov/cove/data-visualization-types/pie-and-donut-charts.html",
+      "https://www.cdc.gov/cove/data-visualization-types/bar-chart.html"
+    ]
+  },
+  "relatedLearnTitle": "آموزش Pie Chart در Mermaid"
+}
