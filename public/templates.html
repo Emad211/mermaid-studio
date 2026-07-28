@@ -23,12 +23,28 @@
     </header>
 
     <main id="templates-main">
-      <section class="templates-hero section-shell"><p class="eyebrow"><span></span> شروع سریع، بدون صفحهٔ خالی</p><h1>قالب مناسب Mermaid را انتخاب کن و همان لحظه ویرایشش کن.</h1><p>از قالب State Diagram چرخهٔ سفارش تا فلوچارت، مستندات نرم‌افزار، طراحی پایگاه داده و برنامه‌ریزی پروژه؛ همهٔ نمونه‌ها فارسی و قابل ویرایش‌اند.</p><label class="template-search"><span aria-hidden="true">⌕</span><input id="template-search" type="search" placeholder="جست‌وجو؛ مثلاً State Diagram، ERD یا گانت…" autocomplete="off" /></label><div class="filter-row" role="group" aria-label="دسته‌بندی قالب‌ها"><button class="filter-chip active" type="button" data-category="all">همه</button><button class="filter-chip" type="button" data-category="process">فرایند</button><button class="filter-chip" type="button" data-category="software">نرم‌افزار</button><button class="filter-chip" type="button" data-category="data">داده</button><button class="filter-chip" type="button" data-category="planning">برنامه‌ریزی</button><span id="template-count" class="template-count" aria-live="polite">۱۶ قالب</span></div></section>
+      <section class="templates-hero section-shell"><p class="eyebrow"><span></span> شروع سریع، بدون صفحهٔ خالی</p><h1>قالب مناسب Mermaid را انتخاب کن و همان لحظه ویرایشش کن.</h1><p>از قالب State Diagram چرخهٔ سفارش تا فلوچارت، مستندات نرم‌افزار، طراحی پایگاه داده و برنامه‌ریزی پروژه؛ همهٔ نمونه‌ها فارسی و قابل ویرایش‌اند.</p><label class="template-search"><span aria-hidden="true">⌕</span><input id="template-search" type="search" placeholder="جست‌وجو؛ مثلاً State Diagram، ERD یا گانت…" autocomplete="off" /></label><div class="filter-row" role="group" aria-label="دسته‌بندی قالب‌ها"><button class="filter-chip active" type="button" data-category="all">همه</button><button class="filter-chip" type="button" data-category="process">فرایند</button><button class="filter-chip" type="button" data-category="software">نرم‌افزار</button><button class="filter-chip" type="button" data-category="data">داده</button><button class="filter-chip" type="button" data-category="planning">برنامه‌ریزی</button><span id="template-count" class="template-count" aria-live="polite">۱۷ قالب</span></div></section>
 
       <aside class="ad-slot ad-slot--compact" data-ad-slot="templatesTop" hidden aria-label="تبلیغات"><span class="ad-slot__label">تبلیغات</span><a class="ad-slot__privacy" href="/privacy#advertising">درباره تبلیغات</a><div class="ad-slot__mount" data-ad-mount></div></aside>
 
       <section class="section-shell templates-section" aria-labelledby="templates-title"><div class="section-heading align-right"><p class="section-kicker">قابل ویرایش و رایگان</p><h2 id="templates-title">نمونه‌های آماده Mermaid</h2><p>دکمهٔ «ویرایش» کد و تنظیمات قالب را مستقیم داخل ادیتور باز می‌کند. آموزش و راهنمای مرتبط نیز کنار قالب‌های تخصصی قرار دارد.</p></div><div id="templates-grid" class="templates-grid">
         <!-- DAILY_TEMPLATE_CARDS -->
+        <article id="template-release-readiness-radar" class="template-card" data-id="release-readiness-radar" data-template-id="release-readiness-radar">
+          <div class="template-card-head"><div><h3>آمادگی انتشار در برابر آستانه</h3><p>قالب Radar Chart برای مقایسهٔ وضعیت فعلی انتشار با آستانهٔ پذیرش روی تست، مستندات، امنیت، مشاهده‌پذیری و بازگشت.</p></div><span class="template-badge">مقایسه چندمعیاره</span></div>
+          <pre class="template-code"><code>radar-beta
+  title آمادگی انتشار — داده آموزشی
+  axis tests[&quot;تست&quot;], docs[&quot;مستندات&quot;], security[&quot;امنیت&quot;]
+  axis observability[&quot;مشاهده‌پذیری&quot;], rollback[&quot;بازگشت&quot;], support[&quot;پشتیبانی&quot;]
+  curve actual[&quot;وضعیت فعلی&quot;]{tests: 4, docs: 3, security: 4, observability: 2, rollback: 2, support: 3}
+  curve threshold[&quot;آستانه پذیرش&quot;]{tests: 4, docs: 4, security: 5, observability: 4, rollback: 4, support: 3}
+  showLegend true
+  min 0
+  max 5
+  graticule polygon
+  ticks 5</code></pre>
+          <nav class="template-related" aria-label="مطالب مرتبط"><a href="/learn/radar-chart-mermaid">آموزش مرتبط</a><a href="/articles/radar-chart-vs-bar-chart-for-multicriteria-comparison">مقالهٔ مرتبط</a></nav>
+          <div class="template-actions"><a class="button button-primary" href="/editor#code=u%3AeyJjb2RlIjoicmFkYXItYmV0YVxuICB0aXRsZSDYotmF2KfYr9qv24wg2KfZhtiq2LTYp9ixIOKAlCDYr9in2K_ZhyDYotmF2YjYsti024xcbiAgYXhpcyB0ZXN0c1tcItiq2LPYqlwiXSwgZG9jc1tcItmF2LPYqtmG2K_Yp9iqXCJdLCBzZWN1cml0eVtcItin2YXZhtuM2KpcIl1cbiAgYXhpcyBvYnNlcnZhYmlsaXR5W1wi2YXYtNin2YfYr9mH4oCM2b7YsNuM2LHbjFwiXSwgcm9sbGJhY2tbXCLYqNin2LLar9i02KpcIl0sIHN1cHBvcnRbXCLZvti02KrbjNio2KfZhtuMXCJdXG4gIGN1cnZlIGFjdHVhbFtcItmI2LbYuduM2Kog2YHYudmE24xcIl17dGVzdHM6IDQsIGRvY3M6IDMsIHNlY3VyaXR5OiA0LCBvYnNlcnZhYmlsaXR5OiAyLCByb2xsYmFjazogMiwgc3VwcG9ydDogM31cbiAgY3VydmUgdGhyZXNob2xkW1wi2KLYs9iq2KfZhtmHINm-2LDbjNix2LRcIl17dGVzdHM6IDQsIGRvY3M6IDQsIHNlY3VyaXR5OiA1LCBvYnNlcnZhYmlsaXR5OiA0LCByb2xsYmFjazogNCwgc3VwcG9ydDogM31cbiAgc2hvd0xlZ2VuZCB0cnVlXG4gIG1pbiAwXG4gIG1heCA1XG4gIGdyYXRpY3VsZSBwb2x5Z29uXG4gIHRpY2tzIDUiLCJ0aGVtZSI6ImRlZmF1bHQiLCJsYXlvdXQiOiJkYWdyZSIsImJhY2tncm91bmQiOiJ3aGl0ZSIsImNvbmZpZyI6IiIsImNzcyI6IiJ9">ویرایش قالب</a><a class="button button-secondary" href="/learn/radar-chart-mermaid">آموزش</a></div>
+        </article>
         <article id="template-sprint-capacity-donut" class="template-card" data-id="sprint-capacity-donut" data-template-id="sprint-capacity-donut">
           <div class="template-card-head"><div><h3>ترکیب ظرفیت Sprint</h3><p>قالب Donut برای نمایش سهم قابلیت جدید، رفع باگ، بدهی فنی و پشتیبانی از ظرفیت برنامه‌ریزی‌شدهٔ Sprint.</p></div><span class="template-badge">ترکیب داده</span></div>
           <pre class="template-code"><code>---

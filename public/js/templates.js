@@ -2,6 +2,17 @@ import { startBidiIsolation } from './bidi.js';
 
 const templates = [
   {
+    "id": "release-readiness-radar",
+    "category": "data",
+    "badge": "مقایسه چندمعیاره",
+    "title": "آمادگی انتشار در برابر آستانه",
+    "description": "قالب Radar Chart برای مقایسهٔ وضعیت فعلی انتشار با آستانهٔ پذیرش روی تست، مستندات، امنیت، مشاهده‌پذیری و بازگشت.",
+    "keywords": "Radar Chart Mermaid radar-beta نمودار راداری آمادگی انتشار مقایسه چندمعیاره release readiness",
+    "tutorial": "/learn/radar-chart-mermaid",
+    "article": "/articles/radar-chart-vs-bar-chart-for-multicriteria-comparison",
+    "code": "radar-beta\n  title آمادگی انتشار — داده آموزشی\n  axis tests[\"تست\"], docs[\"مستندات\"], security[\"امنیت\"]\n  axis observability[\"مشاهده‌پذیری\"], rollback[\"بازگشت\"], support[\"پشتیبانی\"]\n  curve actual[\"وضعیت فعلی\"]{tests: 4, docs: 3, security: 4, observability: 2, rollback: 2, support: 3}\n  curve threshold[\"آستانه پذیرش\"]{tests: 4, docs: 4, security: 5, observability: 4, rollback: 4, support: 3}\n  showLegend true\n  min 0\n  max 5\n  graticule polygon\n  ticks 5"
+  },
+  {
     "id": "sprint-capacity-donut",
     "category": "data",
     "badge": "ترکیب داده",
