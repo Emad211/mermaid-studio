@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "date": "2026-07-28",
+  "cluster": {
+    "name": "Radar Chart در Mermaid برای مقایسه چندمعیاره",
+    "primaryQuery": "آموزش Radar Chart در Mermaid",
+    "secondaryQueries": [
+      "Radar Chart یا Bar Chart",
+      "نمودار راداری در Mermaid",
+      "قالب مقایسه چندمعیاره Mermaid",
+      "radar-beta syntax",
+      "نمودار عنکبوتی برای ارزیابی"
+    ],
+    "intent": "آموزشی، مقایسه و یافتن قالب",
+    "sources": [
+      "https://mermaid.js.org/syntax/radar",
+      "https://doi.org/10.1080/01621459.1984.10478080",
+      "https://pubmed.ncbi.nlm.nih.gov/26529525/"
+    ]
+  },
+  "relatedLearnTitle": "آموزش Radar Chart در Mermaid"
+}
