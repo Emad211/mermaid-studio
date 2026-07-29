@@ -1,0 +1,11 @@
+{
+  "id": "product-backlog-impact-effort",
+  "category": "planning",
+  "badge": "اولویت‌بندی محصول",
+  "title": "ماتریس اثر و تلاش Backlog محصول",
+  "description": "قالب Quadrant Chart برای مقایسهٔ چند گزینهٔ Backlog روی اثر و تلاش، با چهار ربع تصمیم و داده‌های صریحاً نمونه.",
+  "keywords": "Quadrant Chart ماتریس اثر تلاش اولویت بندی Backlog محصول قالب Mermaid",
+  "tutorial": "/learn/quadrant-chart-mermaid",
+  "article": "/articles/quadrant-chart-vs-scoring-table-for-prioritization",
+  "code": "---\nconfig:\n  quadrantChart:\n    chartWidth: 820\n    chartHeight: 720\n---\nquadrantChart\n  title اولویت‌بندی Backlog محصول — داده نمونه\n  x-axis تلاش کم --> تلاش زیاد\n  y-axis اثر کم --> اثر زیاد\n  quadrant-1 سرمایه‌گذاری راهبردی\n  quadrant-2 پیروزی سریع\n  quadrant-3 بهبود کوچک\n  quadrant-4 بازنگری یا توقف\n  بهبود جست‌وجوی قالب‌ها: [0.25, 0.82]\n  رفع خطای خروجی موبایل: [0.35, 0.76]\n  فضای کاری تیمی: [0.78, 0.90]\n  اصلاح جزئی آیکن‌ها: [0.18, 0.28]\n  بازنویسی کامل ادیتور: [0.90, 0.35]"
+}
