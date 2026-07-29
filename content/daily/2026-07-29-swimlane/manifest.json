@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "date": "2026-07-29",
+  "cluster": {
+    "name": "Swimlane Diagram در Mermaid برای فرایندهای بین‌تیمی",
+    "primaryQuery": "آموزش Swimlane Diagram در Mermaid",
+    "secondaryQueries": [
+      "نمودار Swimlane چیست",
+      "Swimlane یا Flowchart",
+      "swimlane-beta syntax",
+      "قالب فرایند رسیدگی تیکت",
+      "نمودار مسئولیت فرایند"
+    ],
+    "intent": "آموزشی، مقایسه و یافتن قالب",
+    "sources": [
+      "https://mermaid.js.org/syntax/swimlanes",
+      "https://mermaid.js.org/config/schema-docs/config",
+      "https://mermaid.js.org/syntax/flowchart",
+      "https://mermaid.js.org/syntax/sequenceDiagram"
+    ]
+  },
+  "relatedLearnTitle": "آموزش Swimlane Diagram در Mermaid"
+}
