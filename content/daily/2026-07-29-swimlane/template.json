@@ -1,0 +1,11 @@
+{
+  "id": "support-escalation-swimlane",
+  "category": "process",
+  "badge": "مسئولیت فرایند",
+  "title": "رسیدگی و ارجاع تیکت پشتیبانی",
+  "description": "قالب Swimlane برای نمایش ثبت تیکت، بررسی پشتیبانی، تصمیم محصول، ارجاع فنی، پاسخ و مسیر تکمیل اطلاعات.",
+  "keywords": "Swimlane Mermaid نمودار خط شنا پشتیبانی تیکت ارجاع مسئولیت handoff فرایند بین تیمی",
+  "tutorial": "/learn/swimlane-diagram-mermaid",
+  "article": "/articles/swimlane-vs-flowchart-for-cross-team-processes",
+  "code": "swimlane-beta LR\n  accTitle: فرایند رسیدگی و ارجاع تیکت پشتیبانی\n  accDescr: کاربر تیکت را ثبت می‌کند، پشتیبانی آن را بررسی می‌کند و در صورت نیاز محصول و فنی برای تصمیم و اصلاح وارد فرایند می‌شوند.\n\n  subgraph customer [کاربر]\n    open([ثبت تیکت])\n    addInfo[تکمیل اطلاعات]\n    confirm([تأیید نتیجه])\n  end\n\n  subgraph support [پشتیبانی]\n    triage[بررسی و دسته‌بندی]\n    complete{اطلاعات کامل است؟}\n    known{پاسخ شناخته‌شده است؟}\n    reply[ارسال پاسخ]\n  end\n\n  subgraph product [محصول]\n    accept{تغییر پذیرفته می‌شود؟}\n    document[ثبت دلیل و اولویت]\n  end\n\n  subgraph engineering [تیم فنی]\n    investigate[تحلیل فنی]\n    implement[پیاده‌سازی و آزمون]\n  end\n\n  open -->|توضیح و شواهد| triage --> complete\n  complete -->|خیر| addInfo -->|اطلاعات تکمیلی| triage\n  complete -->|بله| known\n  known -->|بله| reply --> confirm\n  known -->|خیر| accept\n  accept -->|رد یا تعویق| document --> reply\n  accept -->|پذیرفته شد| investigate --> implement -->|نسخه آماده| reply"
+}
