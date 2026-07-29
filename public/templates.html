@@ -23,12 +23,51 @@
     </header>
 
     <main id="templates-main">
-      <section class="templates-hero section-shell"><p class="eyebrow"><span></span> شروع سریع، بدون صفحهٔ خالی</p><h1>قالب مناسب Mermaid را انتخاب کن و همان لحظه ویرایشش کن.</h1><p>از قالب State Diagram چرخهٔ سفارش تا فلوچارت، مستندات نرم‌افزار، طراحی پایگاه داده و برنامه‌ریزی پروژه؛ همهٔ نمونه‌ها فارسی و قابل ویرایش‌اند.</p><label class="template-search"><span aria-hidden="true">⌕</span><input id="template-search" type="search" placeholder="جست‌وجو؛ مثلاً State Diagram، ERD یا گانت…" autocomplete="off" /></label><div class="filter-row" role="group" aria-label="دسته‌بندی قالب‌ها"><button class="filter-chip active" type="button" data-category="all">همه</button><button class="filter-chip" type="button" data-category="process">فرایند</button><button class="filter-chip" type="button" data-category="software">نرم‌افزار</button><button class="filter-chip" type="button" data-category="data">داده</button><button class="filter-chip" type="button" data-category="planning">برنامه‌ریزی</button><span id="template-count" class="template-count" aria-live="polite">۱۷ قالب</span></div></section>
+      <section class="templates-hero section-shell"><p class="eyebrow"><span></span> شروع سریع، بدون صفحهٔ خالی</p><h1>قالب مناسب Mermaid را انتخاب کن و همان لحظه ویرایشش کن.</h1><p>از قالب State Diagram چرخهٔ سفارش تا فلوچارت، مستندات نرم‌افزار، طراحی پایگاه داده و برنامه‌ریزی پروژه؛ همهٔ نمونه‌ها فارسی و قابل ویرایش‌اند.</p><label class="template-search"><span aria-hidden="true">⌕</span><input id="template-search" type="search" placeholder="جست‌وجو؛ مثلاً State Diagram، ERD یا گانت…" autocomplete="off" /></label><div class="filter-row" role="group" aria-label="دسته‌بندی قالب‌ها"><button class="filter-chip active" type="button" data-category="all">همه</button><button class="filter-chip" type="button" data-category="process">فرایند</button><button class="filter-chip" type="button" data-category="software">نرم‌افزار</button><button class="filter-chip" type="button" data-category="data">داده</button><button class="filter-chip" type="button" data-category="planning">برنامه‌ریزی</button><span id="template-count" class="template-count" aria-live="polite">۱۸ قالب</span></div></section>
 
       <aside class="ad-slot ad-slot--compact" data-ad-slot="templatesTop" hidden aria-label="تبلیغات"><span class="ad-slot__label">تبلیغات</span><a class="ad-slot__privacy" href="/privacy#advertising">درباره تبلیغات</a><div class="ad-slot__mount" data-ad-mount></div></aside>
 
       <section class="section-shell templates-section" aria-labelledby="templates-title"><div class="section-heading align-right"><p class="section-kicker">قابل ویرایش و رایگان</p><h2 id="templates-title">نمونه‌های آماده Mermaid</h2><p>دکمهٔ «ویرایش» کد و تنظیمات قالب را مستقیم داخل ادیتور باز می‌کند. آموزش و راهنمای مرتبط نیز کنار قالب‌های تخصصی قرار دارد.</p></div><div id="templates-grid" class="templates-grid">
         <!-- DAILY_TEMPLATE_CARDS -->
+        <article id="template-support-escalation-swimlane" class="template-card" data-id="support-escalation-swimlane" data-template-id="support-escalation-swimlane">
+          <div class="template-card-head"><div><h3>رسیدگی و ارجاع تیکت پشتیبانی</h3><p>قالب Swimlane برای نمایش ثبت تیکت، بررسی پشتیبانی، تصمیم محصول، ارجاع فنی، پاسخ و مسیر تکمیل اطلاعات.</p></div><span class="template-badge">مسئولیت فرایند</span></div>
+          <pre class="template-code"><code>swimlane-beta LR
+  accTitle: فرایند رسیدگی و ارجاع تیکت پشتیبانی
+  accDescr: کاربر تیکت را ثبت می‌کند، پشتیبانی آن را بررسی می‌کند و در صورت نیاز محصول و فنی برای تصمیم و اصلاح وارد فرایند می‌شوند.
+
+  subgraph customer [کاربر]
+    open([ثبت تیکت])
+    addInfo[تکمیل اطلاعات]
+    confirm([تأیید نتیجه])
+  end
+
+  subgraph support [پشتیبانی]
+    triage[بررسی و دسته‌بندی]
+    complete{اطلاعات کامل است؟}
+    known{پاسخ شناخته‌شده است؟}
+    reply[ارسال پاسخ]
+  end
+
+  subgraph product [محصول]
+    accept{تغییر پذیرفته می‌شود؟}
+    document[ثبت دلیل و اولویت]
+  end
+
+  subgraph engineering [تیم فنی]
+    investigate[تحلیل فنی]
+    implement[پیاده‌سازی و آزمون]
+  end
+
+  open --&gt;|توضیح و شواهد| triage --&gt; complete
+  complete --&gt;|خیر| addInfo --&gt;|اطلاعات تکمیلی| triage
+  complete --&gt;|بله| known
+  known --&gt;|بله| reply --&gt; confirm
+  known --&gt;|خیر| accept
+  accept --&gt;|رد یا تعویق| document --&gt; reply
+  accept --&gt;|پذیرفته شد| investigate --&gt; implement --&gt;|نسخه آماده| reply</code></pre>
+          <nav class="template-related" aria-label="مطالب مرتبط"><a href="/learn/swimlane-diagram-mermaid">آموزش مرتبط</a><a href="/articles/swimlane-vs-flowchart-for-cross-team-processes">مقالهٔ مرتبط</a></nav>
+          <div class="template-actions"><a class="button button-primary" href="/editor#code=u%3AeyJjb2RlIjoic3dpbWxhbmUtYmV0YSBMUlxuICBhY2NUaXRsZTog2YHYsdin24zZhtivINix2LPbjNiv2q_bjCDZiCDYp9ix2KzYp9i5INiq24zaqdiqINm-2LTYqtuM2KjYp9mG24xcbiAgYWNjRGVzY3I6INqp2KfYsdio2LEg2KrbjNqp2Kog2LHYpyDYq9io2Kog2YXbjOKAjNqp2YbYr9iMINm-2LTYqtuM2KjYp9mG24wg2KLZhiDYsdinINio2LHYsdiz24wg2YXbjOKAjNqp2YbYryDZiCDYr9ixINi12YjYsdiqINmG24zYp9iyINmF2K3YtdmI2YQg2Ygg2YHZhtuMINio2LHYp9uMINiq2LXZhduM2YUg2Ygg2KfYtdmE2KfYrSDZiNin2LHYryDZgdix2KfbjNmG2K8g2YXbjOKAjNi02YjZhtivLlxuXG4gIHN1YmdyYXBoIGN1c3RvbWVyIFvaqdin2LHYqNixXVxuICAgIG9wZW4oW9ir2KjYqiDYqtuM2qnYql0pXG4gICAgYWRkSW5mb1vYqtqp2YXbjNmEINin2LfZhNin2LnYp9iqXVxuICAgIGNvbmZpcm0oW9iq2KPbjNuM2K8g2YbYqtuM2KzZh10pXG4gIGVuZFxuXG4gIHN1YmdyYXBoIHN1cHBvcnQgW9m-2LTYqtuM2KjYp9mG24xdXG4gICAgdHJpYWdlW9io2LHYsdiz24wg2Ygg2K_Ys9iq2YfigIzYqNmG2K_bjF1cbiAgICBjb21wbGV0ZXvYp9i32YTYp9i52KfYqiDaqdin2YXZhCDYp9iz2KrYn31cbiAgICBrbm93bnvZvtin2LPYriDYtNmG2KfYrtiq2YfigIzYtNiv2Ycg2KfYs9iq2J99XG4gICAgcmVwbHlb2KfYsdiz2KfZhCDZvtin2LPYrl1cbiAgZW5kXG5cbiAgc3ViZ3JhcGggcHJvZHVjdCBb2YXYrdi12YjZhF1cbiAgICBhY2NlcHR72KrYutuM24zYsSDZvtiw24zYsdmB2KrZhyDZhduM4oCM2LTZiNiv2J99XG4gICAgZG9jdW1lbnRb2KvYqNiqINiv2YTbjNmEINmIINin2YjZhNmI24zYql1cbiAgZW5kXG5cbiAgc3ViZ3JhcGggZW5naW5lZXJpbmcgW9iq24zZhSDZgdmG24xdXG4gICAgaW52ZXN0aWdhdGVb2KrYrdmE24zZhCDZgdmG24xdXG4gICAgaW1wbGVtZW50W9m-24zYp9iv2YfigIzYs9in2LLbjCDZiCDYotiy2YXZiNmGXVxuICBlbmRcblxuICBvcGVuIC0tPnzYqtmI2LbbjNitINmIINi02YjYp9mH2K98IHRyaWFnZSAtLT4gY29tcGxldGVcbiAgY29tcGxldGUgLS0-fNiu24zYsXwgYWRkSW5mbyAtLT582KfYt9mE2KfYudin2Kog2KraqdmF24zZhNuMfCB0cmlhZ2VcbiAgY29tcGxldGUgLS0-fNio2YTZh3wga25vd25cbiAga25vd24gLS0-fNio2YTZh3wgcmVwbHkgLS0-IGNvbmZpcm1cbiAga25vd24gLS0-fNiu24zYsXwgYWNjZXB0XG4gIGFjY2VwdCAtLT582LHYryDbjNinINiq2LnZiNuM2YJ8IGRvY3VtZW50IC0tPiByZXBseVxuICBhY2NlcHQgLS0-fNm-2LDbjNix2YHYqtmHINi02K98IGludmVzdGlnYXRlIC0tPiBpbXBsZW1lbnQgLS0-fNmG2LPYrtmHINii2YXYp9iv2Yd8IHJlcGx5IiwidGhlbWUiOiJkZWZhdWx0IiwibGF5b3V0IjoiZGFncmUiLCJiYWNrZ3JvdW5kIjoid2hpdGUiLCJjb25maWciOiIiLCJjc3MiOiIifQ">ویرایش قالب</a><a class="button button-secondary" href="/learn/swimlane-diagram-mermaid">آموزش</a></div>
+        </article>
         <article id="template-release-readiness-radar" class="template-card" data-id="release-readiness-radar" data-template-id="release-readiness-radar">
           <div class="template-card-head"><div><h3>آمادگی انتشار در برابر آستانه</h3><p>قالب Radar Chart برای مقایسهٔ وضعیت فعلی انتشار با آستانهٔ پذیرش روی تست، مستندات، امنیت، مشاهده‌پذیری و بازگشت.</p></div><span class="template-badge">مقایسه چندمعیاره</span></div>
           <pre class="template-code"><code>radar-beta
