@@ -23,12 +23,36 @@
     </header>
 
     <main id="templates-main">
-      <section class="templates-hero section-shell"><p class="eyebrow"><span></span> شروع سریع، بدون صفحهٔ خالی</p><h1>قالب مناسب Mermaid را انتخاب کن و همان لحظه ویرایشش کن.</h1><p>از قالب State Diagram چرخهٔ سفارش تا فلوچارت، مستندات نرم‌افزار، طراحی پایگاه داده و برنامه‌ریزی پروژه؛ همهٔ نمونه‌ها فارسی و قابل ویرایش‌اند.</p><label class="template-search"><span aria-hidden="true">⌕</span><input id="template-search" type="search" placeholder="جست‌وجو؛ مثلاً State Diagram، ERD یا گانت…" autocomplete="off" /></label><div class="filter-row" role="group" aria-label="دسته‌بندی قالب‌ها"><button class="filter-chip active" type="button" data-category="all">همه</button><button class="filter-chip" type="button" data-category="process">فرایند</button><button class="filter-chip" type="button" data-category="software">نرم‌افزار</button><button class="filter-chip" type="button" data-category="data">داده</button><button class="filter-chip" type="button" data-category="planning">برنامه‌ریزی</button><span id="template-count" class="template-count" aria-live="polite">۱۸ قالب</span></div></section>
+      <section class="templates-hero section-shell"><p class="eyebrow"><span></span> شروع سریع، بدون صفحهٔ خالی</p><h1>قالب مناسب Mermaid را انتخاب کن و همان لحظه ویرایشش کن.</h1><p>از قالب State Diagram چرخهٔ سفارش تا فلوچارت، مستندات نرم‌افزار، طراحی پایگاه داده و برنامه‌ریزی پروژه؛ همهٔ نمونه‌ها فارسی و قابل ویرایش‌اند.</p><label class="template-search"><span aria-hidden="true">⌕</span><input id="template-search" type="search" placeholder="جست‌وجو؛ مثلاً State Diagram، ERD یا گانت…" autocomplete="off" /></label><div class="filter-row" role="group" aria-label="دسته‌بندی قالب‌ها"><button class="filter-chip active" type="button" data-category="all">همه</button><button class="filter-chip" type="button" data-category="process">فرایند</button><button class="filter-chip" type="button" data-category="software">نرم‌افزار</button><button class="filter-chip" type="button" data-category="data">داده</button><button class="filter-chip" type="button" data-category="planning">برنامه‌ریزی</button><span id="template-count" class="template-count" aria-live="polite">۱۹ قالب</span></div></section>
 
       <aside class="ad-slot ad-slot--compact" data-ad-slot="templatesTop" hidden aria-label="تبلیغات"><span class="ad-slot__label">تبلیغات</span><a class="ad-slot__privacy" href="/privacy#advertising">درباره تبلیغات</a><div class="ad-slot__mount" data-ad-mount></div></aside>
 
       <section class="section-shell templates-section" aria-labelledby="templates-title"><div class="section-heading align-right"><p class="section-kicker">قابل ویرایش و رایگان</p><h2 id="templates-title">نمونه‌های آماده Mermaid</h2><p>دکمهٔ «ویرایش» کد و تنظیمات قالب را مستقیم داخل ادیتور باز می‌کند. آموزش و راهنمای مرتبط نیز کنار قالب‌های تخصصی قرار دارد.</p></div><div id="templates-grid" class="templates-grid">
         <!-- DAILY_TEMPLATE_CARDS -->
+        <article id="template-product-backlog-impact-effort" class="template-card" data-id="product-backlog-impact-effort" data-template-id="product-backlog-impact-effort">
+          <div class="template-card-head"><div><h3>ماتریس اثر و تلاش Backlog محصول</h3><p>قالب Quadrant Chart برای مقایسهٔ چند گزینهٔ Backlog روی اثر و تلاش، با چهار ربع تصمیم و داده‌های صریحاً نمونه.</p></div><span class="template-badge">اولویت‌بندی محصول</span></div>
+          <pre class="template-code"><code>---
+config:
+  quadrantChart:
+    chartWidth: 820
+    chartHeight: 720
+---
+quadrantChart
+  title اولویت‌بندی Backlog محصول — داده نمونه
+  x-axis تلاش کم --&gt; تلاش زیاد
+  y-axis اثر کم --&gt; اثر زیاد
+  quadrant-1 سرمایه‌گذاری راهبردی
+  quadrant-2 پیروزی سریع
+  quadrant-3 بهبود کوچک
+  quadrant-4 بازنگری یا توقف
+  بهبود جست‌وجوی قالب‌ها: [0.25, 0.82]
+  رفع خطای خروجی موبایل: [0.35, 0.76]
+  فضای کاری تیمی: [0.78, 0.90]
+  اصلاح جزئی آیکن‌ها: [0.18, 0.28]
+  بازنویسی کامل ادیتور: [0.90, 0.35]</code></pre>
+          <nav class="template-related" aria-label="مطالب مرتبط"><a href="/learn/quadrant-chart-mermaid">آموزش مرتبط</a><a href="/articles/quadrant-chart-vs-scoring-table-for-prioritization">مقالهٔ مرتبط</a></nav>
+          <div class="template-actions"><a class="button button-primary" href="/editor#code=u%3AeyJjb2RlIjoiLS0tXG5jb25maWc6XG4gIHF1YWRyYW50Q2hhcnQ6XG4gICAgY2hhcnRXaWR0aDogODIwXG4gICAgY2hhcnRIZWlnaHQ6IDcyMFxuLS0tXG5xdWFkcmFudENoYXJ0XG4gIHRpdGxlINin2YjZhNmI24zYquKAjNio2YbYr9uMIEJhY2tsb2cg2YXYrdi12YjZhCDigJQg2K_Yp9iv2Ycg2YbZhdmI2YbZh1xuICB4LWF4aXMg2KrZhNin2LQg2qnZhSAtLT4g2KrZhNin2LQg2LLbjNin2K9cbiAgeS1heGlzINin2KvYsSDaqdmFIC0tPiDYp9ir2LEg2LLbjNin2K9cbiAgcXVhZHJhbnQtMSDYs9ix2YXYp9uM2YfigIzar9iw2KfYsduMINix2KfZh9io2LHYr9uMXG4gIHF1YWRyYW50LTIg2b7bjNix2YjYstuMINiz2LHbjNi5XG4gIHF1YWRyYW50LTMg2KjZh9io2YjYryDaqdmI2obaqVxuICBxdWFkcmFudC00INio2KfYstmG2q_YsduMINuM2Kcg2KrZiNmC2YFcbiAg2KjZh9io2YjYryDYrNiz2KrigIzZiNis2YjbjCDZgtin2YTYqOKAjNmH2Kc6IFswLjI1LCAwLjgyXVxuICDYsdmB2Lkg2K7Yt9in24wg2K7YsdmI2KzbjCDZhdmI2KjYp9uM2YQ6IFswLjM1LCAwLjc2XVxuICDZgdi22KfbjCDaqdin2LHbjCDYqtuM2YXbjDogWzAuNzgsIDAuOTBdXG4gINin2LXZhNin2K0g2KzYstim24wg2KLbjNqp2YbigIzZh9inOiBbMC4xOCwgMC4yOF1cbiAg2KjYp9iy2YbZiNuM2LPbjCDaqdin2YXZhCDYp9iv24zYqtmI2LE6IFswLjkwLCAwLjM1XSIsInRoZW1lIjoiZGVmYXVsdCIsImxheW91dCI6ImRhZ3JlIiwiYmFja2dyb3VuZCI6IndoaXRlIiwiY29uZmlnIjoiIiwiY3NzIjoiIn0">ویرایش قالب</a><a class="button button-secondary" href="/learn/quadrant-chart-mermaid">آموزش</a></div>
+        </article>
         <article id="template-support-escalation-swimlane" class="template-card" data-id="support-escalation-swimlane" data-template-id="support-escalation-swimlane">
           <div class="template-card-head"><div><h3>رسیدگی و ارجاع تیکت پشتیبانی</h3><p>قالب Swimlane برای نمایش ثبت تیکت، بررسی پشتیبانی، تصمیم محصول، ارجاع فنی، پاسخ و مسیر تکمیل اطلاعات.</p></div><span class="template-badge">مسئولیت فرایند</span></div>
           <pre class="template-code"><code>swimlane-beta LR
