@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "date": "2026-07-30",
+  "cluster": {
+    "name": "Quadrant Chart در Mermaid برای اولویت‌بندی محصول",
+    "primaryQuery": "آموزش Quadrant Chart در Mermaid",
+    "secondaryQueries": [
+      "ماتریس اثر و تلاش با Mermaid",
+      "Quadrant Chart یا جدول امتیازدهی",
+      "قالب اولویت‌بندی Backlog",
+      "quadrantChart syntax",
+      "ماتریس دو در دو محصول"
+    ],
+    "intent": "آموزشی، مقایسه و یافتن قالب",
+    "sources": [
+      "https://mermaid.js.org/syntax/quadrantChart",
+      "https://www.intercom.com/blog/rice-simple-prioritization-for-product-managers/"
+    ]
+  },
+  "relatedLearnTitle": "آموزش Quadrant Chart در Mermaid"
+}
