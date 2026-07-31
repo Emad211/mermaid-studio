@@ -23,12 +23,37 @@
     </header>
 
     <main id="templates-main">
-      <section class="templates-hero section-shell"><p class="eyebrow"><span></span> شروع سریع، بدون صفحهٔ خالی</p><h1>قالب مناسب Mermaid را انتخاب کن و همان لحظه ویرایشش کن.</h1><p>از قالب State Diagram چرخهٔ سفارش تا فلوچارت، مستندات نرم‌افزار، طراحی پایگاه داده و برنامه‌ریزی پروژه؛ همهٔ نمونه‌ها فارسی و قابل ویرایش‌اند.</p><label class="template-search"><span aria-hidden="true">⌕</span><input id="template-search" type="search" placeholder="جست‌وجو؛ مثلاً State Diagram، ERD یا گانت…" autocomplete="off" /></label><div class="filter-row" role="group" aria-label="دسته‌بندی قالب‌ها"><button class="filter-chip active" type="button" data-category="all">همه</button><button class="filter-chip" type="button" data-category="process">فرایند</button><button class="filter-chip" type="button" data-category="software">نرم‌افزار</button><button class="filter-chip" type="button" data-category="data">داده</button><button class="filter-chip" type="button" data-category="planning">برنامه‌ریزی</button><span id="template-count" class="template-count" aria-live="polite">۱۹ قالب</span></div></section>
+      <section class="templates-hero section-shell"><p class="eyebrow"><span></span> شروع سریع، بدون صفحهٔ خالی</p><h1>قالب مناسب Mermaid را انتخاب کن و همان لحظه ویرایشش کن.</h1><p>از قالب State Diagram چرخهٔ سفارش تا فلوچارت، مستندات نرم‌افزار، طراحی پایگاه داده و برنامه‌ریزی پروژه؛ همهٔ نمونه‌ها فارسی و قابل ویرایش‌اند.</p><label class="template-search"><span aria-hidden="true">⌕</span><input id="template-search" type="search" placeholder="جست‌وجو؛ مثلاً State Diagram، ERD یا گانت…" autocomplete="off" /></label><div class="filter-row" role="group" aria-label="دسته‌بندی قالب‌ها"><button class="filter-chip active" type="button" data-category="all">همه</button><button class="filter-chip" type="button" data-category="process">فرایند</button><button class="filter-chip" type="button" data-category="software">نرم‌افزار</button><button class="filter-chip" type="button" data-category="data">داده</button><button class="filter-chip" type="button" data-category="planning">برنامه‌ریزی</button><span id="template-count" class="template-count" aria-live="polite">۲۰ قالب</span></div></section>
 
       <aside class="ad-slot ad-slot--compact" data-ad-slot="templatesTop" hidden aria-label="تبلیغات"><span class="ad-slot__label">تبلیغات</span><a class="ad-slot__privacy" href="/privacy#advertising">درباره تبلیغات</a><div class="ad-slot__mount" data-ad-mount></div></aside>
 
       <section class="section-shell templates-section" aria-labelledby="templates-title"><div class="section-heading align-right"><p class="section-kicker">قابل ویرایش و رایگان</p><h2 id="templates-title">نمونه‌های آماده Mermaid</h2><p>دکمهٔ «ویرایش» کد و تنظیمات قالب را مستقیم داخل ادیتور باز می‌کند. آموزش و راهنمای مرتبط نیز کنار قالب‌های تخصصی قرار دارد.</p></div><div id="templates-grid" class="templates-grid">
         <!-- DAILY_TEMPLATE_CARDS -->
+        <article id="template-incident-root-cause-fishbone" class="template-card" data-id="incident-root-cause-fishbone" data-template-id="incident-root-cause-fishbone">
+          <div class="template-card-head"><div><h3>تحلیل علت شکست انتشار نسخه</h3><p>قالب Ishikawa برای دسته‌بندی فرضیه‌های کد، فرایند، زیرساخت، آزمون، مشاهده‌پذیری و هماهنگی در Postmortem انتشار.</p></div><span class="template-badge">تحلیل علت</span></div>
+          <pre class="template-code"><code>ishikawa-beta
+    شکست انتشار نسخه و اختلال ورود
+    فرایند
+        چک لیست انتشار قدیمی بود
+        مالک تأیید نهایی مشخص نبود
+    کد
+        تغییر Schema سازگاری عقب رو نداشت
+        Feature Flag مقدار پیش فرض نداشت
+    زیرساخت
+        Secret محیط منقضی شده بود
+        ظرفیت اتصال برای بار واقعی کافی نبود
+    آزمون
+        Smoke Test مسیر ورود را پوشش نمی داد
+        Rollback در محیط مشابه تمرین نشده بود
+    مشاهده پذیری
+        هشدار نرخ خطا دیر فعال شد
+        Dashboard نسخه استقرار را نشان نمی داد
+    هماهنگی
+        کانال Incident از قبل تعریف نشده بود
+        مسئول تصمیم Rollback روشن نبود</code></pre>
+          <nav class="template-related" aria-label="مطالب مرتبط"><a href="/learn/ishikawa-diagram-mermaid">آموزش مرتبط</a><a href="/articles/fishbone-diagram-vs-five-whys-root-cause-analysis">مقالهٔ مرتبط</a></nav>
+          <div class="template-actions"><a class="button button-primary" href="/editor#code=u%3AeyJjb2RlIjoiaXNoaWthd2EtYmV0YVxuICAgINi02qnYs9iqINin2YbYqti02KfYsSDZhtiz2K7ZhyDZiCDYp9iu2KrZhNin2YQg2YjYsdmI2K9cbiAgICDZgdix2KfbjNmG2K9cbiAgICAgICAg2obaqSDZhNuM2LPYqiDYp9mG2KrYtNin2LEg2YLYr9uM2YXbjCDYqNmI2K9cbiAgICAgICAg2YXYp9mE2qkg2KrYo9uM24zYryDZhtmH2KfbjNuMINmF2LTYrti1INmG2KjZiNivXG4gICAg2qnYr1xuICAgICAgICDYqti624zbjNixIFNjaGVtYSDYs9in2LLar9in2LHbjCDYudmC2Kgg2LHZiCDZhtiv2KfYtNiqXG4gICAgICAgIEZlYXR1cmUgRmxhZyDZhdmC2K_Yp9ixINm-24zYtCDZgdix2LYg2YbYr9in2LTYqlxuICAgINiy24zYsdiz2KfYrtiqXG4gICAgICAgIFNlY3JldCDZhdit24zYtyDZhdmG2YLYttuMINi02K_ZhyDYqNmI2K9cbiAgICAgICAg2LjYsdmB24zYqiDYp9iq2LXYp9mEINio2LHYp9uMINio2KfYsSDZiNin2YLYuduMINqp2KfZgduMINmG2KjZiNivXG4gICAg2KLYstmF2YjZhlxuICAgICAgICBTbW9rZSBUZXN0INmF2LPbjNixINmI2LHZiNivINix2Kcg2b7ZiNi02LQg2YbZhduMINiv2KfYr1xuICAgICAgICBSb2xsYmFjayDYr9ixINmF2K3bjNi3INmF2LTYp9io2Ycg2KrZhdix24zZhiDZhti02K_ZhyDYqNmI2K9cbiAgICDZhdi02KfZh9iv2Ycg2b7YsNuM2LHbjFxuICAgICAgICDZh9i02K_Yp9ixINmG2LHYriDYrti32Kcg2K_bjNixINmB2LnYp9mEINi02K9cbiAgICAgICAgRGFzaGJvYXJkINmG2LPYrtmHINin2LPYqtmC2LHYp9ixINix2Kcg2YbYtNin2YYg2YbZhduMINiv2KfYr1xuICAgINmH2YXYp9mH2Ybar9uMXG4gICAgICAgINqp2KfZhtin2YQgSW5jaWRlbnQg2KfYsiDZgtio2YQg2KrYudix24zZgSDZhti02K_ZhyDYqNmI2K9cbiAgICAgICAg2YXYs9im2YjZhCDYqti12YXbjNmFIFJvbGxiYWNrINix2YjYtNmGINmG2KjZiNivIiwidGhlbWUiOiJkZWZhdWx0IiwibGF5b3V0IjoiZGFncmUiLCJiYWNrZ3JvdW5kIjoid2hpdGUiLCJjb25maWciOiIiLCJjc3MiOiIifQ">ویرایش قالب</a><a class="button button-secondary" href="/learn/ishikawa-diagram-mermaid">آموزش</a></div>
+        </article>
         <article id="template-product-backlog-impact-effort" class="template-card" data-id="product-backlog-impact-effort" data-template-id="product-backlog-impact-effort">
           <div class="template-card-head"><div><h3>ماتریس اثر و تلاش Backlog محصول</h3><p>قالب Quadrant Chart برای مقایسهٔ چند گزینهٔ Backlog روی اثر و تلاش، با چهار ربع تصمیم و داده‌های صریحاً نمونه.</p></div><span class="template-badge">اولویت‌بندی محصول</span></div>
           <pre class="template-code"><code>---
