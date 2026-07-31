@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "date": "2026-07-31",
+  "cluster": {
+    "name": "نمودار استخوان ماهی در Mermaid برای تحلیل علت ریشه‌ای",
+    "primaryQuery": "آموزش نمودار استخوان ماهی در Mermaid",
+    "secondaryQueries": [
+      "نمودار ایشیکاوا با Mermaid",
+      "تفاوت نمودار استخوان ماهی و ۵ چرا",
+      "قالب تحلیل علت ریشه‌ای",
+      "ishikawa-beta syntax",
+      "نمودار علت و معلول برای Incident"
+    ],
+    "intent": "آموزشی، مقایسه و یافتن قالب",
+    "sources": [
+      "https://mermaid.js.org/syntax/ishikawa",
+      "https://asq.org/quality-resources/fishbone",
+      "https://asq.org/quality-resources/five-whys",
+      "https://www.lean.org/lexicon-terms/5-whys/"
+    ]
+  },
+  "relatedLearnTitle": "آموزش نمودار استخوان ماهی در Mermaid"
+}

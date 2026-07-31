@@ -1,0 +1,11 @@
+{
+  "id": "incident-root-cause-fishbone",
+  "category": "software",
+  "badge": "تحلیل علت",
+  "title": "تحلیل علت شکست انتشار نسخه",
+  "description": "قالب Ishikawa برای دسته‌بندی فرضیه‌های کد، فرایند، زیرساخت، آزمون، مشاهده‌پذیری و هماهنگی در Postmortem انتشار.",
+  "keywords": "نمودار استخوان ماهی Ishikawa Mermaid تحلیل علت ریشه ای Incident انتشار نسخه Postmortem",
+  "tutorial": "/learn/ishikawa-diagram-mermaid",
+  "article": "/articles/fishbone-diagram-vs-five-whys-root-cause-analysis",
+  "code": "ishikawa-beta\n    شکست انتشار نسخه و اختلال ورود\n    فرایند\n        چک لیست انتشار قدیمی بود\n        مالک تأیید نهایی مشخص نبود\n    کد\n        تغییر Schema سازگاری عقب رو نداشت\n        Feature Flag مقدار پیش فرض نداشت\n    زیرساخت\n        Secret محیط منقضی شده بود\n        ظرفیت اتصال برای بار واقعی کافی نبود\n    آزمون\n        Smoke Test مسیر ورود را پوشش نمی داد\n        Rollback در محیط مشابه تمرین نشده بود\n    مشاهده پذیری\n        هشدار نرخ خطا دیر فعال شد\n        Dashboard نسخه استقرار را نشان نمی داد\n    هماهنگی\n        کانال Incident از قبل تعریف نشده بود\n        مسئول تصمیم Rollback روشن نبود"
+}
