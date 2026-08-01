@@ -2,6 +2,17 @@ import { startBidiIsolation } from './bidi.js';
 
 const templates = [
   {
+    "id": "learning-to-export-user-flow-sankey",
+    "category": "data",
+    "badge": "جریان کمی",
+    "title": "جریان کاربران از آموزش تا خروجی",
+    "description": "قالب Sankey برای نمایش نمونه‌ای از ورود کاربران، مطالعهٔ مثال، بازکردن ادیتور، رندر و خروجی؛ با راهنمای فارسی و برچسب‌های ASCII سازگار با Parser فعلی Mermaid.",
+    "keywords": "Sankey Mermaid نمودار سنکی جریان کاربران ریزش آموزش ادیتور خروجی قالب",
+    "tutorial": "/learn/sankey-diagram-mermaid",
+    "article": "/articles/sankey-diagram-vs-flowchart-for-quantitative-flows",
+    "code": "---\nconfig:\n  sankey:\n    width: 960\n    height: 540\n    showValues: true\n    linkColor: gradient\n    nodeAlignment: justify\n    labelStyle: outlined\n    nodeWidth: 14\n    nodePadding: 18\n---\nsankey-beta\nSearch entry,Tutorial view,100\nTutorial view,Example view,65\nTutorial view,Early exit,35\nExample view,Open editor,30\nExample view,Exit after reading,35\nOpen editor,Render success,24\nOpen editor,Render error,6\nRender success,Export file,15\nRender success,No export,9"
+  },
+  {
     "id": "incident-root-cause-fishbone",
     "category": "software",
     "badge": "تحلیل علت",

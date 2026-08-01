@@ -23,12 +23,39 @@
     </header>
 
     <main id="templates-main">
-      <section class="templates-hero section-shell"><p class="eyebrow"><span></span> شروع سریع، بدون صفحهٔ خالی</p><h1>قالب مناسب Mermaid را انتخاب کن و همان لحظه ویرایشش کن.</h1><p>از قالب State Diagram چرخهٔ سفارش تا فلوچارت، مستندات نرم‌افزار، طراحی پایگاه داده و برنامه‌ریزی پروژه؛ همهٔ نمونه‌ها فارسی و قابل ویرایش‌اند.</p><label class="template-search"><span aria-hidden="true">⌕</span><input id="template-search" type="search" placeholder="جست‌وجو؛ مثلاً State Diagram، ERD یا گانت…" autocomplete="off" /></label><div class="filter-row" role="group" aria-label="دسته‌بندی قالب‌ها"><button class="filter-chip active" type="button" data-category="all">همه</button><button class="filter-chip" type="button" data-category="process">فرایند</button><button class="filter-chip" type="button" data-category="software">نرم‌افزار</button><button class="filter-chip" type="button" data-category="data">داده</button><button class="filter-chip" type="button" data-category="planning">برنامه‌ریزی</button><span id="template-count" class="template-count" aria-live="polite">۲۰ قالب</span></div></section>
+      <section class="templates-hero section-shell"><p class="eyebrow"><span></span> شروع سریع، بدون صفحهٔ خالی</p><h1>قالب مناسب Mermaid را انتخاب کن و همان لحظه ویرایشش کن.</h1><p>از قالب State Diagram چرخهٔ سفارش تا فلوچارت، مستندات نرم‌افزار، طراحی پایگاه داده و برنامه‌ریزی پروژه؛ همهٔ نمونه‌ها فارسی و قابل ویرایش‌اند.</p><label class="template-search"><span aria-hidden="true">⌕</span><input id="template-search" type="search" placeholder="جست‌وجو؛ مثلاً State Diagram، ERD یا گانت…" autocomplete="off" /></label><div class="filter-row" role="group" aria-label="دسته‌بندی قالب‌ها"><button class="filter-chip active" type="button" data-category="all">همه</button><button class="filter-chip" type="button" data-category="process">فرایند</button><button class="filter-chip" type="button" data-category="software">نرم‌افزار</button><button class="filter-chip" type="button" data-category="data">داده</button><button class="filter-chip" type="button" data-category="planning">برنامه‌ریزی</button><span id="template-count" class="template-count" aria-live="polite">۲۱ قالب</span></div></section>
 
       <aside class="ad-slot ad-slot--compact" data-ad-slot="templatesTop" hidden aria-label="تبلیغات"><span class="ad-slot__label">تبلیغات</span><a class="ad-slot__privacy" href="/privacy#advertising">درباره تبلیغات</a><div class="ad-slot__mount" data-ad-mount></div></aside>
 
       <section class="section-shell templates-section" aria-labelledby="templates-title"><div class="section-heading align-right"><p class="section-kicker">قابل ویرایش و رایگان</p><h2 id="templates-title">نمونه‌های آماده Mermaid</h2><p>دکمهٔ «ویرایش» کد و تنظیمات قالب را مستقیم داخل ادیتور باز می‌کند. آموزش و راهنمای مرتبط نیز کنار قالب‌های تخصصی قرار دارد.</p></div><div id="templates-grid" class="templates-grid">
         <!-- DAILY_TEMPLATE_CARDS -->
+        <article id="template-learning-to-export-user-flow-sankey" class="template-card" data-id="learning-to-export-user-flow-sankey" data-template-id="learning-to-export-user-flow-sankey">
+          <div class="template-card-head"><div><h3>جریان کاربران از آموزش تا خروجی</h3><p>قالب Sankey برای نمایش نمونه‌ای از ورود کاربران، مطالعهٔ مثال، بازکردن ادیتور، رندر و خروجی؛ با راهنمای فارسی و برچسب‌های ASCII سازگار با Parser فعلی Mermaid.</p></div><span class="template-badge">جریان کمی</span></div>
+          <pre class="template-code"><code>---
+config:
+  sankey:
+    width: 960
+    height: 540
+    showValues: true
+    linkColor: gradient
+    nodeAlignment: justify
+    labelStyle: outlined
+    nodeWidth: 14
+    nodePadding: 18
+---
+sankey-beta
+Search entry,Tutorial view,100
+Tutorial view,Example view,65
+Tutorial view,Early exit,35
+Example view,Open editor,30
+Example view,Exit after reading,35
+Open editor,Render success,24
+Open editor,Render error,6
+Render success,Export file,15
+Render success,No export,9</code></pre>
+          <nav class="template-related" aria-label="مطالب مرتبط"><a href="/learn/sankey-diagram-mermaid">آموزش مرتبط</a><a href="/articles/sankey-diagram-vs-flowchart-for-quantitative-flows">مقالهٔ مرتبط</a></nav>
+          <div class="template-actions"><a class="button button-primary" href="/editor#code=u%3AeyJjb2RlIjoiLS0tXG5jb25maWc6XG4gIHNhbmtleTpcbiAgICB3aWR0aDogOTYwXG4gICAgaGVpZ2h0OiA1NDBcbiAgICBzaG93VmFsdWVzOiB0cnVlXG4gICAgbGlua0NvbG9yOiBncmFkaWVudFxuICAgIG5vZGVBbGlnbm1lbnQ6IGp1c3RpZnlcbiAgICBsYWJlbFN0eWxlOiBvdXRsaW5lZFxuICAgIG5vZGVXaWR0aDogMTRcbiAgICBub2RlUGFkZGluZzogMThcbi0tLVxuc2Fua2V5LWJldGFcblNlYXJjaCBlbnRyeSxUdXRvcmlhbCB2aWV3LDEwMFxuVHV0b3JpYWwgdmlldyxFeGFtcGxlIHZpZXcsNjVcblR1dG9yaWFsIHZpZXcsRWFybHkgZXhpdCwzNVxuRXhhbXBsZSB2aWV3LE9wZW4gZWRpdG9yLDMwXG5FeGFtcGxlIHZpZXcsRXhpdCBhZnRlciByZWFkaW5nLDM1XG5PcGVuIGVkaXRvcixSZW5kZXIgc3VjY2VzcywyNFxuT3BlbiBlZGl0b3IsUmVuZGVyIGVycm9yLDZcblJlbmRlciBzdWNjZXNzLEV4cG9ydCBmaWxlLDE1XG5SZW5kZXIgc3VjY2VzcyxObyBleHBvcnQsOSIsInRoZW1lIjoiZGVmYXVsdCIsImxheW91dCI6ImRhZ3JlIiwiYmFja2dyb3VuZCI6IndoaXRlIiwiY29uZmlnIjoiIiwiY3NzIjoiIn0">ویرایش قالب</a><a class="button button-secondary" href="/learn/sankey-diagram-mermaid">آموزش</a></div>
+        </article>
         <article id="template-incident-root-cause-fishbone" class="template-card" data-id="incident-root-cause-fishbone" data-template-id="incident-root-cause-fishbone">
           <div class="template-card-head"><div><h3>تحلیل علت شکست انتشار نسخه</h3><p>قالب Ishikawa برای دسته‌بندی فرضیه‌های کد، فرایند، زیرساخت، آزمون، مشاهده‌پذیری و هماهنگی در Postmortem انتشار.</p></div><span class="template-badge">تحلیل علت</span></div>
           <pre class="template-code"><code>ishikawa-beta
