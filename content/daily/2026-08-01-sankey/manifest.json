@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "date": "2026-08-01",
+  "cluster": {
+    "name": "نمودار Sankey در Mermaid برای جریان‌های کمی",
+    "primaryQuery": "آموزش نمودار Sankey در Mermaid",
+    "secondaryQueries": [
+      "نمودار سنکی با Mermaid",
+      "تفاوت Sankey Diagram و Flowchart",
+      "قالب جریان کاربران با Sankey",
+      "sankey syntax Mermaid",
+      "نمایش جریان و ریزش کاربر"
+    ],
+    "intent": "آموزشی، مقایسه و یافتن قالب",
+    "sources": [
+      "https://mermaid.js.org/syntax/sankey",
+      "https://mermaid.js.org/config/schema-docs/config.html",
+      "https://dataviz.unhcr.org/chart-types/flow/",
+      "https://data.europa.eu/apps/data-visualisation-guide/sankey-and-alluvial-diagrams"
+    ]
+  },
+  "relatedLearnTitle": "آموزش نمودار Sankey در Mermaid"
+}
