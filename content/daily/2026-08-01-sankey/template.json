@@ -1,0 +1,11 @@
+{
+  "id": "learning-to-export-user-flow-sankey",
+  "category": "data",
+  "badge": "جریان کمی",
+  "title": "جریان کاربران از آموزش تا خروجی",
+  "description": "قالب Sankey فارسی برای نمایش نمونه‌ای از ورود کاربران، مطالعهٔ مثال، بازکردن ادیتور، رندر و گرفتن خروجی؛ همراه با ریزش‌های صریح و مقدارهای آموزشی.",
+  "keywords": "Sankey Mermaid نمودار سنکی جریان کاربران ریزش آموزش ادیتور خروجی قالب",
+  "tutorial": "/learn/sankey-diagram-mermaid",
+  "article": "/articles/sankey-diagram-vs-flowchart-for-quantitative-flows",
+  "code": "---\nconfig:\n  sankey:\n    width: 960\n    height: 540\n    showValues: true\n    linkColor: gradient\n    nodeAlignment: justify\n    labelStyle: outlined\n    nodeWidth: 14\n    nodePadding: 18\n---\nsankey\n\"ورودی جست‌وجو\",\"مشاهده آموزش\",100\n\"مشاهده آموزش\",\"دیدن مثال\",65\n\"مشاهده آموزش\",\"خروج زودهنگام\",35\n\"دیدن مثال\",\"بازکردن ادیتور\",30\n\"دیدن مثال\",\"خروج پس از مطالعه\",35\n\"بازکردن ادیتور\",\"رندر موفق\",24\n\"بازکردن ادیتور\",\"خطای رندر\",6\n\"رندر موفق\",\"گرفتن خروجی\",15\n\"رندر موفق\",\"بدون خروجی\",9"
+}
