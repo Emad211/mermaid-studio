@@ -32,6 +32,11 @@ function environment(directory) {
     ADS_SLOT_ARTICLE_END: 'pos-article-display-card-1003',
     ADS_SLOT_LEARN_FEED: 'pos-article-display-card-1004',
     PUPPETEER_NO_SANDBOX: 'true',
+    // This test deliberately renders every trusted editorial example in one
+    // process. Keep the public production limit unchanged, but scale the
+    // isolated test allowance with the growing content inventory.
+    RENDER_RATE_MAX: String(Math.max(100, EDITORIAL_ARTICLES.flatMap((article) => article.sections).filter((section) => section.code).length + 10)),
+    RENDER_RATE_WINDOW_MS: '60000',
   };
 }
 

@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "date": "2026-08-02",
+  "cluster": {
+    "name": "Packet Diagram در Mermaid برای مستندسازی ساختار پروتکل",
+    "primaryQuery": "آموزش Packet Diagram در Mermaid",
+    "secondaryQueries": [
+      "نمودار ساختار بسته شبکه با Mermaid",
+      "تفاوت Packet Diagram و Sequence Diagram",
+      "قالب هدر پروتکل با Mermaid",
+      "packet syntax Mermaid",
+      "مستندسازی فیلدهای بیتی پروتکل"
+    ],
+    "intent": "آموزشی، مقایسه و یافتن قالب",
+    "sources": [
+      "https://mermaid.js.org/syntax/packet",
+      "https://mermaid.js.org/syntax/sequenceDiagram.html"
+    ]
+  },
+  "relatedLearnTitle": "آموزش Packet Diagram در Mermaid"
+}
