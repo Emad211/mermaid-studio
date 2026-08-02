@@ -2,6 +2,17 @@ import { startBidiIsolation } from './bidi.js';
 
 const templates = [
   {
+    "id": "telemetry-packet-header",
+    "category": "software",
+    "badge": "پروتکل و شبکه",
+    "title": "هدر بستهٔ تله‌متری ۱۲۰ بیتی",
+    "description": "قالب Packet Diagram برای مستندسازی Version، Flags، شناسهٔ دستگاه، زمان، طول Payload، نوع پیام، Sequence و Checksum.",
+    "keywords": "Packet Diagram Mermaid نمودار بسته شبکه هدر پروتکل telemetry binary fields بیت offset",
+    "tutorial": "/learn/packet-diagram-mermaid",
+    "article": "/articles/packet-diagram-vs-sequence-diagram-for-protocol-docs",
+    "code": "---\ntitle: \"TELEMETRY_V1 header — 120 bits\"\n---\npacket\n  0-3: \"Version\"\n  4-7: \"Flags\"\n  8-23: \"Device ID\"\n  24-55: \"Timestamp\"\n  56-71: \"Payload length\"\n  72-87: \"Message type\"\n  88-103: \"Sequence\"\n  104-119: \"Checksum\""
+  },
+  {
     "id": "learning-to-export-user-flow-sankey",
     "category": "data",
     "badge": "جریان کمی",

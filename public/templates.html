@@ -23,12 +23,29 @@
     </header>
 
     <main id="templates-main">
-      <section class="templates-hero section-shell"><p class="eyebrow"><span></span> شروع سریع، بدون صفحهٔ خالی</p><h1>قالب مناسب Mermaid را انتخاب کن و همان لحظه ویرایشش کن.</h1><p>از قالب State Diagram چرخهٔ سفارش تا فلوچارت، مستندات نرم‌افزار، طراحی پایگاه داده و برنامه‌ریزی پروژه؛ همهٔ نمونه‌ها فارسی و قابل ویرایش‌اند.</p><label class="template-search"><span aria-hidden="true">⌕</span><input id="template-search" type="search" placeholder="جست‌وجو؛ مثلاً State Diagram، ERD یا گانت…" autocomplete="off" /></label><div class="filter-row" role="group" aria-label="دسته‌بندی قالب‌ها"><button class="filter-chip active" type="button" data-category="all">همه</button><button class="filter-chip" type="button" data-category="process">فرایند</button><button class="filter-chip" type="button" data-category="software">نرم‌افزار</button><button class="filter-chip" type="button" data-category="data">داده</button><button class="filter-chip" type="button" data-category="planning">برنامه‌ریزی</button><span id="template-count" class="template-count" aria-live="polite">۲۱ قالب</span></div></section>
+      <section class="templates-hero section-shell"><p class="eyebrow"><span></span> شروع سریع، بدون صفحهٔ خالی</p><h1>قالب مناسب Mermaid را انتخاب کن و همان لحظه ویرایشش کن.</h1><p>از قالب State Diagram چرخهٔ سفارش تا فلوچارت، مستندات نرم‌افزار، طراحی پایگاه داده و برنامه‌ریزی پروژه؛ همهٔ نمونه‌ها فارسی و قابل ویرایش‌اند.</p><label class="template-search"><span aria-hidden="true">⌕</span><input id="template-search" type="search" placeholder="جست‌وجو؛ مثلاً State Diagram، ERD یا گانت…" autocomplete="off" /></label><div class="filter-row" role="group" aria-label="دسته‌بندی قالب‌ها"><button class="filter-chip active" type="button" data-category="all">همه</button><button class="filter-chip" type="button" data-category="process">فرایند</button><button class="filter-chip" type="button" data-category="software">نرم‌افزار</button><button class="filter-chip" type="button" data-category="data">داده</button><button class="filter-chip" type="button" data-category="planning">برنامه‌ریزی</button><span id="template-count" class="template-count" aria-live="polite">۲۲ قالب</span></div></section>
 
       <aside class="ad-slot ad-slot--compact" data-ad-slot="templatesTop" hidden aria-label="تبلیغات"><span class="ad-slot__label">تبلیغات</span><a class="ad-slot__privacy" href="/privacy#advertising">درباره تبلیغات</a><div class="ad-slot__mount" data-ad-mount></div></aside>
 
       <section class="section-shell templates-section" aria-labelledby="templates-title"><div class="section-heading align-right"><p class="section-kicker">قابل ویرایش و رایگان</p><h2 id="templates-title">نمونه‌های آماده Mermaid</h2><p>دکمهٔ «ویرایش» کد و تنظیمات قالب را مستقیم داخل ادیتور باز می‌کند. آموزش و راهنمای مرتبط نیز کنار قالب‌های تخصصی قرار دارد.</p></div><div id="templates-grid" class="templates-grid">
         <!-- DAILY_TEMPLATE_CARDS -->
+        <article id="template-telemetry-packet-header" class="template-card" data-id="telemetry-packet-header" data-template-id="telemetry-packet-header">
+          <div class="template-card-head"><div><h3>هدر بستهٔ تله‌متری ۱۲۰ بیتی</h3><p>قالب Packet Diagram برای مستندسازی Version، Flags، شناسهٔ دستگاه، زمان، طول Payload، نوع پیام، Sequence و Checksum.</p></div><span class="template-badge">پروتکل و شبکه</span></div>
+          <pre class="template-code"><code>---
+title: &quot;TELEMETRY_V1 header — 120 bits&quot;
+---
+packet
+  0-3: &quot;Version&quot;
+  4-7: &quot;Flags&quot;
+  8-23: &quot;Device ID&quot;
+  24-55: &quot;Timestamp&quot;
+  56-71: &quot;Payload length&quot;
+  72-87: &quot;Message type&quot;
+  88-103: &quot;Sequence&quot;
+  104-119: &quot;Checksum&quot;</code></pre>
+          <nav class="template-related" aria-label="مطالب مرتبط"><a href="/learn/packet-diagram-mermaid">آموزش مرتبط</a><a href="/articles/packet-diagram-vs-sequence-diagram-for-protocol-docs">مقالهٔ مرتبط</a></nav>
+          <div class="template-actions"><a class="button button-primary" href="/editor#code=u%3AeyJjb2RlIjoiLS0tXG50aXRsZTogXCJURUxFTUVUUllfVjEgaGVhZGVyIOKAlCAxMjAgYml0c1wiXG4tLS1cbnBhY2tldFxuICAwLTM6IFwiVmVyc2lvblwiXG4gIDQtNzogXCJGbGFnc1wiXG4gIDgtMjM6IFwiRGV2aWNlIElEXCJcbiAgMjQtNTU6IFwiVGltZXN0YW1wXCJcbiAgNTYtNzE6IFwiUGF5bG9hZCBsZW5ndGhcIlxuICA3Mi04NzogXCJNZXNzYWdlIHR5cGVcIlxuICA4OC0xMDM6IFwiU2VxdWVuY2VcIlxuICAxMDQtMTE5OiBcIkNoZWNrc3VtXCIiLCJ0aGVtZSI6ImRlZmF1bHQiLCJsYXlvdXQiOiJkYWdyZSIsImJhY2tncm91bmQiOiJ3aGl0ZSIsImNvbmZpZyI6IiIsImNzcyI6IiJ9">ویرایش قالب</a><a class="button button-secondary" href="/learn/packet-diagram-mermaid">آموزش</a></div>
+        </article>
         <article id="template-learning-to-export-user-flow-sankey" class="template-card" data-id="learning-to-export-user-flow-sankey" data-template-id="learning-to-export-user-flow-sankey">
           <div class="template-card-head"><div><h3>جریان کاربران از آموزش تا خروجی</h3><p>قالب Sankey برای نمایش نمونه‌ای از ورود کاربران، مطالعهٔ مثال، بازکردن ادیتور، رندر و خروجی؛ با راهنمای فارسی و برچسب‌های ASCII سازگار با Parser فعلی Mermaid.</p></div><span class="template-badge">جریان کمی</span></div>
           <pre class="template-code"><code>---
