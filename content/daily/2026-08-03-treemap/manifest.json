@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "date": "2026-08-03",
+  "cluster": {
+    "name": "Treemap در Mermaid برای نمایش سلسله‌مراتب و سهم از کل",
+    "primaryQuery": "آموزش Treemap در Mermaid",
+    "secondaryQueries": [
+      "نمودار درختی مساحتی با Mermaid",
+      "تفاوت Treemap و Pie Chart",
+      "قالب مصرف فضای Repository",
+      "treemap-beta syntax",
+      "نمایش داده سلسله‌مراتبی با Mermaid"
+    ],
+    "intent": "آموزشی، مقایسه و یافتن قالب",
+    "sources": [
+      "https://mermaid.js.org/syntax/treemap.html",
+      "https://mermaid.js.org/syntax/pie.html",
+      "https://www.tableau.com/research/publications/impact-distribution-and-chart-type-part-whole-comparisons"
+    ]
+  },
+  "relatedLearnTitle": "آموزش Treemap در Mermaid"
+}
