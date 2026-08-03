@@ -23,12 +23,40 @@
     </header>
 
     <main id="templates-main">
-      <section class="templates-hero section-shell"><p class="eyebrow"><span></span> شروع سریع، بدون صفحهٔ خالی</p><h1>قالب مناسب Mermaid را انتخاب کن و همان لحظه ویرایشش کن.</h1><p>از قالب State Diagram چرخهٔ سفارش تا فلوچارت، مستندات نرم‌افزار، طراحی پایگاه داده و برنامه‌ریزی پروژه؛ همهٔ نمونه‌ها فارسی و قابل ویرایش‌اند.</p><label class="template-search"><span aria-hidden="true">⌕</span><input id="template-search" type="search" placeholder="جست‌وجو؛ مثلاً State Diagram، ERD یا گانت…" autocomplete="off" /></label><div class="filter-row" role="group" aria-label="دسته‌بندی قالب‌ها"><button class="filter-chip active" type="button" data-category="all">همه</button><button class="filter-chip" type="button" data-category="process">فرایند</button><button class="filter-chip" type="button" data-category="software">نرم‌افزار</button><button class="filter-chip" type="button" data-category="data">داده</button><button class="filter-chip" type="button" data-category="planning">برنامه‌ریزی</button><span id="template-count" class="template-count" aria-live="polite">۲۲ قالب</span></div></section>
+      <section class="templates-hero section-shell"><p class="eyebrow"><span></span> شروع سریع، بدون صفحهٔ خالی</p><h1>قالب مناسب Mermaid را انتخاب کن و همان لحظه ویرایشش کن.</h1><p>از قالب State Diagram چرخهٔ سفارش تا فلوچارت، مستندات نرم‌افزار، طراحی پایگاه داده و برنامه‌ریزی پروژه؛ همهٔ نمونه‌ها فارسی و قابل ویرایش‌اند.</p><label class="template-search"><span aria-hidden="true">⌕</span><input id="template-search" type="search" placeholder="جست‌وجو؛ مثلاً State Diagram، ERD یا گانت…" autocomplete="off" /></label><div class="filter-row" role="group" aria-label="دسته‌بندی قالب‌ها"><button class="filter-chip active" type="button" data-category="all">همه</button><button class="filter-chip" type="button" data-category="process">فرایند</button><button class="filter-chip" type="button" data-category="software">نرم‌افزار</button><button class="filter-chip" type="button" data-category="data">داده</button><button class="filter-chip" type="button" data-category="planning">برنامه‌ریزی</button><span id="template-count" class="template-count" aria-live="polite">۲۳ قالب</span></div></section>
 
       <aside class="ad-slot ad-slot--compact" data-ad-slot="templatesTop" hidden aria-label="تبلیغات"><span class="ad-slot__label">تبلیغات</span><a class="ad-slot__privacy" href="/privacy#advertising">درباره تبلیغات</a><div class="ad-slot__mount" data-ad-mount></div></aside>
 
       <section class="section-shell templates-section" aria-labelledby="templates-title"><div class="section-heading align-right"><p class="section-kicker">قابل ویرایش و رایگان</p><h2 id="templates-title">نمونه‌های آماده Mermaid</h2><p>دکمهٔ «ویرایش» کد و تنظیمات قالب را مستقیم داخل ادیتور باز می‌کند. آموزش و راهنمای مرتبط نیز کنار قالب‌های تخصصی قرار دارد.</p></div><div id="templates-grid" class="templates-grid">
         <!-- DAILY_TEMPLATE_CARDS -->
+        <article id="template-repository-storage-usage-treemap" class="template-card" data-id="repository-storage-usage-treemap" data-template-id="repository-storage-usage-treemap">
+          <div class="template-card-head"><div><h3>مصرف فضای Repository براساس بخش</h3><p>قالب Treemap فارسی برای نمایش سهم کد، آزمون، دارایی و اسناد از فضای Repository با زیرگروه‌های قابل ویرایش.</p></div><span class="template-badge">داده سلسله‌مراتبی</span></div>
+          <pre class="template-code"><code>---
+config:
+  treemap:
+    padding: 7
+    diagramPadding: 14
+    showValues: true
+    labelFontSize: 14
+    valueFontSize: 12
+---
+treemap-beta
+  &quot;مصرف فضای Repository&quot;
+    &quot;کد اصلی&quot;
+      &quot;Frontend&quot;: 320
+      &quot;Backend&quot;: 240
+    &quot;آزمون&quot;
+      &quot;Unit&quot;: 120
+      &quot;Integration&quot;: 80
+    &quot;دارایی&quot;
+      &quot;تصویر&quot;: 180
+      &quot;فونت&quot;: 60
+    &quot;اسناد&quot;: 45
+
+  classDef focus fill:#eef6f2,stroke:#174d3a,stroke-width:2px,color:#12352a;</code></pre>
+          <nav class="template-related" aria-label="مطالب مرتبط"><a href="/learn/treemap-mermaid">آموزش مرتبط</a><a href="/articles/treemap-vs-pie-chart-for-hierarchical-composition">مقالهٔ مرتبط</a></nav>
+          <div class="template-actions"><a class="button button-primary" href="/editor#code=u%3AeyJjb2RlIjoiLS0tXG5jb25maWc6XG4gIHRyZWVtYXA6XG4gICAgcGFkZGluZzogN1xuICAgIGRpYWdyYW1QYWRkaW5nOiAxNFxuICAgIHNob3dWYWx1ZXM6IHRydWVcbiAgICBsYWJlbEZvbnRTaXplOiAxNFxuICAgIHZhbHVlRm9udFNpemU6IDEyXG4tLS1cbnRyZWVtYXAtYmV0YVxuICBcItmF2LXYsdmBINmB2LbYp9uMIFJlcG9zaXRvcnlcIlxuICAgIFwi2qnYryDYp9i12YTbjFwiXG4gICAgICBcIkZyb250ZW5kXCI6IDMyMFxuICAgICAgXCJCYWNrZW5kXCI6IDI0MFxuICAgIFwi2KLYstmF2YjZhlwiXG4gICAgICBcIlVuaXRcIjogMTIwXG4gICAgICBcIkludGVncmF0aW9uXCI6IDgwXG4gICAgXCLYr9in2LHYp9uM24xcIlxuICAgICAgXCLYqti12YjbjNixXCI6IDE4MFxuICAgICAgXCLZgdmI2YbYqlwiOiA2MFxuICAgIFwi2KfYs9mG2KfYr1wiOiA0NVxuXG4gIGNsYXNzRGVmIGZvY3VzIGZpbGw6I2VlZjZmMixzdHJva2U6IzE3NGQzYSxzdHJva2Utd2lkdGg6MnB4LGNvbG9yOiMxMjM1MmE7IiwidGhlbWUiOiJkZWZhdWx0IiwibGF5b3V0IjoiZGFncmUiLCJiYWNrZ3JvdW5kIjoid2hpdGUiLCJjb25maWciOiIiLCJjc3MiOiIifQ">ویرایش قالب</a><a class="button button-secondary" href="/learn/treemap-mermaid">آموزش</a></div>
+        </article>
         <article id="template-telemetry-packet-header" class="template-card" data-id="telemetry-packet-header" data-template-id="telemetry-packet-header">
           <div class="template-card-head"><div><h3>هدر بستهٔ تله‌متری ۱۲۰ بیتی</h3><p>قالب Packet Diagram برای مستندسازی Version، Flags، شناسهٔ دستگاه، زمان، طول Payload، نوع پیام، Sequence و Checksum.</p></div><span class="template-badge">پروتکل و شبکه</span></div>
           <pre class="template-code"><code>---

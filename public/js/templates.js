@@ -2,6 +2,17 @@ import { startBidiIsolation } from './bidi.js';
 
 const templates = [
   {
+    "id": "repository-storage-usage-treemap",
+    "category": "data",
+    "badge": "داده سلسله‌مراتبی",
+    "title": "مصرف فضای Repository براساس بخش",
+    "description": "قالب Treemap فارسی برای نمایش سهم کد، آزمون، دارایی و اسناد از فضای Repository با زیرگروه‌های قابل ویرایش.",
+    "keywords": "Treemap Mermaid نمودار درختی مصرف فضا Repository سلسله مراتب سهم از کل قالب داده",
+    "tutorial": "/learn/treemap-mermaid",
+    "article": "/articles/treemap-vs-pie-chart-for-hierarchical-composition",
+    "code": "---\nconfig:\n  treemap:\n    padding: 7\n    diagramPadding: 14\n    showValues: true\n    labelFontSize: 14\n    valueFontSize: 12\n---\ntreemap-beta\n  \"مصرف فضای Repository\"\n    \"کد اصلی\"\n      \"Frontend\": 320\n      \"Backend\": 240\n    \"آزمون\"\n      \"Unit\": 120\n      \"Integration\": 80\n    \"دارایی\"\n      \"تصویر\": 180\n      \"فونت\": 60\n    \"اسناد\": 45\n\n  classDef focus fill:#eef6f2,stroke:#174d3a,stroke-width:2px,color:#12352a;"
+  },
+  {
     "id": "telemetry-packet-header",
     "category": "software",
     "badge": "پروتکل و شبکه",
