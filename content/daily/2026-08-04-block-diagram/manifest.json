@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "date": "2026-08-04",
+  "cluster": {
+    "name": "Block Diagram در Mermaid برای چیدمان کنترل‌شدهٔ نمای سیستم",
+    "primaryQuery": "آموزش Block Diagram در Mermaid",
+    "secondaryQueries": [
+      "نمودار بلوکی با Mermaid",
+      "تفاوت Block Diagram و Flowchart",
+      "قالب معماری سرویس با Mermaid",
+      "block syntax Mermaid",
+      "کنترل چیدمان نمودار در Mermaid"
+    ],
+    "intent": "آموزشی، مقایسه و یافتن قالب",
+    "sources": [
+      "https://mermaid.js.org/syntax/block.html",
+      "https://mermaid.js.org/syntax/flowchart.html",
+      "https://mermaid.js.org/syntax/architecture.html",
+      "https://github.com/mermaid-js/mermaid/releases/tag/mermaid%4011.16.0"
+    ]
+  },
+  "relatedLearnTitle": "آموزش Block Diagram در Mermaid"
+}
