@@ -15,7 +15,8 @@
     "sources": [
       "https://mermaid.js.org/syntax/block.html",
       "https://mermaid.js.org/syntax/flowchart.html",
-      "https://mermaid.js.org/syntax/architecture.html"
+      "https://mermaid.js.org/syntax/architecture.html",
+      "https://github.com/mermaid-js/mermaid/releases/tag/mermaid%4011.16.0"
     ]
   },
   "relatedLearnTitle": "آموزش Block Diagram در Mermaid"
