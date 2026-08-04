@@ -66,6 +66,20 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Generate patched transitive dependency lockfile
+        run: npm update ip-address --package-lock-only --ignore-scripts
+
+      - name: Verify patched ip-address resolution
+        run: node -e "const lock=require('./package-lock.json'); const v=lock.packages['node_modules/ip-address']?.version; if(v!=='10.3.1') throw new Error('Expected ip-address 10.3.1, got '+v);"
+
+      - name: Upload patched package lock
+        uses: actions/upload-artifact@v4
+        with:
+          name: patched-package-lock
+          path: package-lock.json
+          if-no-files-found: error
+          retention-days: 1
+
       - name: Reject high-severity production dependency vulnerabilities
         run: npm audit --omit=dev --audit-level=high
 
