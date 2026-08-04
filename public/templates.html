@@ -23,12 +23,33 @@
     </header>
 
     <main id="templates-main">
-      <section class="templates-hero section-shell"><p class="eyebrow"><span></span> شروع سریع، بدون صفحهٔ خالی</p><h1>قالب مناسب Mermaid را انتخاب کن و همان لحظه ویرایشش کن.</h1><p>از قالب State Diagram چرخهٔ سفارش تا فلوچارت، مستندات نرم‌افزار، طراحی پایگاه داده و برنامه‌ریزی پروژه؛ همهٔ نمونه‌ها فارسی و قابل ویرایش‌اند.</p><label class="template-search"><span aria-hidden="true">⌕</span><input id="template-search" type="search" placeholder="جست‌وجو؛ مثلاً State Diagram، ERD یا گانت…" autocomplete="off" /></label><div class="filter-row" role="group" aria-label="دسته‌بندی قالب‌ها"><button class="filter-chip active" type="button" data-category="all">همه</button><button class="filter-chip" type="button" data-category="process">فرایند</button><button class="filter-chip" type="button" data-category="software">نرم‌افزار</button><button class="filter-chip" type="button" data-category="data">داده</button><button class="filter-chip" type="button" data-category="planning">برنامه‌ریزی</button><span id="template-count" class="template-count" aria-live="polite">۲۳ قالب</span></div></section>
+      <section class="templates-hero section-shell"><p class="eyebrow"><span></span> شروع سریع، بدون صفحهٔ خالی</p><h1>قالب مناسب Mermaid را انتخاب کن و همان لحظه ویرایشش کن.</h1><p>از قالب State Diagram چرخهٔ سفارش تا فلوچارت، مستندات نرم‌افزار، طراحی پایگاه داده و برنامه‌ریزی پروژه؛ همهٔ نمونه‌ها فارسی و قابل ویرایش‌اند.</p><label class="template-search"><span aria-hidden="true">⌕</span><input id="template-search" type="search" placeholder="جست‌وجو؛ مثلاً State Diagram، ERD یا گانت…" autocomplete="off" /></label><div class="filter-row" role="group" aria-label="دسته‌بندی قالب‌ها"><button class="filter-chip active" type="button" data-category="all">همه</button><button class="filter-chip" type="button" data-category="process">فرایند</button><button class="filter-chip" type="button" data-category="software">نرم‌افزار</button><button class="filter-chip" type="button" data-category="data">داده</button><button class="filter-chip" type="button" data-category="planning">برنامه‌ریزی</button><span id="template-count" class="template-count" aria-live="polite">۲۴ قالب</span></div></section>
 
       <aside class="ad-slot ad-slot--compact" data-ad-slot="templatesTop" hidden aria-label="تبلیغات"><span class="ad-slot__label">تبلیغات</span><a class="ad-slot__privacy" href="/privacy#advertising">درباره تبلیغات</a><div class="ad-slot__mount" data-ad-mount></div></aside>
 
       <section class="section-shell templates-section" aria-labelledby="templates-title"><div class="section-heading align-right"><p class="section-kicker">قابل ویرایش و رایگان</p><h2 id="templates-title">نمونه‌های آماده Mermaid</h2><p>دکمهٔ «ویرایش» کد و تنظیمات قالب را مستقیم داخل ادیتور باز می‌کند. آموزش و راهنمای مرتبط نیز کنار قالب‌های تخصصی قرار دارد.</p></div><div id="templates-grid" class="templates-grid">
         <!-- DAILY_TEMPLATE_CARDS -->
+        <article id="template-content-publishing-service-block-diagram" class="template-card" data-id="content-publishing-service-block-diagram" data-template-id="content-publishing-service-block-diagram">
+          <div class="template-card-head"><div><h3>معماری سرویس انتشار محتوا</h3><p>قالب Block Diagram برای نمایش بازیگران، Gateway، سرویس‌ها، Queue، Worker و پایگاه داده در سه لایهٔ قابل ویرایش.</p></div><span class="template-badge">معماری سیستم</span></div>
+          <pre class="template-code"><code>block
+  columns 5
+  user[&quot;کاربر&quot;] space gateway[&quot;API Gateway&quot;] space admin[&quot;مدیر محتوا&quot;]
+  space:5
+  web[&quot;Web App&quot;] space auth[&quot;Auth&quot;] space content[&quot;Content API&quot;]
+  space:5
+  worker[&quot;Worker&quot;] space queue[&quot;Queue&quot;] space db[(&quot;PostgreSQL&quot;)]
+  user --&gt; web
+  admin --&gt; web
+  web --&gt; gateway
+  gateway --&gt; auth
+  gateway --&gt; content
+  content --&gt; queue
+  queue --&gt; worker
+  worker --&gt; db
+  content --&gt; db</code></pre>
+          <nav class="template-related" aria-label="مطالب مرتبط"><a href="/learn/block-diagram-mermaid">آموزش مرتبط</a><a href="/articles/block-diagram-vs-flowchart-for-system-overview">مقالهٔ مرتبط</a></nav>
+          <div class="template-actions"><a class="button button-primary" href="/editor#code=u%3AeyJjb2RlIjoiYmxvY2tcbiAgY29sdW1ucyA1XG4gIHVzZXJbXCLaqdin2LHYqNixXCJdIHNwYWNlIGdhdGV3YXlbXCJBUEkgR2F0ZXdheVwiXSBzcGFjZSBhZG1pbltcItmF2K_bjNixINmF2K3YqtmI2KdcIl1cbiAgc3BhY2U6NVxuICB3ZWJbXCJXZWIgQXBwXCJdIHNwYWNlIGF1dGhbXCJBdXRoXCJdIHNwYWNlIGNvbnRlbnRbXCJDb250ZW50IEFQSVwiXVxuICBzcGFjZTo1XG4gIHdvcmtlcltcIldvcmtlclwiXSBzcGFjZSBxdWV1ZVtcIlF1ZXVlXCJdIHNwYWNlIGRiWyhcIlBvc3RncmVTUUxcIildXG4gIHVzZXIgLS0-IHdlYlxuICBhZG1pbiAtLT4gd2ViXG4gIHdlYiAtLT4gZ2F0ZXdheVxuICBnYXRld2F5IC0tPiBhdXRoXG4gIGdhdGV3YXkgLS0-IGNvbnRlbnRcbiAgY29udGVudCAtLT4gcXVldWVcbiAgcXVldWUgLS0-IHdvcmtlclxuICB3b3JrZXIgLS0-IGRiXG4gIGNvbnRlbnQgLS0-IGRiIiwidGhlbWUiOiJkZWZhdWx0IiwibGF5b3V0IjoiZGFncmUiLCJiYWNrZ3JvdW5kIjoid2hpdGUiLCJjb25maWciOiIiLCJjc3MiOiIifQ">ویرایش قالب</a><a class="button button-secondary" href="/learn/block-diagram-mermaid">آموزش</a></div>
+        </article>
         <article id="template-repository-storage-usage-treemap" class="template-card" data-id="repository-storage-usage-treemap" data-template-id="repository-storage-usage-treemap">
           <div class="template-card-head"><div><h3>مصرف فضای Repository براساس بخش</h3><p>قالب Treemap فارسی برای نمایش سهم کد، آزمون، دارایی و اسناد از فضای Repository با زیرگروه‌های قابل ویرایش.</p></div><span class="template-badge">داده سلسله‌مراتبی</span></div>
           <pre class="template-code"><code>---

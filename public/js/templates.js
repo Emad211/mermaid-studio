@@ -2,6 +2,17 @@ import { startBidiIsolation } from './bidi.js';
 
 const templates = [
   {
+    "id": "content-publishing-service-block-diagram",
+    "category": "software",
+    "badge": "معماری سیستم",
+    "title": "معماری سرویس انتشار محتوا",
+    "description": "قالب Block Diagram برای نمایش بازیگران، Gateway، سرویس‌ها، Queue، Worker و پایگاه داده در سه لایهٔ قابل ویرایش.",
+    "keywords": "Block Diagram Mermaid نمودار بلوکی معماری سرویس انتشار محتوا API Queue Worker",
+    "tutorial": "/learn/block-diagram-mermaid",
+    "article": "/articles/block-diagram-vs-flowchart-for-system-overview",
+    "code": "block\n  columns 5\n  user[\"کاربر\"] space gateway[\"API Gateway\"] space admin[\"مدیر محتوا\"]\n  space:5\n  web[\"Web App\"] space auth[\"Auth\"] space content[\"Content API\"]\n  space:5\n  worker[\"Worker\"] space queue[\"Queue\"] space db[(\"PostgreSQL\")]\n  user --> web\n  admin --> web\n  web --> gateway\n  gateway --> auth\n  gateway --> content\n  content --> queue\n  queue --> worker\n  worker --> db\n  content --> db"
+  },
+  {
     "id": "repository-storage-usage-treemap",
     "category": "data",
     "badge": "داده سلسله‌مراتبی",
