@@ -70,7 +70,8 @@ jobs:
         run: npm update ip-address --package-lock-only --ignore-scripts
 
       - name: Verify patched ip-address resolution
-        run: node -e "const lock=require('./package-lock.json'); const v=lock.packages['node_modules/ip-address']?.version; if(v!=='10.3.1') throw new Error('Expected ip-address 10.3.1, got '+v);"
+        run: |
+          node -e "const lock=require('./package-lock.json'); const v=lock.packages['node_modules/ip-address']?.version; const p=v?.split('.').map(Number); if(!p || p[0] < 10 || (p[0] === 10 && p[1] < 3) || (p[0] === 10 && p[1] === 3 && p[2] < 1)) throw new Error('Expected ip-address >=10.3.1, got '+v);"
 
       - name: Upload patched package lock
         uses: actions/upload-artifact@v4
