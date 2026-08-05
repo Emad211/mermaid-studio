@@ -2,6 +2,17 @@ import { startBidiIsolation } from './bidi.js';
 
 const templates = [
   {
+    "id": "nemodara-system-context-c4",
+    "category": "software",
+    "badge": "معماری C4",
+    "title": "System Context سامانهٔ انتشار محتوا",
+    "description": "قالب C4Context برای نمایش خواننده، ویرایشگر، مدیر محتوا، سامانهٔ اصلی و وابستگی‌های GitHub و Search Console.",
+    "keywords": "C4 Diagram Mermaid System Context معماری نرم افزار قالب نمودارا وابستگی بیرونی",
+    "tutorial": "/learn/c4-diagram-mermaid",
+    "article": "/articles/c4-diagram-vs-architecture-diagram-for-software-docs",
+    "code": "C4Context\n  title System Context سامانه انتشار محتوای نمودارا\n  Person(reader, \"خواننده\", \"آموزش و مقالهٔ Mermaid را مطالعه می‌کند\")\n  Person(editor, \"ویرایشگر\", \"محتوا و مثال‌ها را آماده می‌کند\")\n  Person(admin, \"مدیر محتوا\", \"سلامت انتشار را بررسی می‌کند\")\n  System(nemodara, \"نمودارا\", \"ادیتور و مرجع فارسی Mermaid را ارائه می‌کند\")\n  System_Ext(github, \"GitHub\", \"مخزن کد، Pull Request و CI\")\n  System_Ext(search, \"Google Search Console\", \"دادهٔ جست‌وجو و وضعیت Index\")\n  Rel(reader, nemodara, \"صفحه‌ها را مطالعه و قالب را باز می‌کند\", \"HTTPS\")\n  Rel(editor, nemodara, \"محتوای ساختاریافته را آماده می‌کند\")\n  Rel(admin, nemodara, \"سلامت محتوا را پایش می‌کند\")\n  Rel(nemodara, github, \"تغییرات را نسخه‌بندی و اعتبارسنجی می‌کند\", \"Git\")\n  Rel(admin, search, \"دادهٔ جست‌وجو را بررسی می‌کند\", \"Search Console\")"
+  },
+  {
     "id": "content-publishing-service-block-diagram",
     "category": "software",
     "badge": "معماری سیستم",
