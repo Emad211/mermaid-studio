@@ -210,23 +210,61 @@ function ensureExpandableEditorialCount(source) {
   );
 }
 
+function quotedValueTokens(value) {
+  return [
+    JSON.stringify(value),
+    `'${String(value).replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`,
+  ];
+}
+
+function hasQuotedValue(source, value) {
+  return quotedValueTokens(value).some((token) => source.includes(token));
+}
+
 function replaceQuotedValue(source, previousValue, nextValue) {
   if (!previousValue || previousValue === nextValue) return source;
-  const doubleQuoted = JSON.stringify(previousValue);
+  const [doubleQuoted, singleQuoted] = quotedValueTokens(previousValue);
   if (source.includes(doubleQuoted)) return source.replace(doubleQuoted, JSON.stringify(nextValue));
-  const singleQuoted = `'${previousValue.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
   if (source.includes(singleQuoted)) {
-    return source.replace(singleQuoted, `'${nextValue.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`);
+    return source.replace(singleQuoted, quotedValueTokens(nextValue)[1]);
   }
   return source;
 }
 
+function removeQuotedListValue(source, value) {
+  for (const token of quotedValueTokens(value)) {
+    const linePattern = new RegExp(`\\n[ \\t]*${escapeRegExp(token)},?`);
+    if (linePattern.test(source)) return source.replace(linePattern, '');
+  }
+  return source;
+}
+
+function dedupeQuotedListValue(source, value) {
+  let seen = false;
+  const tokens = quotedValueTokens(value).map(escapeRegExp).join('|');
+  const linePattern = new RegExp(`\\n[ \\t]*(?:${tokens}),?`, 'g');
+  return source.replace(linePattern, (match) => {
+    if (!seen) {
+      seen = true;
+      return match;
+    }
+    return '';
+  });
+}
+
 function ensureTemplateStructuredData(source, title, previousTitle = '') {
-  let next = replaceQuotedValue(source, previousTitle, title);
-  if (next.includes(`"${title}"`) || next.includes(`'${title}'`)) return next;
-  const marker = "          'گانت انتشار', 'نقشه ذهنی محتوا', 'معماری ابری', 'سفر کاربر',";
-  assert(next.includes(marker), 'template structured-data marker not found');
-  return next.replace(marker, `${marker}\n          ${JSON.stringify(title)},`);
+  let next = source;
+  if (previousTitle && previousTitle !== title) {
+    next = hasQuotedValue(next, title)
+      ? removeQuotedListValue(next, previousTitle)
+      : replaceQuotedValue(next, previousTitle, title);
+  }
+  if (!hasQuotedValue(next, title)) {
+    const marker = "          'گانت انتشار', 'نقشه ذهنی محتوا', 'معماری ابری', 'سفر کاربر',";
+    assert(next.includes(marker), 'template structured-data marker not found');
+    next = next.replace(marker, `${marker}\n          ${JSON.stringify(title)},`);
+  }
+  return dedupeQuotedListValue(next, title);
 }
 
 export function syncContentText(files, entries) {
