@@ -220,6 +220,7 @@ function pageStructuredData(pathname, meta, config, article, editorialArticle) {
         itemListElement: [
           'فلوچارت تصمیم‌گیری', 'نمودار توالی API', 'مدل ER فروشگاه', 'نمودار کلاس UML',
           'گانت انتشار', 'نقشه ذهنی محتوا', 'معماری ابری', 'سفر کاربر',
+          "Git Flow برای feature، release و hotfix",
           "System Context سامانهٔ انتشار محتوا",
           "معماری سرویس انتشار محتوا",
           "مصرف فضای Repository براساس بخش",
