@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import {
   insertObjectAfterMarker,
   syncContentText,
+  upsertObjectAfterMarker,
   validateEntry,
 } from '../scripts/publish-daily-content.mjs';
 
@@ -65,6 +66,20 @@ test('object insertion is idempotent for generated JSON syntax', () => {
   assert.equal(once, twice);
 });
 
+test('object upsert replaces the matching top-level record and stays idempotent', () => {
+  const marker = 'const records = [';
+  const pattern = /["']?slug["']?\s*:\s*["']new-page["']/;
+  const source = `${marker}\n  {\n    "slug": "new-page",\n    "title": "Old title",\n    "nested": { "note": "brace } inside a string" }\n  },\n  { slug: 'other-page', title: 'Keep me' },\n];`;
+  const value = { slug: 'new-page', title: 'New title', nested: { note: 'updated' } };
+  const once = upsertObjectAfterMarker(source, marker, value, pattern);
+  const twice = upsertObjectAfterMarker(once, marker, value, pattern);
+
+  assert.match(once, /"title": "New title"/);
+  assert.doesNotMatch(once, /Old title/);
+  assert.match(once, /other-page/);
+  assert.equal(twice, once);
+});
+
 test('publisher adds article, tutorial and template once and fixes visible dates', () => {
   const once = syncContentText(fixtures(), [entry]);
   const twice = syncContentText(once, [entry]);
@@ -77,4 +92,42 @@ test('publisher adds article, tutorial and template once and fixes visible dates
   assert.match(once.articles, /formatPersianDate\(article\.updated/);
   assert.match(once.tutorials, /formatPersianDate\(article\.updated/);
   assert.match(once.editorialTests, /nodes\.length\) >= 8/);
+});
+
+test('publisher refreshes an existing cluster and updates its structured-data title', () => {
+  const first = syncContentText(fixtures(), [entry]);
+  const refreshed = structuredClone(entry);
+  refreshed.article.title = 'عنوان تحلیلی تازه برای آزمون به‌روزرسانی صفحهٔ موجود';
+  refreshed.tutorial.title = 'عنوان آموزش تازه و کامل برای آزمون به‌روزرسانی صفحهٔ موجود';
+  refreshed.template.title = 'قالب تازهٔ چرخهٔ سفارش';
+
+  const second = syncContentText(first, [refreshed]);
+  const third = syncContentText(second, [refreshed]);
+
+  assert.match(second.articles, /عنوان تحلیلی تازه/);
+  assert.doesNotMatch(second.articles, new RegExp(entry.article.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  assert.match(second.tutorials, /عنوان آموزش تازه/);
+  assert.doesNotMatch(second.tutorials, new RegExp(entry.tutorial.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  assert.match(second.templates, /قالب تازهٔ چرخهٔ سفارش/);
+  assert.doesNotMatch(second.templates, new RegExp(entry.template.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  assert.match(second.seo, /قالب تازهٔ چرخهٔ سفارش/);
+  assert.doesNotMatch(second.seo, new RegExp(entry.template.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  assert.equal(second.seo.split(refreshed.template.title).length - 1, 1);
+  assert.deepEqual(third, second);
+});
+
+test('publisher removes a stale title when the refreshed title was already appended', () => {
+  const first = syncContentText(fixtures(), [entry]);
+  const refreshed = structuredClone(entry);
+  refreshed.template.title = 'قالب تازهٔ چرخهٔ سفارش';
+  const marker = "          'گانت انتشار', 'نقشه ذهنی محتوا', 'معماری ابری', 'سفر کاربر',";
+  const partiallyPublished = {
+    ...first,
+    seo: first.seo.replace(marker, `${marker}\n          ${JSON.stringify(refreshed.template.title)},`),
+  };
+
+  const result = syncContentText(partiallyPublished, [refreshed]);
+
+  assert.equal(result.seo.split(refreshed.template.title).length - 1, 1);
+  assert.doesNotMatch(result.seo, new RegExp(entry.template.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
 });
