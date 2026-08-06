@@ -112,5 +112,22 @@ test('publisher refreshes an existing cluster and updates its structured-data ti
   assert.doesNotMatch(second.templates, new RegExp(entry.template.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   assert.match(second.seo, /قالب تازهٔ چرخهٔ سفارش/);
   assert.doesNotMatch(second.seo, new RegExp(entry.template.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  assert.equal(second.seo.split(refreshed.template.title).length - 1, 1);
   assert.deepEqual(third, second);
+});
+
+test('publisher removes a stale title when the refreshed title was already appended', () => {
+  const first = syncContentText(fixtures(), [entry]);
+  const refreshed = structuredClone(entry);
+  refreshed.template.title = 'قالب تازهٔ چرخهٔ سفارش';
+  const marker = "          'گانت انتشار', 'نقشه ذهنی محتوا', 'معماری ابری', 'سفر کاربر',";
+  const partiallyPublished = {
+    ...first,
+    seo: first.seo.replace(marker, `${marker}\n          ${JSON.stringify(refreshed.template.title)},`),
+  };
+
+  const result = syncContentText(partiallyPublished, [refreshed]);
+
+  assert.equal(result.seo.split(refreshed.template.title).length - 1, 1);
+  assert.doesNotMatch(result.seo, new RegExp(entry.template.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
 });
