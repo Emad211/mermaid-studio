@@ -46,3 +46,32 @@ test('content index sync is idempotent', () => {
   assert.equal(twice.learn, once.learn);
   assert.equal(twice.templates, once.templates);
 });
+
+test('content index sync refreshes existing tutorial, picker and template cards', () => {
+  const once = syncIndexText(fixtures(), [entry]);
+  const refreshed = structuredClone(entry);
+  refreshed.cluster.name = 'State Diagram و چرخهٔ عمر';
+  refreshed.cluster.intent = 'آموزشی، مقایسه و یافتن قالب';
+  refreshed.tutorial.shortTitle = 'State Diagram پیشرفته';
+  refreshed.tutorial.intro = 'نسخهٔ بازبینی‌شدهٔ آموزش با مثال‌های تازه و کنترل معنای انتقال‌ها.';
+  refreshed.tutorial.minutes = 27;
+  refreshed.template.title = 'چرخهٔ وضعیت سفارش بازبینی‌شده';
+  refreshed.template.description = 'قالب تازه برای وضعیت سفارش و مسیر بازپرداخت.';
+  refreshed.template.code = 'stateDiagram-v2\n  [*] --> Draft\n  Draft --> Refunded: بازپرداخت\n  Refunded --> [*]';
+
+  const twice = syncIndexText({ ...once, templateRegistry: fixtures().templateRegistry }, [refreshed]);
+  const third = syncIndexText({ ...twice, templateRegistry: fixtures().templateRegistry }, [refreshed]);
+
+  assert.match(twice.learn, /State Diagram پیشرفته/);
+  assert.match(twice.learn, /۲۷ دقیقه/);
+  assert.match(twice.learn, /State Diagram و چرخهٔ عمر/);
+  assert.doesNotMatch(twice.learn, /راهنمای کامل ساخت ماشین حالت/);
+  assert.equal((twice.learn.match(/data-tutorial-slug="state-diagram-mermaid"/g) || []).length, 1);
+  assert.equal((twice.learn.match(/data-tutorial-picker="state-diagram-mermaid"/g) || []).length, 1);
+  assert.match(twice.templates, /چرخهٔ وضعیت سفارش بازبینی‌شده/);
+  assert.match(twice.templates, /بازپرداخت/);
+  assert.doesNotMatch(twice.templates, /قالب آماده برای مدل‌سازی وضعیت سفارش/);
+  assert.equal((twice.templates.match(/data-template-id="order-state"/g) || []).length, 1);
+  assert.equal(third.learn, twice.learn);
+  assert.equal(third.templates, twice.templates);
+});
