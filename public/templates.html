@@ -404,34 +404,34 @@ xychart
           <div class="template-actions"><a class="button button-primary" href="/editor#code=u%3AeyJjb2RlIjoia2FuYmFuXG4gIG9wcG9ydHVuaXRpZXNb2YHYsdi12KrigIzZh9inXVxuICAgIHRvcGljW9in2YbYqtiu2KfYqCDZhdmI2LbZiNi5XUB7IHRpY2tldDogU0VPLTIwMSwgcHJpb3JpdHk6ICdIaWdoJyB9XG4gIHJlYWR5W9ii2YXYp9iv2YddXG4gICAgYnJpZWZbQnJpZWYg2YggaW50ZW50INiq2KPbjNuM2K_YtNiv2YddQHsgYXNzaWduZWQ6ICfYqtit2LHbjNix24zZhycgfVxuICBkb2luZ1vYr9ixINit2KfZhCDYqtmI2YTbjNivIOKAlCDYrdiv2Kfaqdir2LEg27JdXG4gICAgYXJ0aWNsZVvZhtqv2KfYsdi0INmF2YLYp9mE2YddQHsgdGlja2V0OiBTRU8tMjAzLCBhc3NpZ25lZDogJ9mG2YjbjNiz2YbYr9mHJywgcHJpb3JpdHk6ICdIaWdoJyB9XG4gICAgdHV0b3JpYWxb2LPYp9iu2Kog2KLZhdmI2LLYtF1AeyB0aWNrZXQ6IFNFTy0yMDQsIGFzc2lnbmVkOiAn2YbZiNuM2LPZhtiv2YcnIH1cbiAgcmV2aWV3W9io2KfYstio24zZhtuMXVxuICAgIHJlbmRlclvYsdmG2K_YsSDZhdir2KfZhOKAjNmH2KddQHsgYXNzaWduZWQ6ICdDSScgfVxuICAgIHNlb1vaqdmG2KrYsdmEIGNhbm9uaWNhbCDZiCBzY2hlbWFdQHsgYXNzaWduZWQ6ICdDSScsIHByaW9yaXR5OiAnVmVyeSBIaWdoJyB9XG4gIGRvbmVb2YXZhtiq2LTYsdi02K_Zh11cbiAgICBsaXZlW9io2LHYsdiz24wgVVJMINiy2YbYr9mHXSIsInRoZW1lIjoiZGVmYXVsdCIsImxheW91dCI6ImRhZ3JlIiwiYmFja2dyb3VuZCI6IndoaXRlIiwiY29uZmlnIjoiIiwiY3NzIjoiIn0">ویرایش قالب</a><a class="button button-secondary" href="/learn/kanban-mermaid">آموزش</a></div>
         </article>
         <article id="template-gitflow-release" class="template-card" data-id="gitflow-release" data-template-id="gitflow-release">
-          <div class="template-card-head"><div><h3>Git Flow برای release و hotfix</h3><p>قالب GitGraph قابل ویرایش برای feature، develop، release، tag نسخه و hotfix.</p></div><span class="template-badge">Git و انتشار</span></div>
+          <div class="template-card-head"><div><h3>Git Flow برای feature، release و hotfix</h3><p>قالب GitGraph قابل ویرایش برای feature، develop، release، Tag نسخه و hotfix؛ مناسب مستند Branching Strategy و onboarding تیم.</p></div><span class="template-badge">Git و انتشار</span></div>
           <pre class="template-code"><code>gitGraph LR:
   commit id: &quot;v1.3.0&quot; tag: &quot;v1.3.0&quot;
   branch develop
-  commit id: &quot;prepare-1.4&quot;
-  branch feature-auth
-  commit id: &quot;auth-ui&quot;
-  commit id: &quot;auth-api&quot;
+  commit id: &quot;prepare_1_4&quot;
+  branch feature_auth
+  commit id: &quot;auth_ui&quot;
+  commit id: &quot;auth_api&quot;
   checkout develop
-  merge feature-auth id: &quot;merge-auth&quot;
-  branch release-1.4
-  commit id: &quot;release-qa&quot;
+  merge feature_auth id: &quot;merge_auth&quot;
+  branch release_1_4
+  commit id: &quot;release_qa&quot;
   checkout main
-  merge release-1.4 id: &quot;release-1.4&quot; tag: &quot;v1.4.0&quot;
+  merge release_1_4 id: &quot;release_1_4&quot; tag: &quot;v1.4.0&quot;
   checkout develop
-  merge release-1.4 id: &quot;sync-1.4&quot;
+  merge release_1_4 id: &quot;sync_1_4&quot;
   checkout main
-  branch hotfix-payment
-  commit id: &quot;payment-fix&quot; type: HIGHLIGHT
+  branch hotfix_payment
+  commit id: &quot;payment_fix&quot; type: HIGHLIGHT
   checkout main
-  merge hotfix-payment id: &quot;hotfix-1.4.1&quot; tag: &quot;v1.4.1&quot;
+  merge hotfix_payment id: &quot;hotfix_1_4_1&quot; tag: &quot;v1.4.1&quot;
   checkout develop
-  merge hotfix-payment id: &quot;sync-hotfix&quot;</code></pre>
+  merge hotfix_payment id: &quot;sync_hotfix&quot;</code></pre>
           <nav class="template-related" aria-label="مطالب مرتبط"><a href="/learn/gitgraph-mermaid">آموزش مرتبط</a><a href="/articles/gitgraph-for-branching-strategy">مقالهٔ مرتبط</a></nav>
-          <div class="template-actions"><a class="button button-primary" href="/editor#code=u%3AeyJjb2RlIjoiZ2l0R3JhcGggTFI6XG4gIGNvbW1pdCBpZDogXCJ2MS4zLjBcIiB0YWc6IFwidjEuMy4wXCJcbiAgYnJhbmNoIGRldmVsb3BcbiAgY29tbWl0IGlkOiBcInByZXBhcmUtMS40XCJcbiAgYnJhbmNoIGZlYXR1cmUtYXV0aFxuICBjb21taXQgaWQ6IFwiYXV0aC11aVwiXG4gIGNvbW1pdCBpZDogXCJhdXRoLWFwaVwiXG4gIGNoZWNrb3V0IGRldmVsb3BcbiAgbWVyZ2UgZmVhdHVyZS1hdXRoIGlkOiBcIm1lcmdlLWF1dGhcIlxuICBicmFuY2ggcmVsZWFzZS0xLjRcbiAgY29tbWl0IGlkOiBcInJlbGVhc2UtcWFcIlxuICBjaGVja291dCBtYWluXG4gIG1lcmdlIHJlbGVhc2UtMS40IGlkOiBcInJlbGVhc2UtMS40XCIgdGFnOiBcInYxLjQuMFwiXG4gIGNoZWNrb3V0IGRldmVsb3BcbiAgbWVyZ2UgcmVsZWFzZS0xLjQgaWQ6IFwic3luYy0xLjRcIlxuICBjaGVja291dCBtYWluXG4gIGJyYW5jaCBob3RmaXgtcGF5bWVudFxuICBjb21taXQgaWQ6IFwicGF5bWVudC1maXhcIiB0eXBlOiBISUdITElHSFRcbiAgY2hlY2tvdXQgbWFpblxuICBtZXJnZSBob3RmaXgtcGF5bWVudCBpZDogXCJob3RmaXgtMS40LjFcIiB0YWc6IFwidjEuNC4xXCJcbiAgY2hlY2tvdXQgZGV2ZWxvcFxuICBtZXJnZSBob3RmaXgtcGF5bWVudCBpZDogXCJzeW5jLWhvdGZpeFwiIiwidGhlbWUiOiJkZWZhdWx0IiwibGF5b3V0IjoiZGFncmUiLCJiYWNrZ3JvdW5kIjoid2hpdGUiLCJjb25maWciOiIiLCJjc3MiOiIifQ">ویرایش قالب</a><a class="button button-secondary" href="/learn/gitgraph-mermaid">آموزش</a></div>
+          <div class="template-actions"><a class="button button-primary" href="/editor#code=u%3AeyJjb2RlIjoiZ2l0R3JhcGggTFI6XG4gIGNvbW1pdCBpZDogXCJ2MS4zLjBcIiB0YWc6IFwidjEuMy4wXCJcbiAgYnJhbmNoIGRldmVsb3BcbiAgY29tbWl0IGlkOiBcInByZXBhcmVfMV80XCJcbiAgYnJhbmNoIGZlYXR1cmVfYXV0aFxuICBjb21taXQgaWQ6IFwiYXV0aF91aVwiXG4gIGNvbW1pdCBpZDogXCJhdXRoX2FwaVwiXG4gIGNoZWNrb3V0IGRldmVsb3BcbiAgbWVyZ2UgZmVhdHVyZV9hdXRoIGlkOiBcIm1lcmdlX2F1dGhcIlxuICBicmFuY2ggcmVsZWFzZV8xXzRcbiAgY29tbWl0IGlkOiBcInJlbGVhc2VfcWFcIlxuICBjaGVja291dCBtYWluXG4gIG1lcmdlIHJlbGVhc2VfMV80IGlkOiBcInJlbGVhc2VfMV80XCIgdGFnOiBcInYxLjQuMFwiXG4gIGNoZWNrb3V0IGRldmVsb3BcbiAgbWVyZ2UgcmVsZWFzZV8xXzQgaWQ6IFwic3luY18xXzRcIlxuICBjaGVja291dCBtYWluXG4gIGJyYW5jaCBob3RmaXhfcGF5bWVudFxuICBjb21taXQgaWQ6IFwicGF5bWVudF9maXhcIiB0eXBlOiBISUdITElHSFRcbiAgY2hlY2tvdXQgbWFpblxuICBtZXJnZSBob3RmaXhfcGF5bWVudCBpZDogXCJob3RmaXhfMV80XzFcIiB0YWc6IFwidjEuNC4xXCJcbiAgY2hlY2tvdXQgZGV2ZWxvcFxuICBtZXJnZSBob3RmaXhfcGF5bWVudCBpZDogXCJzeW5jX2hvdGZpeFwiIiwidGhlbWUiOiJkZWZhdWx0IiwibGF5b3V0IjoiZGFncmUiLCJiYWNrZ3JvdW5kIjoid2hpdGUiLCJjb25maWciOiIiLCJjc3MiOiIifQ">ویرایش قالب</a><a class="button button-secondary" href="/learn/gitgraph-mermaid">آموزش</a></div>
         </article>
         <article id="template-order-state" class="template-card" data-id="order-state" data-template-id="order-state">
-          <div class="template-card-head"><div><h3>چرخهٔ وضعیت سفارش</h3><p>قالب آمادهٔ State Diagram برای سفارش، پرداخت، ارسال، لغو، مرجوعی و بازپرداخت.</p></div><span class="template-badge">ماشین حالت</span></div>
+          <div class="template-card-head"><div><h3>چرخهٔ وضعیت سفارش</h3><p>قالب آماده برای سفارش، پرداخت، ارسال، لغو، مرجوعی و بازپرداخت.</p></div><span class="template-badge">ماشین حالت</span></div>
           <pre class="template-code"><code>stateDiagram-v2
   direction LR
   state &quot;پیش‌نویس&quot; as Draft
@@ -458,8 +458,8 @@ xychart
   Delivered --&gt; [*]
   Cancelled --&gt; [*]
   Refunded --&gt; [*]</code></pre>
-          <nav class="template-related" aria-label="مطالب مرتبط"><a href="/learn/state-diagram-mermaid">آموزش State Diagram در Mermaid</a><a href="/articles/state-diagram-vs-flowchart">تفاوت State Diagram و Flowchart</a></nav>
-          <div class="template-actions"><a class="button button-primary" href="/editor">ویرایش قالب</a><button class="button button-secondary copy-template" type="button" data-id="order-state">کپی کد</button></div>
+          <nav class="template-related" aria-label="مطالب مرتبط"><a href="/learn/state-diagram-mermaid">آموزش مرتبط</a><a href="/articles/state-diagram-vs-flowchart">مقالهٔ مرتبط</a></nav>
+          <div class="template-actions"><a class="button button-primary" href="/editor#code=u%3AeyJjb2RlIjoic3RhdGVEaWFncmFtLXYyXG4gIGRpcmVjdGlvbiBMUlxuICBzdGF0ZSBcItm-24zYtOKAjNmG2YjbjNizXCIgYXMgRHJhZnRcbiAgc3RhdGUgXCLYr9ixINin2YbYqti42KfYsSDZvtix2K_Yp9iu2KpcIiBhcyBQZW5kaW5nUGF5bWVudFxuICBzdGF0ZSBcItm-2LHYr9in2K7YquKAjNi02K_Zh1wiIGFzIFBhaWRcbiAgc3RhdGUgXCLYotmF2KfYr9mH4oCM2LPYp9iy24xcIiBhcyBQcmVwYXJpbmdcbiAgc3RhdGUgXCLYp9ix2LPYp9mE4oCM2LTYr9mHXCIgYXMgU2hpcHBlZFxuICBzdGF0ZSBcItiq2K3ZiNuM2YTigIzYtNiv2YdcIiBhcyBEZWxpdmVyZWRcbiAgc3RhdGUgXCLZhNi62YjYtNiv2YdcIiBhcyBDYW5jZWxsZWRcbiAgc3RhdGUgXCLZhdix2KzZiNi54oCM2LTYr9mHXCIgYXMgUmV0dXJuZWRcbiAgc3RhdGUgXCLYqNin2LLZvtix2K_Yp9iu2KrigIzYtNiv2YdcIiBhcyBSZWZ1bmRlZFxuXG4gIFsqXSAtLT4gRHJhZnRcbiAgRHJhZnQgLS0-IFBlbmRpbmdQYXltZW50OiDYq9io2Kog2YbZh9in24zbjFxuICBQZW5kaW5nUGF5bWVudCAtLT4gUGFpZDog2b7Ysdiv2KfYrtiqINmF2YjZgdmCXG4gIFBlbmRpbmdQYXltZW50IC0tPiBDYW5jZWxsZWQ6INin2YbYtdix2KfZgSDbjNinINin2YbZgti22KdcbiAgUGFpZCAtLT4gUHJlcGFyaW5nOiDYqtij24zbjNivINmF2YjYrNmI2K_bjFxuICBQYWlkIC0tPiBSZWZ1bmRlZDog2LnYr9mFINiq2KPZhduM2YZcbiAgUHJlcGFyaW5nIC0tPiBTaGlwcGVkOiDYqtit2YjbjNmEINio2Ycg2b7Ys9iqXG4gIFNoaXBwZWQgLS0-IERlbGl2ZXJlZDog2KrYrdmI24zZhCDZhdmI2YHZglxuICBTaGlwcGVkIC0tPiBSZXR1cm5lZDog2KjYsdqv2LTYqiDZhdix2LPZiNmE2YdcbiAgRGVsaXZlcmVkIC0tPiBSZXR1cm5lZDog2K_Ysdiu2YjYp9iz2Kog2YXYsdis2YjYuduMXG4gIFJldHVybmVkIC0tPiBSZWZ1bmRlZDog2KrYo9uM24zYryDYqNin2LLZvtix2K_Yp9iu2KpcbiAgRGVsaXZlcmVkIC0tPiBbKl1cbiAgQ2FuY2VsbGVkIC0tPiBbKl1cbiAgUmVmdW5kZWQgLS0-IFsqXSIsInRoZW1lIjoiZGVmYXVsdCIsImxheW91dCI6ImRhZ3JlIiwiYmFja2dyb3VuZCI6IndoaXRlIiwiY29uZmlnIjoiIiwiY3NzIjoiIn0">ویرایش قالب</a><a class="button button-secondary" href="/learn/state-diagram-mermaid">آموزش</a></div>
         </article>
       </div><div id="template-empty" class="template-empty" hidden><strong>قالبی پیدا نشد.</strong><span>عبارت کوتاه‌تری امتحان کن یا همهٔ دسته‌ها را نمایش بده.</span></div></section>
 
