@@ -85,12 +85,80 @@ function indentObject(value, spaces = 2) {
   return JSON.stringify(value, null, 2).split('\n').map((line) => `${pad}${line}`).join('\n');
 }
 
+function stablePattern(pattern) {
+  return new RegExp(pattern.source, pattern.flags.replaceAll('g', '').replaceAll('y', ''));
+}
+
+export function findObjectAfterMarker(source, marker, identityPattern) {
+  const markerIndex = source.indexOf(marker);
+  assert(markerIndex >= 0, `publisher marker not found: ${marker}`);
+  const pattern = stablePattern(identityPattern);
+  let objectStart = -1;
+  let depth = 0;
+  let quote = '';
+  let escaped = false;
+
+  for (let index = markerIndex + marker.length; index < source.length; index += 1) {
+    const char = source[index];
+    if (quote) {
+      if (escaped) {
+        escaped = false;
+      } else if (char === '\\') {
+        escaped = true;
+      } else if (char === quote) {
+        quote = '';
+      }
+      continue;
+    }
+    if (char === '"' || char === "'" || char === '`') {
+      quote = char;
+      continue;
+    }
+    if (char === '{') {
+      if (depth === 0) {
+        const lineStart = source.lastIndexOf('\n', index - 1) + 1;
+        objectStart = /^\s*$/.test(source.slice(lineStart, index)) ? lineStart : index;
+      }
+      depth += 1;
+      continue;
+    }
+    if (char === '}') {
+      depth -= 1;
+      assert(depth >= 0, `unbalanced object before marker: ${marker}`);
+      if (depth === 0 && objectStart >= 0) {
+        const end = index + 1;
+        const text = source.slice(objectStart, end);
+        pattern.lastIndex = 0;
+        if (pattern.test(text)) return { start: objectStart, end, text };
+        objectStart = -1;
+      }
+      continue;
+    }
+    if (char === ']' && depth === 0) break;
+  }
+  return null;
+}
+
 export function insertObjectAfterMarker(source, marker, value, identityPattern) {
-  if (identityPattern.test(source)) return source;
+  if (stablePattern(identityPattern).test(source)) return source;
   const index = source.indexOf(marker);
   assert(index >= 0, `publisher marker not found: ${marker}`);
   const insertAt = index + marker.length;
   return `${source.slice(0, insertAt)}\n${indentObject(value)},${source.slice(insertAt)}`;
+}
+
+export function upsertObjectAfterMarker(source, marker, value, identityPattern) {
+  const existing = findObjectAfterMarker(source, marker, identityPattern);
+  if (!existing) return insertObjectAfterMarker(source, marker, value, identityPattern);
+  const replacement = indentObject(value);
+  if (existing.text === replacement) return source;
+  return `${source.slice(0, existing.start)}${replacement}${source.slice(existing.end)}`;
+}
+
+function stringProperty(objectText, property) {
+  if (!objectText) return '';
+  const match = objectText.match(new RegExp(`["']${escapeRegExp(property)}["']\\s*:\\s*(["'])(.*?)\\1`, 's'));
+  return match ? match[2].replace(/\\([\\"'])/g, '$1') : '';
 }
 
 function ensurePersianDateHelper(source) {
@@ -142,11 +210,23 @@ function ensureExpandableEditorialCount(source) {
   );
 }
 
-function ensureTemplateStructuredData(source, title) {
-  if (source.includes(`"${title}"`) || source.includes(`'${title}'`)) return source;
+function replaceQuotedValue(source, previousValue, nextValue) {
+  if (!previousValue || previousValue === nextValue) return source;
+  const doubleQuoted = JSON.stringify(previousValue);
+  if (source.includes(doubleQuoted)) return source.replace(doubleQuoted, JSON.stringify(nextValue));
+  const singleQuoted = `'${previousValue.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
+  if (source.includes(singleQuoted)) {
+    return source.replace(singleQuoted, `'${nextValue.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`);
+  }
+  return source;
+}
+
+function ensureTemplateStructuredData(source, title, previousTitle = '') {
+  let next = replaceQuotedValue(source, previousTitle, title);
+  if (next.includes(`"${title}"`) || next.includes(`'${title}'`)) return next;
   const marker = "          'گانت انتشار', 'نقشه ذهنی محتوا', 'معماری ابری', 'سفر کاربر',";
-  assert(source.includes(marker), 'template structured-data marker not found');
-  return source.replace(marker, `${marker}\n          ${JSON.stringify(title)},`);
+  assert(next.includes(marker), 'template structured-data marker not found');
+  return next.replace(marker, `${marker}\n          ${JSON.stringify(title)},`);
 }
 
 export function syncContentText(files, entries) {
@@ -154,24 +234,26 @@ export function syncContentText(files, entries) {
   ({ articles, tutorials } = ensureDynamicVisibleDates(articles, tutorials));
 
   for (const entry of entries) {
-    const articlePattern = new RegExp(`[\"']?slug[\"']?\\s*:\\s*[\"']${escapeRegExp(entry.article.slug)}[\"']`);
-    articles = insertObjectAfterMarker(
+    const articlePattern = new RegExp(`[\\"']?slug[\\"']?\\s*:\\s*[\\"']${escapeRegExp(entry.article.slug)}[\\"']`);
+    articles = upsertObjectAfterMarker(
       articles,
       'export const EDITORIAL_ARTICLES = [',
       entry.article,
       articlePattern,
     );
 
-    const tutorialPattern = new RegExp(`[\"']?slug[\"']?\\s*:\\s*[\"']${escapeRegExp(entry.tutorial.slug)}[\"']`);
-    tutorials = insertObjectAfterMarker(
+    const tutorialPattern = new RegExp(`[\\"']?slug[\\"']?\\s*:\\s*[\\"']${escapeRegExp(entry.tutorial.slug)}[\\"']`);
+    tutorials = upsertObjectAfterMarker(
       tutorials,
       'export const LEARN_ARTICLES = [',
       entry.tutorial,
       tutorialPattern,
     );
 
-    const templatePattern = new RegExp(`[\"']?id[\"']?\\s*:\\s*[\"']${escapeRegExp(entry.template.id)}[\"']`);
-    templates = insertObjectAfterMarker(
+    const templatePattern = new RegExp(`[\\"']?id[\\"']?\\s*:\\s*[\\"']${escapeRegExp(entry.template.id)}[\\"']`);
+    const previousTemplate = findObjectAfterMarker(templates, 'const templates = [', templatePattern);
+    const previousTemplateTitle = stringProperty(previousTemplate?.text, 'title');
+    templates = upsertObjectAfterMarker(
       templates,
       'const templates = [',
       entry.template,
@@ -183,7 +265,7 @@ export function syncContentText(files, entries) {
       entry.tutorial.slug,
       entry.relatedLearnTitle || entry.tutorial.shortTitle,
     );
-    seo = ensureTemplateStructuredData(seo, entry.template.title);
+    seo = ensureTemplateStructuredData(seo, entry.template.title, previousTemplateTitle);
   }
 
   editorialTests = ensureExpandableEditorialCount(editorialTests);
