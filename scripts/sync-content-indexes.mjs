@@ -18,12 +18,22 @@ function escapeHtml(value) {
   })[character]);
 }
 
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 function insertAfterMarker(source, marker, identity, html) {
   if (source.includes(identity)) return source;
   const index = source.indexOf(marker);
   if (index < 0) throw new Error(`content index marker not found: ${marker}`);
   const at = index + marker.length;
   return `${source.slice(0, at)}\n${html}${source.slice(at)}`;
+}
+
+function upsertAfterMarker(source, marker, identity, html, pattern) {
+  if (!source.includes(identity)) return insertAfterMarker(source, marker, identity, html);
+  if (!pattern.test(source)) throw new Error(`content index entry could not be replaced: ${identity}`);
+  return source.replace(pattern, html);
 }
 
 function editorUrl(code) {
@@ -38,9 +48,17 @@ function tutorialCard(entry) {
   return `          <a class="guide-card" data-tutorial-slug="${escapeHtml(tutorial.slug)}" href="/learn/${escapeHtml(tutorial.slug)}"><span class="guide-index">جدید</span><div><small>${escapeHtml(entry.cluster?.intent || 'راهنمای عملی')}</small><h3>${escapeHtml(tutorial.shortTitle)}</h3><p>${escapeHtml(summary)}</p></div><footer><span>${escapeHtml(tutorial.minutes.toLocaleString('fa-IR'))} دقیقه</span><span>${escapeHtml(tutorial.level)}</span></footer></a>`;
 }
 
+function tutorialCardPattern(slug) {
+  return new RegExp(`[ \\t]*<a class="guide-card" data-tutorial-slug="${escapeRegExp(escapeHtml(slug))}"[\\s\\S]*?<\\/a>`);
+}
+
 function tutorialPickerRow(entry) {
   const tutorial = entry.tutorial;
   return `          <div data-tutorial-picker="${escapeHtml(tutorial.slug)}" role="row"><strong role="cell">${escapeHtml(entry.cluster?.name || tutorial.shortTitle)}</strong><span role="cell">${escapeHtml(tutorial.shortTitle)}</span><a role="cell" href="/learn/${escapeHtml(tutorial.slug)}">راهنما</a></div>`;
+}
+
+function tutorialPickerPattern(slug) {
+  return new RegExp(`[ \\t]*<div data-tutorial-picker="${escapeRegExp(escapeHtml(slug))}" role="row">[\\s\\S]*?<\\/div>`);
 }
 
 function templateCard(entry) {
@@ -55,6 +73,10 @@ function templateCard(entry) {
         </article>`;
 }
 
+function templateCardPattern(id) {
+  return new RegExp(`[ \\t]*<article[^>]*data-template-id="${escapeRegExp(escapeHtml(id))}"[^>]*>[\\s\\S]*?<\\/article>`);
+}
+
 function registryTemplateCount(source) {
   const ids = [...source.matchAll(/(?:^|[,{]\s*)["']?id["']?\s*:\s*["']([a-z0-9-]+)["']/gm)].map((match) => match[1]);
   return new Set(ids).size;
@@ -65,23 +87,26 @@ export function syncIndexText({ learn, templates, templateRegistry }, entries) {
   let nextTemplates = templates;
 
   for (const entry of entries) {
-    nextLearn = insertAfterMarker(
+    nextLearn = upsertAfterMarker(
       nextLearn,
       '<!-- DAILY_TUTORIAL_CARDS -->',
       `data-tutorial-slug="${entry.tutorial.slug}"`,
       tutorialCard(entry),
+      tutorialCardPattern(entry.tutorial.slug),
     );
-    nextLearn = insertAfterMarker(
+    nextLearn = upsertAfterMarker(
       nextLearn,
       '<!-- DAILY_TUTORIAL_PICKER_ROWS -->',
       `data-tutorial-picker="${entry.tutorial.slug}"`,
       tutorialPickerRow(entry),
+      tutorialPickerPattern(entry.tutorial.slug),
     );
-    nextTemplates = insertAfterMarker(
+    nextTemplates = upsertAfterMarker(
       nextTemplates,
       '<!-- DAILY_TEMPLATE_CARDS -->',
       `data-template-id="${entry.template.id}"`,
       templateCard(entry),
+      templateCardPattern(entry.template.id),
     );
   }
 
