@@ -170,48 +170,23 @@ const templates = [
     "id": "gitflow-release",
     "category": "software",
     "badge": "Git و انتشار",
-    "title": "Git Flow برای release و hotfix",
-    "description": "قالب GitGraph قابل ویرایش برای feature، develop، release، tag نسخه و hotfix.",
-    "keywords": "GitGraph Mermaid قالب Git Flow branching strategy release hotfix نمودار شاخه گیت",
+    "title": "Git Flow برای feature، release و hotfix",
+    "description": "قالب GitGraph قابل ویرایش برای feature، develop، release، Tag نسخه و hotfix؛ مناسب مستند Branching Strategy و onboarding تیم.",
+    "keywords": "GitGraph Mermaid قالب Git Flow branching strategy feature release hotfix commit branch merge tag نمودار شاخه گیت",
     "tutorial": "/learn/gitgraph-mermaid",
     "article": "/articles/gitgraph-for-branching-strategy",
-    "code": "gitGraph LR:\n  commit id: \"v1.3.0\" tag: \"v1.3.0\"\n  branch develop\n  commit id: \"prepare-1.4\"\n  branch feature-auth\n  commit id: \"auth-ui\"\n  commit id: \"auth-api\"\n  checkout develop\n  merge feature-auth id: \"merge-auth\"\n  branch release-1.4\n  commit id: \"release-qa\"\n  checkout main\n  merge release-1.4 id: \"release-1.4\" tag: \"v1.4.0\"\n  checkout develop\n  merge release-1.4 id: \"sync-1.4\"\n  checkout main\n  branch hotfix-payment\n  commit id: \"payment-fix\" type: HIGHLIGHT\n  checkout main\n  merge hotfix-payment id: \"hotfix-1.4.1\" tag: \"v1.4.1\"\n  checkout develop\n  merge hotfix-payment id: \"sync-hotfix\""
+    "code": "gitGraph LR:\n  commit id: \"v1.3.0\" tag: \"v1.3.0\"\n  branch develop\n  commit id: \"prepare_1_4\"\n  branch feature_auth\n  commit id: \"auth_ui\"\n  commit id: \"auth_api\"\n  checkout develop\n  merge feature_auth id: \"merge_auth\"\n  branch release_1_4\n  commit id: \"release_qa\"\n  checkout main\n  merge release_1_4 id: \"release_1_4\" tag: \"v1.4.0\"\n  checkout develop\n  merge release_1_4 id: \"sync_1_4\"\n  checkout main\n  branch hotfix_payment\n  commit id: \"payment_fix\" type: HIGHLIGHT\n  checkout main\n  merge hotfix_payment id: \"hotfix_1_4_1\" tag: \"v1.4.1\"\n  checkout develop\n  merge hotfix_payment id: \"sync_hotfix\""
   },
   {
-    id: 'order-state',
-    category: 'software',
-    badge: 'ماشین حالت',
-    title: 'چرخهٔ وضعیت سفارش',
-    description: 'قالب آماده برای سفارش، پرداخت، ارسال، لغو، مرجوعی و بازپرداخت.',
-    keywords: 'state diagram stateDiagram-v2 نمودار حالت ماشین حالت چرخه سفارش پرداخت ارسال مرجوعی',
-    tutorial: '/learn/state-diagram-mermaid',
-    article: '/articles/state-diagram-vs-flowchart',
-    code: `stateDiagram-v2
-  direction LR
-  state "پیش‌نویس" as Draft
-  state "در انتظار پرداخت" as PendingPayment
-  state "پرداخت‌شده" as Paid
-  state "آماده‌سازی" as Preparing
-  state "ارسال‌شده" as Shipped
-  state "تحویل‌شده" as Delivered
-  state "لغوشده" as Cancelled
-  state "مرجوع‌شده" as Returned
-  state "بازپرداخت‌شده" as Refunded
-
-  [*] --> Draft
-  Draft --> PendingPayment: ثبت نهایی
-  PendingPayment --> Paid: پرداخت موفق
-  PendingPayment --> Cancelled: انصراف یا انقضا
-  Paid --> Preparing: تأیید موجودی
-  Paid --> Refunded: عدم تأمین
-  Preparing --> Shipped: تحویل به پست
-  Shipped --> Delivered: تحویل موفق
-  Shipped --> Returned: برگشت مرسوله
-  Delivered --> Returned: درخواست مرجوعی
-  Returned --> Refunded: تأیید بازپرداخت
-  Delivered --> [*]
-  Cancelled --> [*]
-  Refunded --> [*]`,
+    "id": "order-state",
+    "category": "software",
+    "badge": "ماشین حالت",
+    "title": "چرخهٔ وضعیت سفارش",
+    "description": "قالب آماده برای سفارش، پرداخت، ارسال، لغو، مرجوعی و بازپرداخت.",
+    "keywords": "state diagram stateDiagram-v2 نمودار حالت ماشین حالت چرخه سفارش پرداخت ارسال مرجوعی",
+    "tutorial": "/learn/state-diagram-mermaid",
+    "article": "/articles/state-diagram-vs-flowchart",
+    "code": "stateDiagram-v2\n  direction LR\n  state \"پیش‌نویس\" as Draft\n  state \"در انتظار پرداخت\" as PendingPayment\n  state \"پرداخت‌شده\" as Paid\n  state \"آماده‌سازی\" as Preparing\n  state \"ارسال‌شده\" as Shipped\n  state \"تحویل‌شده\" as Delivered\n  state \"لغوشده\" as Cancelled\n  state \"مرجوع‌شده\" as Returned\n  state \"بازپرداخت‌شده\" as Refunded\n\n  [*] --> Draft\n  Draft --> PendingPayment: ثبت نهایی\n  PendingPayment --> Paid: پرداخت موفق\n  PendingPayment --> Cancelled: انصراف یا انقضا\n  Paid --> Preparing: تأیید موجودی\n  Paid --> Refunded: عدم تأمین\n  Preparing --> Shipped: تحویل به پست\n  Shipped --> Delivered: تحویل موفق\n  Shipped --> Returned: برگشت مرسوله\n  Delivered --> Returned: درخواست مرجوعی\n  Returned --> Refunded: تأیید بازپرداخت\n  Delivered --> [*]\n  Cancelled --> [*]\n  Refunded --> [*]"
   },
   { id: 'flowchart', category: 'process', badge: 'فرایند', title: 'فلوچارت تصمیم‌گیری', description: 'برای مسیرهای شرطی، عملیات و گردش کار.', keywords: 'فلوچارت flowchart فرایند تصمیم workflow', code: `flowchart TD
   A[شروع درخواست] --> B{اطلاعات کامل است؟}

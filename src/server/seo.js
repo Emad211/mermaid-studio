@@ -236,7 +236,6 @@ function pageStructuredData(pathname, meta, config, article, editorialArticle) {
           "ردیابی نیازمندی ورود امن",
           "Timeline roadmap محصول",
           "برد کانبان انتشار محتوا",
-          "Git Flow برای release و hotfix",
           "چرخهٔ وضعیت سفارش",
         ].map((name, index) => ({ '@type': 'ListItem', position: index + 1, name })),
       },
