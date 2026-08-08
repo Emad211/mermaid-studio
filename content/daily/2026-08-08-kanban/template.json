@@ -1,0 +1,11 @@
+{
+  "id": "template-content-release-kanban",
+  "category": "software",
+  "badge": "Kanban",
+  "title": "گردش کار انتشار محتوا",
+  "description": "قالبی برای نمایش وضعیت ایده، تولید، بازبینی و انتشار محتوا با ستون‌های قابل ویرایش و taskهای نمونه.",
+  "keywords": "Kanban Mermaid نمودار گردش کار content workflow task board",
+  "tutorial": "/learn/kanban-mermaid",
+  "article": "/articles/kanban-vs-flowchart-for-workflow-tracking",
+  "code": "kanban\n  backlog[ایده‌ها]\n    brief[تدوین Brief]\n    research[بررسی منابع]\n  ready[آماده تولید]\n    draft[نوشتن پیش‌نویس]\n    diagram[ساخت نمودار]\n  review[بازبینی]\n    editorial[بازبینی تحریریه]@{ assigned: 'تحریریه', priority: 'High' }\n    render[تست رندر]@{ priority: 'Very High' }\n  done[منتشرشده]\n    release[انتشار نسخه نهایی]"
+}
