@@ -1,0 +1,35 @@
+name: Post-merge editorial publisher
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    if: github.actor == 'Emad211'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: node scripts/publish-daily-content.mjs
+      - name: Commit generated editorial registries
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet; then
+            echo "Generated registries are already current"
+            exit 0
+          fi
+          git add src/server/article-content.js src/server/learn-content.js public/js/templates.js src/server/seo.js tests/editorial-pages.test.mjs
+          git commit -m "chore: publish merged daily editorial content"
+          git push origin HEAD:main
