@@ -3,9 +3,9 @@
   "category": "planning",
   "badge": "کانبان",
   "title": "برد کانبان انتشار محتوا",
-  "description": "قالب فارسی برای مدیریت Snapshot فرصت، تولید، بازبینی فنی و انتشار مقاله، آموزش و قالب Mermaid.",
-  "keywords": "کانبان Mermaid قالب Kanban انتشار محتوا sprint workflow برنامه ریزی",
+  "description": "قالب فارسی برای نمایش فرصت، آماده‌سازی، تولید، بازبینی فنی و انتشار محتوا با task metadata قابل ویرایش.",
+  "keywords": "Kanban Mermaid قالب کانبان انتشار محتوا workflow task board metadata",
   "tutorial": "/learn/kanban-mermaid",
   "article": "/articles/kanban-vs-gantt-for-team-work",
-  "code": "kanban\n  opportunities[فرصت‌ها]\n    topic[انتخاب موضوع]@{ ticket: SEO-201, priority: 'High' }\n  ready[آماده]\n    brief[Brief و intent تأییدشده]@{ assigned: 'تحریریه' }\n  doing[در حال تولید — حداکثر ۲]\n    article[نگارش مقاله]@{ ticket: SEO-203, assigned: 'نویسنده', priority: 'High' }\n    tutorial[ساخت آموزش]@{ ticket: SEO-204, assigned: 'نویسنده' }\n  review[بازبینی]\n    render[رندر مثال‌ها]@{ assigned: 'CI' }\n    seo[کنترل canonical و schema]@{ assigned: 'CI', priority: 'Very High' }\n  done[منتشرشده]\n    live[بررسی URL زنده]"
+  "code": "kanban\n  opportunities[فرصت‌ها]\n    topic[انتخاب موضوع]@{ ticket: SEO-201, priority: 'High' }\n  ready[آماده تولید]\n    brief[تدوین Brief]@{ assigned: 'تحریریه' }\n    article[نوشتن مقاله]@{ ticket: SEO-203, assigned: 'تحریریه', priority: 'High' }\n    tutorial[نوشتن آموزش]@{ ticket: SEO-204, assigned: 'تحریریه' }\n  review[بازبینی]\n    render[تست رندر]@{ assigned: 'CI' }\n    seo[بازبینی SEO و canonical]@{ assigned: 'CI', priority: 'Very High' }\n  done[منتشرشده]\n    live[انتشار URL]"
 }
