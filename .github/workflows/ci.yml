@@ -6,7 +6,7 @@ on:
     branches: [main]
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -31,6 +31,20 @@ jobs:
         run: node scripts/publish-daily-content.mjs
       - name: Synchronize crawlable content indexes
         run: node scripts/sync-content-indexes.mjs
+      - name: Commit generated editorial registries on main
+        if: github.ref == 'refs/heads/main' && github.actor == 'Emad211'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet; then
+            echo "Generated editorial registries are already current"
+            exit 0
+          fi
+          git add src/server/article-content.js src/server/learn-content.js public/js/templates.js src/server/seo.js tests/editorial-pages.test.mjs
+          git commit -m "chore: publish merged daily editorial content"
+          git push origin HEAD:main
       - name: Run test suite
         id: test_suite
         continue-on-error: true
