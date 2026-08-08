@@ -3,10 +3,7 @@
   "version": "1.9.0",
   "description": "Nemodara: a launch-ready Persian Mermaid editor with cross-origin isolated editor ads, revenue analytics and deep technical SEO.",
   "type": "module",
-  "bin": {
-    "mermaid-studio": "bin/cli.js",
-    "mstudio": "bin/cli.js"
-  },
+  "bin": {"mermaid-studio": "bin/cli.js", "mstudio": "bin/cli.js"},
   "scripts": {
     "start": "node bin/cli.js serve --host 0.0.0.0 --no-open",
     "serve": "node bin/cli.js serve",
@@ -26,47 +23,10 @@
     "test:editor-ads": "node --test tests/editor-ads-launch.test.mjs tests/editor-ads-browser.test.mjs",
     "test:release": "node --test tests/release-hardening.test.mjs"
   },
-  "keywords": [
-    "mermaid",
-    "diagram",
-    "flowchart",
-    "uml",
-    "persian",
-    "farsi",
-    "cli",
-    "gui",
-    "svg",
-    "png",
-    "webp",
-    "pdf",
-    "renderer",
-    "offline",
-    "local-first",
-    "privacy",
-    "analytics",
-    "seo",
-    "admin-dashboard",
-    "search-console",
-    "indexnow",
-    "technical-seo",
-    "revenue-analytics",
-    "docker-compose",
-    "local-development",
-    "editorial-workflow",
-    "content-brief",
-    "ad-revenue",
-    "command-palette",
-    "diagram-as-code",
-    "editor-ads",
-    "cross-origin-isolation",
-    "ad-viewability",
-    "launch-readiness"
-  ],
+  "keywords": ["mermaid", "diagram", "flowchart", "uml", "persian", "farsi", "cli", "gui", "svg", "png", "webp", "pdf", "renderer", "offline", "local-first", "privacy", "analytics", "seo", "admin-dashboard", "search-console", "indexnow", "technical-seo", "revenue-analytics", "docker-compose", "local-development", "editorial-workflow", "content-brief", "ad-revenue", "command-palette", "diagram-as-code", "editor-ads", "cross-origin-isolation", "ad-viewability", "launch-readiness"],
   "author": "Emad211",
   "license": "MIT",
-  "engines": {
-    "node": ">=18"
-  },
+  "engines": {"node": ">=18"},
   "dependencies": {
     "@fontsource-variable/jetbrains-mono": "^5.2.8",
     "@fontsource-variable/vazirmatn": "^5.2.8",
@@ -79,15 +39,11 @@
     "codemirror": "^5.65.19",
     "commander": "^12.1.0",
     "express": "^4.21.2",
-    "mermaid": "11.16.0",
+    "mermaid": "11.16.1",
     "open": "^10.1.0",
     "pako": "^2.1.0",
     "puppeteer": "24.31.0"
   },
-  "devDependencies": {
-    "esbuild": "0.28.1"
-  },
-  "overrides": {
-    "dompurify": "3.4.12"
-  }
+  "devDependencies": {"esbuild": "0.28.1"},
+  "overrides": {"dompurify": "3.4.12", "js-yaml": "5.2.2"}
 }

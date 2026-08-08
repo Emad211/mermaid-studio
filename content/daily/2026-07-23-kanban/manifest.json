@@ -1,22 +1,24 @@
 {
   "version": 1,
-  "date": "2026-07-23",
+  "date": "2026-08-08",
   "cluster": {
     "name": "Kanban در Mermaid برای مدیریت جریان کار",
     "primaryQuery": "آموزش Kanban در Mermaid",
     "secondaryQueries": [
+      "تفاوت Kanban و Flowchart",
       "تفاوت Kanban و Gantt",
       "ساخت برد کانبان با کد",
-      "قالب کانبان Mermaid",
-      "نمودار کانبان برای Sprint"
+      "قالب کانبان Mermaid"
     ],
     "intent": "آموزشی، مقایسه و انتخاب، یافتن قالب",
     "sources": [
       "https://mermaid.js.org/syntax/kanban.html",
       "https://mermaid.js.org/config/schema-docs/config-defs-kanban-diagram-config.html",
-      "https://mermaid.js.org/syntax/gantt.html",
-      "https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/creating-diagrams"
-    ]
+      "https://mermaid.js.org/syntax/flowchart.html",
+      "https://mermaid.js.org/syntax/gantt.html"
+    ],
+    "dataAvailability": "Search Console و آنالیتیکس first-party در این اجرا قابل دسترسی نبود؛ هیچ حجم جست‌وجو، CTR، رتبه یا عدد رقابتی فرض نشده است.",
+    "cannibalizationDecision": "صفحهٔ جدید ساخته نشد. ممیزی داخلی نشان داد خوشهٔ Kanban از 2026-07-23 با URLهای پایدار وجود دارد؛ همان مقاله، آموزش و قالب با حفظ slug و template ID به‌روزرسانی شدند تا intent موجود تقویت شود و صفحهٔ رقیب ساخته نشود."
   },
   "relatedLearnTitle": "آموزش Kanban در Mermaid"
 }
