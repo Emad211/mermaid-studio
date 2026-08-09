@@ -1,0 +1,28 @@
+{
+  "slug": "state-diagram-mermaid",
+  "shortTitle": "آموزش State Diagram در Mermaid",
+  "title": "آموزش State Diagram در Mermaid؛ ساخت چرخهٔ وضعیت و transition",
+  "description": "با stateDiagram-v2 یک State Machine قابل‌رندر بسازید، وضعیت‌ها و رویدادها را نام‌گذاری کنید، choice و حالت‌های ترکیبی را بشناسید و نمودار را برای مستندات فنی آماده کنید.",
+  "keywords": ["آموزش State Diagram در Mermaid", "stateDiagram-v2", "state machine Mermaid", "چرخهٔ وضعیت"],
+  "level": "مقدماتی تا متوسط",
+  "minutes": 18,
+  "published": "2026-08-09",
+  "updated": "2026-08-09",
+  "intro": "در پایان این آموزش یک چرخهٔ انتشار محتوا خواهید ساخت که از Draft شروع می‌شود، به Review و Approved می‌رسد و در صورت تأیید منتشر می‌شود. مثال‌ها با Mermaid 11.16.0 بررسی شده‌اند.",
+  "learningOutcomes": ["نوشتن stateDiagram-v2 و تعریف وضعیت‌ها", "افزودن transition با رویداد و شروع/پایان", "مدل‌سازی choice و حالت ترکیبی در صورت نیاز", "تشخیص زمان مناسب برای State Diagram در برابر Flowchart"],
+  "sections": [
+    {"id":"first-example","title":"۱) اولین نمودار سالم","paragraphs":["هر نمودار با stateDiagram-v2 شروع می‌شود. [*] وضعیت ویژهٔ شروع یا پایان است و --> انتقال را نشان می‌دهد."],"code":"stateDiagram-v2\n    [*] --> Draft\n    Draft --> Review : submit\n    Review --> Approved : approve\n    Approved --> Published : publish\n    Published --> [*]","codeLabel":"چرخهٔ حداقلی"},
+    {"id":"name-states","title":"۲) نام‌گذاری وضعیت‌ها و رویدادها","paragraphs":["نام وضعیت را کوتاه و اسمی نگه دارید: Draft، Review و Published وضعیت‌اند؛ submit و approve رویدادند. برای متن نمایشی فارسی می‌توانید شناسهٔ کوتاه را با توضیح جداگانه معرفی کنید."],"code":"stateDiagram-v2\n    state \"پیش‌نویس\" as Draft\n    state \"در بازبینی\" as Review\n    [*] --> Draft\n    Draft --> Review : submit\n    Review --> Draft : request_changes\n    Review --> [*] : cancel","codeLabel":"توضیح نمایشی برای وضعیت"},
+    {"id":"choice","title":"۳) افزودن choice برای مسیر تصمیم","paragraphs":["برای زمانی که یک وضعیت به دو یا چند مسیر بر اساس شرط می‌رود، از حالت ویژهٔ <<choice>> استفاده کنید. شرط را روی transition بنویسید؛ خود choice یک وضعیت تجاری نیست.","در مثال زیر، پس از اعتبارسنجی، خروجی به مسیر قبول یا رد می‌رود."],"code":"stateDiagram-v2\n    [*] --> Validating\n    state decision <<choice>>\n    Validating --> decision\n    decision --> Approved : valid\n    decision --> Rejected : invalid\n    Approved --> [*]\n    Rejected --> [*]","codeLabel":"مسیر تصمیم"},
+    {"id":"composite","title":"۴) چه زمانی حالت ترکیبی بسازیم؟","paragraphs":["حالت ترکیبی زمانی مفید است که یک وضعیت بزرگ، چند زیرحالت داخلی داشته باشد؛ مثلاً Processing که خود شامل Queued و Running است. این قابلیت را فقط وقتی استفاده کنید که جزئیات داخلی برای تصمیم یا مستندات مهم باشد.","از چندلایه‌کردن بی‌دلیل پرهیز کنید؛ نمودار باید برای خواننده قابل‌ردیابی بماند."],"code":"stateDiagram-v2\n    [*] --> Processing\n    state Processing {\n        [*] --> Queued\n        Queued --> Running : worker_start\n        Running --> [*] : done\n    }\n    Processing --> Completed\n    Completed --> [*]","codeLabel":"حالت ترکیبی"},
+    {"id":"direction-and-notes","title":"۵) جهت، note و خوانایی","paragraphs":["برای نمودارهای طولانی، direction LR یا direction TB را آگاهانه انتخاب کنید. note را برای توضیحی کوتاه نگه دارید؛ اگر توضیح به یک قانون کسب‌وکار تبدیل شد، آن را در متن مقاله یا مستندات کنار نمودار بنویسید." ]},
+    {"id":"common-errors","title":"۶) خطاهای رایج و رفع آن‌ها","paragraphs":["خطای رایج اول، استفاده از فعل به‌عنوان وضعیت است؛ به‌جای publishing از Published استفاده کنید. خطای دوم، نبود مسیر شروع یا پایان است. خطای سوم، استفاده از State Diagram برای نمایش ترتیب جزئیات یک الگوریتم است که معمولاً Flowchart برای آن مناسب‌تر است. خطای چهارم، ترکیب چند سیستم مستقل در یک نمودار بدون مرزبندی است."]},
+    {"id":"review-checklist","title":"۷) چک‌لیست بازبینی","paragraphs":["برای هر وضعیت یک تعریف قابل‌فهم دارید؟ هر transition یک رویداد یا علت دارد؟ مسیرهای ناممکن حذف شده‌اند؟ [*] برای شروع و پایان روشن است؟ مثال در نسخهٔ فعلی Mermaid رندر می‌شود؟ عنوان و توضیح دسترس‌پذیر برای صفحه وجود دارد؟"]}
+  ],
+  "faq": [
+    ["آیا باید همیشه از stateDiagram-v2 استفاده کنم؟", "برای مثال‌های جدید همین syntax را انتخاب کنید؛ پروژه باید با نسخهٔ Mermaid قفل‌شدهٔ خودش آن را رندر و اعتبارسنجی کند."],
+    ["تفاوت State Diagram و Flowchart چیست؟", "State Diagram وضعیت‌های پایدار و transitionها را مدل می‌کند؛ Flowchart مراحل، تصمیم‌ها و مسیر اجرای یک فرایند را."],
+    ["آیا می‌توانم داخل State Diagram متن فارسی بنویسم؟", "برای پایداری Parser، شناسه‌های کوتاه ASCII بسازید و متن فارسی را در توضیح state یا label transition قرار دهید؛ سپس با نسخهٔ پروژه رندر واقعی انجام دهید."],
+    ["آیا choice همان تصمیم کسب‌وکار است؟", "خیر. choice یک نقطهٔ فنی برای چندشاخه‌شدن مسیر است؛ منطق کسب‌وکار باید با برچسب transition و متن مستندات توضیح داده شود."]
+  ]
+}

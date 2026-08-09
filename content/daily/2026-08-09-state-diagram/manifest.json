@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "date": "2026-08-09",
+  "cluster": {
+    "name": "State Diagram در Mermaid برای مدل‌سازی چرخهٔ وضعیت",
+    "primaryQuery": "آموزش State Diagram در Mermaid",
+    "secondaryQueries": [
+      "stateDiagram-v2 در Mermaid",
+      "نمودار حالت برای گردش کار",
+      "تفاوت State Diagram و Flowchart",
+      "قالب State Machine در Mermaid"
+    ],
+    "intent": "آموزشی، مقایسه و انتخاب، یافتن قالب",
+    "sources": [
+      "https://mermaid.js.org/syntax/stateDiagram.html",
+      "https://mermaid.js.org/intro/syntax-reference.html"
+    ],
+    "dataAvailability": "Search Console و آنالیتیکس first-party در این اجرا قابل دسترسی نبود؛ هیچ حجم جست‌وجو، CTR، رتبه یا عدد رقابتی فرض نشده است.",
+    "serpOpportunity": "نتایج بازیابی‌شده بیشتر مستندات رسمی و ابزارهای عمومی بودند؛ یک راهنمای فارسی people-first که چرخهٔ وضعیت، transition، choice و مرز State Diagram با Flowchart را یکجا آموزش دهد در ممیزی فعلی پیدا نشد.",
+    "cannibalizationDecision": "در ممیزی داخلی مقاله، آموزش یا قالب مستقلی برای State Diagram پیدا نشد. خوشهٔ جدید intent مشخص مدل‌سازی وضعیت دارد و با Flowchart، Kanban، Gantt و Sequence Diagram هم‌پوشانی مستقیم ندارد؛ هرکدام در مقاله به‌عنوان ابزار مکمل از هم تفکیک می‌شوند."
+  },
+  "relatedLearnTitle": "آموزش State Diagram در Mermaid"
+}
