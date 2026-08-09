@@ -1,0 +1,11 @@
+{
+  "id": "template-content-release-state-machine",
+  "category": "software",
+  "badge": "State Machine",
+  "title": "چرخهٔ وضعیت انتشار محتوا",
+  "description": "قالب قابل‌ویرایش برای مدل‌سازی وضعیت‌های انتشار محتوا، رویدادهای تغییر وضعیت و مسیرهای تأیید یا اصلاح.",
+  "keywords": "قالب State Diagram Mermaid state machine چرخه وضعیت انتشار محتوا",
+  "tutorial": "/learn/state-diagram-mermaid",
+  "article": "/articles/state-diagram-vs-flowchart-for-lifecycle-modeling",
+  "code": "stateDiagram-v2\n    [*] --> Draft\n    Draft --> Review : submit\n    Review --> Draft : request_changes\n    Review --> Approved : approve\n    Approved --> Published : publish\n    Published --> Archived : archive\n    Archived --> [*]"
+}
